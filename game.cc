@@ -523,7 +523,7 @@ int main() {
 	}
 	
 	playerCar.speed = playerNewSpeed;
-	moveCar(playerCar,cdt);
+	moveCar(playerCar, dt);
 	malusBonusSpeed = 1;
 
     
