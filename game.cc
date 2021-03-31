@@ -120,25 +120,31 @@ std::vector<float> getProject(Position axis, std::vector<Position> verticle){
 //fin des algo de silvio
 
 
-
+//Algo de moi meme
 int redirectIfPunchWall(Car car, Wall wall){
 	int mustRedir = (car.direction - wall.directionStop +16) %16;
 	if (mustRedir == 0){
 		return wall.directionStop;
 	} else if(mustRedir < 4) {
-		return ( wall.direction - 4) % 16;
+		return ( wall.directionStop - 4) % 16;
 	} else if (mustRedir > 12){
-		return ( wall.direction + 4) % 16;
+		return ( wall.directionStop + 4) % 16;
 	}
 	return -1;
+}
+
+float calculateNorme(float x, float y){
+	return hypot(x * x + y * y);
 }
 
 Speed calculateSpeed(Car car, int acceleration, 
 		int avgAcceleration, bool isAccelerate, 
 		bool isBreack, bool isNitro, float dt){
-	float angleRad = (M_PI - car.direction * (M8PI /8)
-			+ 2 * M_PI) % 2 * M_PI;
+	float angleRad = fmod((M_PI - car.direction * (M_PI /8)
+			+ 2 * M_PI), (2 * M_PI));
 	float normeSpeed = calculateNorme(car.speed.x, car.speed.y);
+	float accelerationX;
+	float accelerationY;
 	Speed speed;
 	
 	if (!isAccelerate){
@@ -146,9 +152,9 @@ Speed calculateSpeed(Car car, int acceleration,
 	}
 	
 	if (isNitro){
-		speed.x <- cos ( angleRad ) * avgAcceleration * 6;
-		speed.y <- sin ( angleRad ) * avgAcceleration * 6;
-		return speed
+		speed.x = cos ( angleRad ) * avgAcceleration * 6;
+		speed.y = sin ( angleRad ) * avgAcceleration * 6;
+		return speed;
 	}
 	
 	if (isBreack){
@@ -165,19 +171,30 @@ Speed calculateSpeed(Car car, int acceleration,
 				(1/5 * normeSpeed * 2))* dt;
 		accelerationY = cos(angleRad)*(acceleration * 2 - 
 						(1/5 * normeSpeed * 2))* dt;
-		speed.x <- car.speed.x + accelerationX * dt;
-		speed.y <- car.speed.y + accelerationY * dt;
+		speed.x = car.speed.x + accelerationX * dt;
+		speed.y = car.speed.y + accelerationY * dt;
 	}
 	else {
-		float maxSpeed = avgAcceleration;
-		if ((normeSpeed / MaxSpeed) > 0.05){
-			float deceleration = maxspeed * (normeSpeed / maxSpeed) * 0.4;
-			accelerationX = 
+		float maxSpeed = avgAcceleration * 5;
+		if ((normeSpeed / maxSpeed) > 0.05){
+			float deceleration = maxSpeed * (normeSpeed / maxSpeed) * 0.4;
+			accelerationX = -cos( angleRad ) * ( deceleration ) * dt;
+			accelerationY = -sin( angleRad ) * ( deceleration ) * dt;
+			speed.x = car . speed . x + accelerationX * dt;
+			speed.y = car.speed.y + accelerationY * dt;
+		} else {
+			speed.x = 0;
+			speed.y = 0;
 		}
-		
 	}
+	return speed;
 }
 
+
+void moveCar(Car car, float dt){
+	car.position.x = car.position.x + car.speed.x * dt;
+	car.position.y = car.position.y + car.speed.y * dt;
+}
 
 int main() {
 	
