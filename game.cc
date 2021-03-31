@@ -199,7 +199,7 @@ std::vector<Position> hitbox2ToList(Hitbox2P hitbox){
 //
 Hitbox4P getHitboxCar(Car car, int longe, int large){
   Hitbox4P hitbox;
-  float angleRad = (M_PI - car.direction * (M_PI/8)+2*M_PI)%(2*M_PI);
+  float angleRad = fmod((M_PI - car.direction * (M_PI/8)+2*M_PI),(2*M_PI));
   float diag = hypot(large, longe);
   float angleCar = (asin(large/diag));
   hitbox.corner1.x = car.pos.x - cos(angleRad - angleCar)*diag;
@@ -336,9 +336,10 @@ int main() {
 	
 	const int WINDOW_WIDTH = 1600;
 	const int WINDOW_HEIGHT = 1200;
-	const std::string WINDOW_TITLE = "Super off Road";$
+	const std::string WINDOW_TITLE = "Super off Road";
 	
 	const int NITRO_SPAWN_TIME = 10000;
+	const int ACCELERATION = 20;
 	bool up, down, left, right, nitro;
 	up = down = left = right = nitro = false;
 			
@@ -366,12 +367,13 @@ int main() {
   Car playerCar;
   playerCar.pos.x = //la position initial de la voiture en x
   playerCar.pos.y = //la position initial de la voiture en y
-  playerCar.speed = 0;
+  playerCar.speed.x = 0;
+  playerCar.speed.y = 0;
   playerCar.direction = 0;
   playerCar.laps = 0;
   playerCar.flag = 0;
   playerCar.nbNitro = 3;
-  
+  float timer = 0;
   
   
   
@@ -465,11 +467,14 @@ int main() {
      * dans la variable `dt`. Ensuite, il faut compléter suivant ce qui est
      * demandé.
      */
+    float malusBonusSpeed = 1.0;
+    std::vector<Bonus> nitroList;
+    
     float dt = clock.restart().asSeconds();
     
     for (int i = 0; i < level.walls.size(); i++) {
-    	if (isCollision( hitbox4ToList (playerCar.hitbox),
-    			hitbox2ToList(level.walls[i].hitbox)){
+    	if (isCollision(hitbox4ToList(playerCar.hitbox),
+    			hitbox2ToList(level.walls[i].hitbox))){
     				redirectIfPunchWall( playerCar, level.walls[i]);
     				recalculateSpeedDirection(playerCar);
     				malusBonusSpeed = malusBonusSpeed - 0.40;
@@ -478,16 +483,17 @@ int main() {
     
     for (int i = 0; i < level.muds.size(); i++) {
         if (isCollision( hitbox4ToList (playerCar.hitbox),
-       			hitbox2ToList(level.muds[i].hitbox)){
+       			hitbox4ToList(level.muds[i].hitbox))){
        				malusBonusSpeed = malusBonusSpeed - 0.20;
        	}
     }
     
     for (int i = 0; i < nitroList.size(); i++) {
     	if (isCollision( hitbox4ToList (playerCar.hitbox),
-    			hitbox2ToList(nitroList[i].hitbox)){
+    			hitbox4ToList(nitroList[i].hitbox))){
     		playerCar.nbNitro = playerCar.nbNitro + 1;
-			nitroList[i] = null;
+			nitroList[i].pos.x = 0;
+			nitroList[i].pos.y = 0;
     	}
     }
     
@@ -507,17 +513,17 @@ int main() {
     			empty = false;
     		}
     		i++;
-    	} while (i < nitroList.size() || vide == true);
+    	} while (i < nitroList.size() || empty == true);
     }
     
 	if (empty == true){
-		nitroList[i] = generateNitro(ground.spawnPosNitro, nitroList);
+		nitroList[i] = generateNitro(level.spawnPosNitro, nitroList);
 	}
 	
 	//Comte les tours
 	for (int i = 0; i < level.flags.size(); i++) {
-	    if (isCollision( hitbox4ToList (playerCar.hitbox),
-	   			hitbox2ToList(level.flags[i].hitbox)){
+	    if (isCollision(hitbox4ToList(playerCar.hitbox),
+	   			hitbox2ToList(level.flags[i].hitbox))){
 	    	countTour(playerCar, level.flags[i], level.flags.size());
     	}
 	}
