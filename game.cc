@@ -110,6 +110,7 @@ struct Ground
   std::vector<Flag> flags;
 };
 //algo de silvio
+//algo de collision
 int vectorDotProduct(Position pt1, Position pt2){
   return (pt1.x * pt2.x + pt1.y * pt2.y);
 }
@@ -172,6 +173,20 @@ bool isCollision(std::vector<Position> verticle1, std::vector<Position> verticle
     collision = true;
   }
   return collision;
+}
+//fin des algo de collision
+std::vector<Position> hitbox4ToList(Hitbox4P hitbox){
+  std::vector<Position> verticle;
+  verticle[0].x = hitbox.corner1.x;
+  verticle[0].y = hitbox.corner1.y;
+  verticle[1].x = hitbox.corner2.x;
+  verticle[1].y = hitbox.corner2.y;
+  verticle[2].x = hitbox.corner3.x;
+  verticle[2].y = hitbox.corner3.y;
+  verticle[3].x = hitbox.corner4.x;
+  verticle[3].y = hitbox.corner1.y;
+  return
+
 }
 
 
