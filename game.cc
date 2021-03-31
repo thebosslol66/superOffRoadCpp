@@ -196,6 +196,12 @@ void moveCar(Car car, float dt){
 	car.position.y = car.position.y + car.speed.y * dt;
 }
 
+Bonus generateNitro(std::vector<Position> spawnNitro,
+		std::vector<Bonus> nitroList){
+	Bonus nitro;
+	booleen present = false;
+}
+
 int main() {
 	
 	
