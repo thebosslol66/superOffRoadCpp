@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <array>
+#include <vector>
 
 using namespace std;
 using namespace sf;
@@ -44,7 +45,9 @@ struct Math {
  *
  * Pour pouvoir dessiner des formes, vous pouvez lire le tutoriel suivant:
  * http://www.sfml-dev.org/tutorials/2.1/graphics-shape.php
+
  */
+
 struct Position
 {
   int x;
@@ -75,7 +78,7 @@ struct Flag
 struct Wall
 {
   Hitbox2P hitbox;
-  int directionStop
+  int directionStop;
 };
 struct Car
 {
@@ -99,12 +102,21 @@ struct Mud
 };
 struct Ground
 {
-  Wall[] walls;
-  Position[] spawnNitro;
-  Mud[] muds;
-  Flag[] flags;
+  std::vector<Wall> walls;
+  std::vector<Position> spawnPosNitro;
+  std::vector<Mud> muds;
+  std::vector<Flag> flags;
 };
-
+//algo de silvio
+std::vector<float> getProject(Position axis, std::vector<Position> verticle){
+  std::vector<float> listProject;
+  for (int i = 0; i < verticle.size(); ++i)
+  {
+    listProject[i] = vectorDotProduct(axis, verticle[i]);
+  }
+  return listProject;
+}
+//fin des algo de silvio
 
 
 int main() {
