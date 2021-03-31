@@ -277,6 +277,14 @@ Bonus generateNitro(std::vector<Position> spawnNitro,
 	return nitro;
 }
 
+void recalculateSpeedDirection(Car car){
+	float angleRad = fmod((M_PI - car.direction * (M_PI / 8) + 2*M_PI),
+			(2 * M_PI));
+	float normeVitesse = calculateNorme(car.speed.x, car.speed.y);
+	car.speed.x = cos(angleRad) * normeVitesse;
+	car.speed.y = sin(angleRad) * normeVitesse;
+}
+
 int main() {
 	
 	
@@ -377,6 +385,17 @@ int main() {
       }
 
     }
+    
+    //On applique la direction a la voiture 
+    if (left){
+    	playerCar.direction = ( playerCar.direction - 1) % 16;
+    }
+    if (right) {
+    	playerCar.direction = ( playerCar.direction + 1) % 16;
+    }
+    if (left || right) {
+    	recalculateSpeedDirection(playerCar);
+    }
 
     /*
      * Mise à jour de l'état du jeu.
@@ -386,7 +405,32 @@ int main() {
      */
     float dt = clock.restart().asSeconds();
     
+    for (int i = 0; i < level.walls.size(); i++) {
+    	if (isCollision( hitbox4ToList (playerCar.hitbox),
+    			hitbox2ToList(level.walls[i].hitbox)){
+    				redirectIfPunchWall( playerCar, level.walls[i]);
+    				recalculateSpeedDirection(playerCar);
+    				malusBonusSpeed = malusBonusSpeed - 0.40;
+    	}
+    }
     
+    for (int i = 0; i < level.muds.size(); i++) {
+        if (isCollision( hitbox4ToList (playerCar.hitbox),
+       			hitbox2ToList(level.muds[i].hitbox)){
+       				malusBonusSpeed = malusBonusSpeed - 0.20;
+       	}
+    }
+    
+    for (int i = 0; i < nitroList.size(); i++) {
+    	if (isCollision( hitbox4ToList (playerCar.hitbox),
+    			hitbox2ToList(nitroList[i].hitbox)){
+    		playerCar.nbNitro = playerCar.nbNitro + 1;
+			nitroList[i] = null;
+    	}
+    }
+    
+    //On calcule ensuite la nouvelle vitesse de la voiture
+    Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * malusBonusSpeed, ACCELERATION, haut, bas, nitro, dt);
 
     /*
      * Affichage de l'état du jeu.
