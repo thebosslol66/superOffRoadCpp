@@ -58,6 +58,14 @@ struct Rectangle {
 int main() {
 	
 	
+	const WINDOW_WIDTH = 1600;
+	const WINDOW_HEIGHT = 1200;
+	const WINDOW_TITLE = "Super off Road";
+	bool up, down, left, right, nitro;
+	up = down = left = right = nitro = false;
+			
+			
+			
   /*
    * Une RenderWindow est une fenêtre qui permet de récupérer des événements
    * d'entrée (comme le clavier et la souris) et d'afficher des entités.
@@ -65,7 +73,7 @@ int main() {
    * La documentation se trouve ici:
    * http://www.sfml-dev.org/documentation/2.1/classsf_1_1RenderWindow.php
    */
-  RenderWindow window(VideoMode(1600, 1200), "Titre");
+  RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE);
 
   /*
    * Une Clock permet de compter le temps. Vous en aurez besoin pour savoir
@@ -112,17 +120,40 @@ int main() {
        */
 
       if (event.type == Event::KeyPressed) {
-    	 
+    	  if (event.key.code == sf::Keyboard::Left){
+    		  left = true;
+    	  }
+    	  else if (event.key.code == sf::Keyboard::Right){
+    		  right = true;
+    	  }
+    	  else if (event.key.code == sf::Keyboard::Up){
+    		  up = true;
+    	  }
+    	  else if (event.key.code == sf::Keyboard::Down){
+    		  down = true;
+    	  }
+    	  else if (event.key.code == sf::Keyboard::Backspace){
+    		  nitro = true;
+    	  }
       }
-
       if (event.type == Event::KeyReleased) {
-    	  
-    	  
+    	  if (event.key.code == sf::Keyboard::Left){
+    		  left = false;
+    	  }
+    	  else if (event.key.code == sf::Keyboard::Right){
+    		  right = false;
+    	  }
+    	  else if (event.key.code == sf::Keyboard::Up){
+    		  up = false;
+    	  }
+    	  else if (event.key.code == sf::Keyboard::Down){
+    		  down = false;
+    	  }
+    	  else if (event.key.code == sf::Keyboard::Backspace){
+    		  nitro = false;
+    	  }
       }
 
-      if (event.type == sf::Event::MouseButtonPressed) {
-    	  
-      }
     }
 
     /*
