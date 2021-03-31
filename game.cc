@@ -303,15 +303,12 @@ void moveCar(Car car, float dt){
 	car.pos.y = car.pos.y + car.speed.y * dt;
 }
 
+
+//il doit y avoir obligatoirement une place de libre dans nitroList 
 Bonus generateNitro(std::vector<Position> spawnNitro,
 		std::vector<Bonus> nitroList){
 	Bonus nitro;
 	bool present = false;
-	
-	/* Verifier ici qu'il reste de la place disponible 
-	** pour mettre une nouvelle nitro sinon boucle infine
-	*/
-	
 	do{
 		int hazard = (int) (Math::random() * spawnNitro.size());
 		nitro.pos.x = spawnNitro[hazard].x;
@@ -339,7 +336,9 @@ int main() {
 	
 	const int WINDOW_WIDTH = 1600;
 	const int WINDOW_HEIGHT = 1200;
-	const std::string WINDOW_TITLE = "Super off Road";
+	const std::string WINDOW_TITLE = "Super off Road";$
+	
+	const int NITRO_SPAWN_TIME = 10000;
 	bool up, down, left, right, nitro;
 	up = down = left = right = nitro = false;
 			
@@ -479,8 +478,42 @@ int main() {
     }
     
     //On calcule ensuite la nouvelle vitesse de la voiture
-    Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * malusBonusSpeed, ACCELERATION, haut, bas, nitro, dt);
+    Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * malusBonusSpeed, ACCELERATION, up, down, nitro, dt);
 
+    
+    //Timer Pour le spawn de nitro
+    timer += dt;
+    bool empty = false;
+    int i = 0;
+    if (timer == NITRO_SPAWN_TIME){
+    	do{
+    		if (nitroList[i].pos.x == 0 && nitroList[i].pos.y == 0){
+    			empty = true;
+    		} else {
+    			empty = false;
+    		}
+    		i++;
+    	} while (i < nitroList.size() || vide == true);
+    }
+    
+	if (empty == true){
+		nitroList[i] = generateNitro(ground.spawnPosNitro, nitroList);
+	}
+	
+	//Comte les tours
+	for (int i = 0; i < level.flags.size(); i++) {
+	    if (isCollision( hitbox4ToList (playerCar.hitbox),
+	   			hitbox2ToList(level.flags[i].hitbox)){
+	    	countTour(playerCar, level.flags[i], level.flags.size());
+    	}
+	}
+	
+	playerCar.speed = playerNewSpeed;
+	moveCar(playerCar,cdt);
+	malusBonusSpeed = 1;
+
+    
+    
     /*
      * Affichage de l'état du jeu.
      * À chaque tour de boucle, on efface tout grâce à `clear` (qui prend
