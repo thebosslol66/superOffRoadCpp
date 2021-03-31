@@ -214,15 +214,15 @@ Hitbox4P getHitboxCar(Car car, int longe, int large){
 }
 //
 int countTour(Car car, Flag flag, int nbFlag){
-  if (flag.nb == 0 && Car.flag == nbFlag-1)
+  if (flag.nb == 0 && car.flag == nbFlag-1)
   {
-    Car.laps++;
-    Car.flag = 0;
-  }else if (flag.nb - Car.flag == 1)
+    car.laps++;
+    car.flag = 0;
+  }else if (flag.nb - car.flag == 1)
   {
-    Car.flag++;
+    car.flag++;
   }
-  return Car.laps
+  return car.laps;
 }
 //fin des algo de silvio
 
@@ -358,6 +358,20 @@ int main() {
    * le temps entre deux frames.
    */
   Clock clock;
+  Ground level;
+  level.walls = [/*position des mur*/];
+  level.spawnPosNitro = [/*position ou peux spawn la nitro*/];
+  level.muds = [/*position des obstacles*/];
+  level.flags = [/*position des flags*/];
+  Car playerCar;
+  playerCar.pos.x = //la position initial de la voiture en x
+  playerCar.pos.y = //la position initial de la voiture en y
+  playerCar.speed = 0;
+  playerCar.direction = 0;
+  playerCar.laps = 0;
+  playerCar.flag = 0;
+  playerCar.nbNitro = 3;
+  
   
   
   
