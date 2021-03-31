@@ -14,6 +14,7 @@
 #include <iostream>
 #include <array>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 using namespace sf;
@@ -139,7 +140,39 @@ std::vector<Position> getAxisList(std::vector<Position> verticle){
   return listAxis;
 }
 //
-bool isCollisionAxis(Position axis, std::vector<Position> verticle1)
+bool isCollisionAxis(Position axis, std::vector<Position> verticle1, std::vector<Position> verticle2){
+  std::vector<float> listProj1;
+  std::vector<float> listProj2;
+  bool isCollision = false;
+  listProj1 = getProject(axis, verticle1);
+  listProj2 = getProject(axis, verticle2);
+  std::sort(listProj1.begin(), listProj1.end());
+  std::sort(listProj1.begin(), listProj1.end());
+  if (listProj1[listProj1.size()-1]>=listProj2[0] && listProj1[0] <= listProj2[listProj2.size()-1])
+  {
+    isCollision = true;
+  }
+  return isCollision;
+}
+//
+bool isCollision(std::vector<Position> verticle1, std::vector<Position> verticle2){
+  std::vector<Position> listAxis;
+  listAxis = getAxisList(verticle1);
+  bool collision = false;
+  int count;
+  for (int i = 0; i < listAxis.size(); ++i)
+  {
+    if (isCollisionAxis(listAxis[i], verticle1, verticle2))
+    {
+      count++;
+    }
+  }
+  if (count == listAxis.size())
+  {
+    collision = true;
+  }
+  return collision;
+}
 
 
 //fin des algo de silvio
