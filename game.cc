@@ -45,12 +45,64 @@ struct Math {
  * Pour pouvoir dessiner des formes, vous pouvez lire le tutoriel suivant:
  * http://www.sfml-dev.org/tutorials/2.1/graphics-shape.php
  */
-struct Rectangle {
+struct Position
+{
+  int x;
+  int y;
+};
+struct Hitbox2P
+{
+  Position corner1;
+  Position corner2;
+};
+struct Hitbox4P
+{
+  Position corner1;
+  Position corner2;
+  Position corner3;
+  Position corner4;
+};
+struct Speed
+{
   float x;
   float y;
-  float width;
-  float height;
-  
+};
+struct Flag
+{
+  Hitbox2P hitbox;
+  int nb;
+};
+struct Wall
+{
+  Hitbox2P hitbox;
+  int directionStop
+};
+struct Car
+{
+  Position pos;
+  Speed speed;
+  int direction;
+  int laps;
+  Hitbox4P hitbox;
+  int flag;
+  int nbNitro;
+};
+struct Bonus
+{
+  Position pos;
+  Hitbox4P hitbox;
+};
+struct Mud
+{
+  Position pos;
+  Hitbox4P hitbox;
+};
+struct Ground
+{
+  Wall[] walls;
+  Position[] spawnNitro;
+  Mud[] muds;
+  Flag[] flags;
 };
 
 
