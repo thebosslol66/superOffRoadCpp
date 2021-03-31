@@ -159,7 +159,7 @@ int redirectIfPunchWall(Car car, Wall wall){
 }
 
 float calculateNorme(float x, float y){
-	return hypot(x * x + y * y);
+	return hypot(x, y);
 }
 
 Speed calculateSpeed(Car car, int acceleration, 
@@ -217,14 +217,31 @@ Speed calculateSpeed(Car car, int acceleration,
 
 
 void moveCar(Car car, float dt){
-	car.position.x = car.position.x + car.speed.x * dt;
-	car.position.y = car.position.y + car.speed.y * dt;
+	car.pos.x = car.pos.x + car.speed.x * dt;
+	car.pos.y = car.pos.y + car.speed.y * dt;
 }
 
 Bonus generateNitro(std::vector<Position> spawnNitro,
 		std::vector<Bonus> nitroList){
 	Bonus nitro;
-	booleen present = false;
+	bool present = false;
+	
+	/* Verifier ici qu'il reste de la place disponible 
+	** pour mettre une nouvelle nitro sinon boucle infine
+	*/
+	
+	do{
+		int hazard = (int) (Math::random() * spawnNitro.size());
+		nitro.pos.x = spawnNitro[hazard].x;
+		nitro.pos.y = spawnNitro[hazard].y;
+		for (int i = 0; i < spawnNitro.size(); i++){
+			if (nitroList[i].pos.x == nitro.pos.x && 
+					nitroList[i].pos.y == nitro.pos.y){
+				present = true;
+			}
+		}
+	} while(present);
+	return nitro;
 }
 
 int main() {
