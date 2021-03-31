@@ -109,6 +109,10 @@ struct Ground
   std::vector<Flag> flags;
 };
 //algo de silvio
+int vectorDotProduct(Position pt1, Position pt2){
+  return (pt1.x * pt2.x + pt1.y * pt2.y);
+}
+//
 std::vector<float> getProject(Position axis, std::vector<Position> verticle){
   std::vector<float> listProject;
   for (int i = 0; i < verticle.size(); ++i)
@@ -117,6 +121,27 @@ std::vector<float> getProject(Position axis, std::vector<Position> verticle){
   }
   return listProject;
 }
+//
+std::vector<Position> getAxisList(std::vector<Position> verticle){
+  std::vector<Position> listAxis;
+  float magnitude;
+  for (int i = 0; i < verticle.size(); ++i)
+  {
+    listAxis[i].x = -(verticle[i+1%4].y - verticle[i].y);
+    listAxis[i].y = (verticle[i+1%4].x - verticle[i].y);
+    magnitude = hypot(listAxis[i].x, listAxis[i].y);
+    if (magnitude != 0)
+    {
+      listAxis[i].x /= magnitude;
+      listAxis[i].y /= magnitude;
+    }
+  }
+  return listAxis;
+}
+//
+bool isCollisionAxis(Position axis, std::vector<Position> verticle1)
+
+
 //fin des algo de silvio
 
 
