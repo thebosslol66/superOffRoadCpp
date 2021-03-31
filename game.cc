@@ -160,7 +160,7 @@ bool isCollision(std::vector<Position> verticle1, std::vector<Position> verticle
   std::vector<Position> listAxis;
   listAxis = getAxisList(verticle1);
   bool collision = false;
-  int count;
+  int count = 0;
   for (int i = 0; i < listAxis.size(); ++i)
   {
     if (isCollisionAxis(listAxis[i], verticle1, verticle2))
@@ -185,11 +185,45 @@ std::vector<Position> hitbox4ToList(Hitbox4P hitbox){
   verticle[2].y = hitbox.corner3.y;
   verticle[3].x = hitbox.corner4.x;
   verticle[3].y = hitbox.corner1.y;
-  return
-
+  return verticle;
 }
-
-
+//
+std::vector<Position> hitbox2ToList(Hitbox2P hitbox){
+  std::vector<Position> verticle;
+  verticle[0].x = hitbox.corner1.x;
+  verticle[0].y = hitbox.corner1.y;
+  verticle[1].x = hitbox.corner2.x;
+  verticle[1].y = hitbox.corner2.y;
+  return verticle;
+}
+//
+Hitbox4P getHitboxCar(Car car, int longe, int large){
+  Hitbox4P hitbox;
+  float angleRad = (M_PI - car.direction * (M_PI/8)+2*M_PI)%(2*M_PI);
+  float diag = hypot(large, longe);
+  float angleCar = (asin(large/diag));
+  hitbox.corner1.x = car.pos.x - cos(angleRad - angleCar)*diag;
+  hitbox.corner1.y = car.pos.y + sin(angleRad - angleCar)*diag;
+  hitbox.corner2.x = car.pos.x - cos(angleRad + angleCar)*diag;
+  hitbox.corner2.y = car.pos.y + sin(angleRad + angleCar)*diag;
+  hitbox.corner3.x = car.pos.x + cos(angleRad - angleCar)*diag;
+  hitbox.corner3.y = car.pos.y + sin(angleRad + angleCar)*diag;
+  hitbox.corner4.x = car.pos.x + cos(angleRad - angleCar)*diag;
+  hitbox.corner4.y = car.pos.y + sin(angleRad - angleCar)*diag;
+  return hitbox;
+}
+//
+int countTour(Car car, Flag flag, int nbFlag){
+  if (flag.nb == 0 && Car.flag == nbFlag-1)
+  {
+    Car.laps++;
+    Car.flag = 0;
+  }else if (flag.nb - Car.flag == 1)
+  {
+    Car.flag++;
+  }
+  return Car.laps
+}
 //fin des algo de silvio
 
 
