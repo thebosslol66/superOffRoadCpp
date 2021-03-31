@@ -9,6 +9,7 @@
 
 #include <random>
 #include <SFML/Graphics.hpp>
+#include <math.h>
 
 #include <iostream>
 #include <array>
@@ -107,12 +108,71 @@ struct Ground
 
 
 
+
+int redirectIfPunchWall(Car car, Wall wall){
+	int mustRedir = (car.direction - wall.directionStop +16) %16;
+	if (mustRedir == 0){
+		return wall.directionStop;
+	} else if(mustRedir < 4) {
+		return ( wall.direction - 4) % 16;
+	} else if (mustRedir > 12){
+		return ( wall.direction + 4) % 16;
+	}
+	return -1;
+}
+
+Speed calculateSpeed(Car car, int acceleration, 
+		int avgAcceleration, bool isAccelerate, 
+		bool isBreack, bool isNitro, float dt){
+	float angleRad = (M_PI - car.direction * (M8PI /8)
+			+ 2 * M_PI) % 2 * M_PI;
+	float normeSpeed = calculateNorme(car.speed.x, car.speed.y);
+	Speed speed;
+	
+	if (!isAccelerate){
+		acceleration = 0;
+	}
+	
+	if (isNitro){
+		speed.x <- cos ( angleRad ) * avgAcceleration * 6;
+		speed.y <- sin ( angleRad ) * avgAcceleration * 6;
+		return speed
+	}
+	
+	if (isBreack){
+		if ( normeSpeed < (1/5 * ( avgAcceleration * 5)) ) {
+			normeSpeed = 0;
+		}
+		speed.x = cos(angleRad) * normeSpeed * (1/3) * dt;
+		speed.y = sin(angleRad) * normeSpeed * (1/3) * dt;
+		return speed;
+	}
+	
+	if (acceleration != 0){
+		accelerationX = cos(angleRad)*(acceleration * 2 - 
+				(1/5 * normeSpeed * 2))* dt;
+		accelerationY = cos(angleRad)*(acceleration * 2 - 
+						(1/5 * normeSpeed * 2))* dt;
+		speed.x <- car.speed.x + accelerationX * dt;
+		speed.y <- car.speed.y + accelerationY * dt;
+	}
+	else {
+		float maxSpeed = avgAcceleration;
+		if ((normeSpeed / MaxSpeed) > 0.05){
+			float deceleration = maxspeed * (normeSpeed / maxSpeed) * 0.4;
+			accelerationX = 
+		}
+		
+	}
+}
+
+
 int main() {
 	
 	
-	const WINDOW_WIDTH = 1600;
-	const WINDOW_HEIGHT = 1200;
-	const WINDOW_TITLE = "Super off Road";
+	const int WINDOW_WIDTH = 1600;
+	const int WINDOW_HEIGHT = 1200;
+	const std::string WINDOW_TITLE = "Super off Road";
 	bool up, down, left, right, nitro;
 	up = down = left = right = nitro = false;
 			
