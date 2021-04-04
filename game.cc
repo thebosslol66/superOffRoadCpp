@@ -10,6 +10,9 @@
 #include <random>
 #include <SFML/Graphics.hpp>
 #include <math.h>
+#include <fstream>
+#include <string>
+#include <regex>
 
 #include <iostream>
 #include <array>
@@ -331,12 +334,89 @@ void recalculateSpeedDirection(Car car){
 	car.speed.y = sin(angleRad) * normeVitesse;
 }
 
+
+
+void makeLevel(Ground level, std::string src){
+	ifstream levelData(src);
+
+	if(levelData)
+	{
+		std::string line;
+		std::string delimiter = ":";
+		
+		
+		
+		std::regex wallPattern("\\(([0-9]+),([0-9]+)\\)-([0-9]+)-\\(([0-9]+),([0-9]+)\\)");
+		std::regex nitroPattern("\\(([0-9]+),([0-9]+)\\)");
+		
+		std::regex flagPattern("\\(([0-9]+),([0-9]+)\\)-([0-9]+)-\\(([0-9]+),([0-9]+)\\)");
+		
+		std::smatch m;
+		
+	    while(getline(levelData, line)){
+	    	std::string token = line.substr(0, line.find(delimiter));
+	    	if (token == "Wall"){
+		    	line = line.substr(line.find(delimiter)+2);
+	    		while (std::regex_search(line, m, wallPattern)){
+
+	    			Wall wall;
+	    			wall.hitbox.corner1.x = std::stoi(m[1]);
+	    			wall.hitbox.corner1.y = std::stoi(m[2]);
+	    			wall.directionStop = std::stoi(m[3]);
+	    			wall.hitbox.corner2.x = std::stoi(m[4]);
+	    			wall.hitbox.corner2.y = std::stoi(m[5]);
+	    			level.walls.push_back(wall);
+	    			line = line.substr(line.find(")-")+1);
+	    			
+	    		}
+	    	}
+	    	if (token == "Nitro"){
+		    	line = line.substr(line.find(delimiter)+2);
+	    		while (std::regex_search(line, m, nitroPattern)){
+	    			Position nitro;
+	    			nitro.x = std::stoi(m[1]);
+	    			nitro.y = std::stoi(m[2]);
+	    			level.spawnPosNitro.push_back(nitro);
+	    			line = line.substr(line.find(')')+1);
+	    		}
+	    	}
+	    	
+	    	if (token == "Mud"){
+	    		line = line.substr(line.find(delimiter)+2);
+	    		while (std::regex_search(line, m, nitroPattern)){
+	    			Mud mud;
+	    			
+	    		}
+	    	}
+	    	if (token == "Flag"){
+	    		line = line.substr(line.find(delimiter)+2);
+	    		while (std::regex_search(line, m, flagPattern)){
+	    			Flag newFlag;
+	    			newFlag.hitbox.corner1.x = std::stoi(m[1]);
+	    			newFlag.hitbox.corner1.y = std::stoi(m[2]);
+	    			newFlag.nb = std::stoi(m[3]);
+	    			newFlag.hitbox.corner2.x = std::stoi(m[4]);
+	    			newFlag.hitbox.corner2.y = std::stoi(m[5]);
+	    			level.flags.push_back(newFlag);
+	    			line = line.substr(m.position(0) + m.length(0));
+	    		}
+	    		
+	    	}
+	    }
+	}
+	else
+	{
+	    throw "Can't read the file " + src;
+	}
+}
+
 int main() {
 	
 	
 	const int WINDOW_WIDTH = 1600;
 	const int WINDOW_HEIGHT = 1200;
 	const std::string WINDOW_TITLE = "Super off Road";
+	const int MAX_FPS = 120;
 	
 	const int NITRO_SPAWN_TIME = 10000;
 	const int ACCELERATION = 20;
@@ -360,10 +440,13 @@ int main() {
    */
   Clock clock;
   Ground level;
-  level.walls = [/*position des mur*/];
-  level.spawnPosNitro = [/*position ou peux spawn la nitro*/];
-  level.muds = [/*position des obstacles*/];
-  level.flags = [/*position des flags*/];
+  makeLevel(level, "level1.txt");
+  /*
+  level.walls = [];
+  level.spawnPosNitro = [];
+  level.muds = [];
+  level.flags = [];
+  */
   Car playerCar;
   playerCar.pos.x = //la position initial de la voiture en x
   playerCar.pos.y = //la position initial de la voiture en y
@@ -545,7 +628,8 @@ int main() {
     window.display();
     
     float framerate = 1 / (clock.getElapsedTime().asSeconds());
-    std::cout << framerate << std::endl;
+    sf::sleep(sf::seconds((1.0/MAX_FPS)-clock.getElapsedTime().asSeconds()));
+    //std::cout << framerate << std::endl;
 
   }
 
