@@ -248,14 +248,17 @@ float calculateNorme(float x, float y){
 }
 
 Speed calculateSpeed(Car car, int acceleration, 
-		int avgAcceleration, bool isAccelerate, 
-		bool isBreack, bool isNitro, float dt){
+	int avgAcceleration, bool isAccelerate, 
+	bool isBreack, bool isNitro, float dt){
+	
 	float angleRad = fmod((M_PI - car.direction * (M_PI /8)
 			+ 2 * M_PI), (2 * M_PI));
+
 	float normeSpeed = calculateNorme(car.speed.x, car.speed.y);
 	float accelerationX;
 	float accelerationY;
 	Speed speed;
+	
 	
 	if (!isAccelerate){
 		acceleration = 0;
@@ -271,27 +274,27 @@ Speed calculateSpeed(Car car, int acceleration,
 		if ( normeSpeed < (1/5 * ( avgAcceleration * 5)) ) {
 			normeSpeed = 0;
 		}
-		speed.x = cos(angleRad) * normeSpeed * (1/3) * dt;
-		speed.y = sin(angleRad) * normeSpeed * (1/3) * dt;
+		speed.x = cos(angleRad) * normeSpeed * (1/3);
+		speed.y = sin(angleRad) * normeSpeed * (1/3);
 		return speed;
 	}
 	
 	if (acceleration != 0){
 		accelerationX = cos(angleRad)*(acceleration * 2 - 
-				(1/5 * normeSpeed * 2))* dt;
-		accelerationY = cos(angleRad)*(acceleration * 2 - 
-						(1/5 * normeSpeed * 2))* dt;
-		speed.x = car.speed.x + accelerationX * dt;
-		speed.y = car.speed.y + accelerationY * dt;
+				(1/5 * normeSpeed * 2));
+		accelerationY = sin(angleRad)*(acceleration * 2 - 
+						(1/5 * normeSpeed * 2));
+		speed.x = car.speed.x + accelerationX;
+		speed.y = car.speed.y + accelerationY;
 	}
 	else {
 		float maxSpeed = avgAcceleration * 5;
 		if ((normeSpeed / maxSpeed) > 0.05){
 			float deceleration = maxSpeed * (normeSpeed / maxSpeed) * 0.4;
-			accelerationX = -cos( angleRad ) * ( deceleration ) * dt;
-			accelerationY = -sin( angleRad ) * ( deceleration ) * dt;
-			speed.x = car . speed . x + accelerationX * dt;
-			speed.y = car.speed.y + accelerationY * dt;
+			accelerationX = -cos( angleRad ) * ( deceleration );
+			accelerationY = -sin( angleRad ) * ( deceleration );
+			speed.x = car . speed . x + accelerationX;
+			speed.y = car.speed.y + accelerationY;
 		} else {
 			speed.x = 0;
 			speed.y = 0;
@@ -301,9 +304,9 @@ Speed calculateSpeed(Car car, int acceleration,
 }
 
 
-void moveCar(Car car, float dt){
-	car.pos.x = car.pos.x + car.speed.x * dt;
-	car.pos.y = car.pos.y + car.speed.y * dt;
+void moveCar(Car *car, float dt){
+	car->pos.x = car->pos.x + car->speed.x * dt * dt;
+	car->pos.y = car->pos.y + car->speed.y * dt * dt;
 }
 
 
@@ -418,11 +421,18 @@ int main() {
 	const std::string WINDOW_TITLE = "Super off Road";
 	const int MAX_FPS = 120;
 	
+	const float TIME_BEFORE_REACTIVATE = 1.0;
+	
 	const int NITRO_SPAWN_TIME = 10000;
 	const int ACCELERATION = 20;
 	bool up, down, left, right, nitro;
 	up = down = left = right = nitro = false;
-			
+	
+	double lastActiveUp, lastActiveDown, lastActiveLeft, lastActiveRight, lastActiveNitro;
+	lastActiveUp = lastActiveDown = lastActiveLeft = lastActiveRight = lastActiveNitro = 0;
+	
+	const int CAR_LONGUEUR = 40;
+	const int CAR_HAUTEUR = 20;
 			
 			
   /*
@@ -448,8 +458,8 @@ int main() {
   level.flags = [];
   */
   Car playerCar;
-  playerCar.pos.x = //la position initial de la voiture en x
-  playerCar.pos.y = //la position initial de la voiture en y
+  playerCar.pos.x = 500;//la position initial de la voiture en x
+  playerCar.pos.y = 500;//la position initial de la voiture en y
   playerCar.speed.x = 0;
   playerCar.speed.y = 0;
   playerCar.direction = 0;
@@ -458,6 +468,8 @@ int main() {
   playerCar.nbNitro = 3;
   float timer = 0;
   
+  float malusBonusSpeed = 1.0;
+  std::vector<Bonus> nitroList;
   
   
   
@@ -505,12 +517,15 @@ int main() {
     	  }
     	  else if (event.key.code == sf::Keyboard::Up){
     		  up = true;
+    		  lastActiveUp = TIME_BEFORE_REACTIVATE;
     	  }
     	  else if (event.key.code == sf::Keyboard::Down){
     		  down = true;
+    		  lastActiveDown = TIME_BEFORE_REACTIVATE;
     	  }
     	  else if (event.key.code == sf::Keyboard::Backspace){
     		  nitro = true;
+    		  lastActiveNitro = TIME_BEFORE_REACTIVATE;
     	  }
       }
       if (event.type == Event::KeyReleased) {
@@ -532,17 +547,6 @@ int main() {
       }
 
     }
-    
-    //On applique la direction a la voiture 
-    if (left){
-    	playerCar.direction = ( playerCar.direction - 1) % 16;
-    }
-    if (right) {
-    	playerCar.direction = ( playerCar.direction + 1) % 16;
-    }
-    if (left || right) {
-    	recalculateSpeedDirection(playerCar);
-    }
 
     /*
      * Mise à jour de l'état du jeu.
@@ -550,11 +554,33 @@ int main() {
      * dans la variable `dt`. Ensuite, il faut compléter suivant ce qui est
      * demandé.
      */
-    float malusBonusSpeed = 1.0;
-    std::vector<Bonus> nitroList;
+   
     
     float dt = clock.restart().asSeconds();
     
+    
+    
+    //On applique la direction a la voiture 
+     if (left && lastActiveLeft <= 0){
+     	lastActiveLeft = TIME_BEFORE_REACTIVATE + dt;
+     	playerCar.direction = ( playerCar.direction - 1) % 16;
+     }
+     if (right && lastActiveRight <= 0) {
+ 		lastActiveRight = TIME_BEFORE_REACTIVATE + dt;
+     	playerCar.direction = ( playerCar.direction + 1) % 16;
+     }
+     if (left || right) {
+     	recalculateSpeedDirection(playerCar);
+     }
+     
+     if (lastActiveLeft > 0){
+    	 lastActiveLeft -= dt;
+     }
+     if (lastActiveRight){
+         lastActiveRight -= dt;
+     }
+     
+     
     for (int i = 0; i < level.walls.size(); i++) {
     	if (isCollision(hitbox4ToList(playerCar.hitbox),
     			hitbox2ToList(level.walls[i].hitbox))){
@@ -580,9 +606,10 @@ int main() {
     	}
     }
     
+     
     //On calcule ensuite la nouvelle vitesse de la voiture
     Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * malusBonusSpeed, ACCELERATION, up, down, nitro, dt);
-
+    
     
     //Timer Pour le spawn de nitro
     timer += dt;
@@ -611,8 +638,9 @@ int main() {
     	}
 	}
 	
+    
 	playerCar.speed = playerNewSpeed;
-	moveCar(playerCar, dt);
+	moveCar(&playerCar, dt);
 	malusBonusSpeed = 1;
 
     
@@ -624,6 +652,16 @@ int main() {
      * puis on affiche la nouvelle image grâce à `display`.
      */
     
+	window.clear(Color::White);
+	
+	
+	sf::RectangleShape carShape(sf::Vector2f(CAR_LONGUEUR, CAR_HAUTEUR));
+	carShape.setPosition(playerCar.pos.x + CAR_LONGUEUR/2 , playerCar.pos.y + CAR_HAUTEUR/2);
+	carShape.setOrigin(CAR_LONGUEUR/2, CAR_HAUTEUR/2);
+	carShape.setRotation(180 - (playerCar.direction/16.0 * 360));
+	carShape.setFillColor(sf::Color::Blue);
+	
+	window.draw(carShape);
 
     window.display();
     
