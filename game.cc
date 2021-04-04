@@ -55,8 +55,8 @@ struct Math {
 
 struct Position
 {
-  int x;
-  int y;
+  float x;
+  float y;
 };
 struct Hitbox2P
 {
@@ -421,7 +421,7 @@ int main() {
 	const std::string WINDOW_TITLE = "Super off Road";
 	const int MAX_FPS = 120;
 	
-	const float TIME_BEFORE_REACTIVATE = 1.0;
+	const float TIME_BEFORE_REACTIVATE = 0.5;
 	
 	const int NITRO_SPAWN_TIME = 10000;
 	const int ACCELERATION = 20;
