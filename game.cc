@@ -255,6 +255,7 @@ Speed calculateSpeed(Car car, int acceleration,
 			+ 2 * M_PI), (2 * M_PI));
 
 	float normeSpeed = calculateNorme(car.speed.x, car.speed.y);
+	float maxSpeed = avgAcceleration * 5;
 	float accelerationX;
 	float accelerationY;
 	Speed speed;
@@ -274,27 +275,33 @@ Speed calculateSpeed(Car car, int acceleration,
 		if ( normeSpeed < (1/5 * ( avgAcceleration * 5)) ) {
 			normeSpeed = 0;
 		}
-		speed.x = cos(angleRad) * normeSpeed * (1/3);
-		speed.y = sin(angleRad) * normeSpeed * (1/3);
+		speed.x = cos(angleRad) * (normeSpeed - normeSpeed * 1.75 * dt);
+		speed.y = sin(angleRad) * (normeSpeed - normeSpeed * 1.75 * dt);
 		return speed;
 	}
 	
 	if (acceleration != 0){
-		accelerationX = cos(angleRad)*(acceleration * 2 - 
-				(1/5 * normeSpeed * 2));
-		accelerationY = sin(angleRad)*(acceleration * 2 - 
-						(1/5 * normeSpeed * 2));
-		speed.x = car.speed.x + accelerationX;
-		speed.y = car.speed.y + accelerationY;
+		if ((normeSpeed / maxSpeed) > 0.95){
+			accelerationX = 9;
+			accelerationY = 0;
+		} else {
+			accelerationX = cos(angleRad)*(acceleration * 2 - 
+					(1/5 * normeSpeed * 2));
+			accelerationY = sin(angleRad)*(acceleration * 2 - 
+							(1/5 * normeSpeed * 2));
+		}
+		
+		speed.x = car.speed.x + accelerationX * dt;
+		speed.y = car.speed.y + accelerationY * dt;
 	}
 	else {
-		float maxSpeed = avgAcceleration * 5;
-		if ((normeSpeed / maxSpeed) > 0.05){
-			float deceleration = maxSpeed * (normeSpeed / maxSpeed) * 0.4;
+		
+		if ((normeSpeed / maxSpeed) > 0.2){
+			float deceleration = maxSpeed * (normeSpeed / maxSpeed) * 0.5;
 			accelerationX = -cos( angleRad ) * ( deceleration );
 			accelerationY = -sin( angleRad ) * ( deceleration );
-			speed.x = car . speed . x + accelerationX;
-			speed.y = car.speed.y + accelerationY;
+			speed.x = car.speed.x + accelerationX * dt;
+			speed.y = car.speed.y + accelerationY * dt;
 		} else {
 			speed.x = 0;
 			speed.y = 0;
@@ -305,8 +312,8 @@ Speed calculateSpeed(Car car, int acceleration,
 
 
 void moveCar(Car *car, float dt){
-	car->pos.x = car->pos.x + car->speed.x * dt * dt;
-	car->pos.y = car->pos.y + car->speed.y * dt * dt;
+	car->pos.x = car->pos.x + car->speed.x * dt;
+	car->pos.y = car->pos.y + car->speed.y * dt;
 }
 
 
@@ -329,12 +336,12 @@ Bonus generateNitro(std::vector<Position> spawnNitro,
 	return nitro;
 }
 
-void recalculateSpeedDirection(Car car){
-	float angleRad = fmod((M_PI - car.direction * (M_PI / 8) + 2*M_PI),
+void recalculateSpeedDirection(Car *car){
+	float angleRad = fmod((M_PI - car->direction * (M_PI / 8) + 2*M_PI),
 			(2 * M_PI));
-	float normeVitesse = calculateNorme(car.speed.x, car.speed.y);
-	car.speed.x = cos(angleRad) * normeVitesse;
-	car.speed.y = sin(angleRad) * normeVitesse;
+	float normeVitesse = calculateNorme(car->speed.x, car->speed.y);
+	car->speed.x = cos(angleRad) * normeVitesse;
+	car->speed.y = sin(angleRad) * normeVitesse;
 }
 
 
@@ -421,10 +428,15 @@ int main() {
 	const std::string WINDOW_TITLE = "Super off Road";
 	const int MAX_FPS = 120;
 	
-	const float TIME_BEFORE_REACTIVATE = 0.5;
+	const float TIME_BEFORE_REACTIVATE = 0.1;
+	
+	
+	std::string levelFile("level1");
+	
+	
 	
 	const int NITRO_SPAWN_TIME = 10000;
-	const int ACCELERATION = 20;
+	const int ACCELERATION = 30;
 	bool up, down, left, right, nitro;
 	up = down = left = right = nitro = false;
 	
@@ -450,7 +462,15 @@ int main() {
    */
   Clock clock;
   Ground level;
-  makeLevel(level, "level1.txt");
+  makeLevel(level, levelFile + ".txt");
+  
+  sf::Texture backgroundTexture;
+  backgroundTexture.loadFromFile(levelFile + ".png");
+  sf::Sprite background;
+  background.setTexture(backgroundTexture);
+  
+  background.setScale(sf::Vector2f((WINDOW_WIDTH/backgroundTexture.getSize().x), (WINDOW_HEIGHT/backgroundTexture.getSize().y)));
+  
   /*
   level.walls = [];
   level.spawnPosNitro = [];
@@ -570,7 +590,7 @@ int main() {
      	playerCar.direction = ( playerCar.direction + 1) % 16;
      }
      if (left || right) {
-     	recalculateSpeedDirection(playerCar);
+     	recalculateSpeedDirection(&playerCar);
      }
      
      if (lastActiveLeft > 0){
@@ -585,7 +605,7 @@ int main() {
     	if (isCollision(hitbox4ToList(playerCar.hitbox),
     			hitbox2ToList(level.walls[i].hitbox))){
     				redirectIfPunchWall( playerCar, level.walls[i]);
-    				recalculateSpeedDirection(playerCar);
+    				recalculateSpeedDirection(&playerCar);
     				malusBonusSpeed = malusBonusSpeed - 0.40;
     	}
     }
@@ -654,6 +674,7 @@ int main() {
     
 	window.clear(Color::White);
 	
+	window.draw(background);
 	
 	sf::RectangleShape carShape(sf::Vector2f(CAR_LONGUEUR, CAR_HAUTEUR));
 	carShape.setPosition(playerCar.pos.x + CAR_LONGUEUR/2 , playerCar.pos.y + CAR_HAUTEUR/2);
