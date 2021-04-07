@@ -275,8 +275,8 @@ Speed calculateSpeed(Car car, int acceleration,
 		if ( normeSpeed < (1/5 * ( avgAcceleration * 5)) ) {
 			normeSpeed = 0;
 		}
-		speed.x = cos(angleRad) * (normeSpeed - normeSpeed * 1.75 * dt);
-		speed.y = sin(angleRad) * (normeSpeed - normeSpeed * 1.75 * dt);
+		speed.x = cos(angleRad) * (normeSpeed - normeSpeed * 3 * dt);
+		speed.y = sin(angleRad) * (normeSpeed - normeSpeed * 3 * dt);
 		return speed;
 	}
 	
@@ -583,11 +583,11 @@ int main() {
     //On applique la direction a la voiture 
      if (left && lastActiveLeft <= 0){
      	lastActiveLeft = TIME_BEFORE_REACTIVATE + dt;
-     	playerCar.direction = ( playerCar.direction - 1) % 16;
+     	playerCar.direction = ( playerCar.direction + 1) % 16;
      }
      if (right && lastActiveRight <= 0) {
  		lastActiveRight = TIME_BEFORE_REACTIVATE + dt;
-     	playerCar.direction = ( playerCar.direction + 1) % 16;
+     	playerCar.direction = ( playerCar.direction - 1) % 16;
      }
      if (left || right) {
      	recalculateSpeedDirection(&playerCar);
