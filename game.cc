@@ -114,11 +114,11 @@ struct Ground
 };
 //algo de silvio
 //algo de collision
-int vectorDotProduct(Position pt1, Position pt2){
+int vectorDotProduct(const Position& pt1, const Position& pt2){
   return (pt1.x * pt2.x + pt1.y * pt2.y);
 }
 //
-std::vector<float> getProject(Position axis, std::vector<Position> verticle){
+std::vector<float> getProject(const Position& axis, const std::vector<Position>& verticle){
   std::vector<float> listProject;
   for (int i = 0; i < verticle.size(); ++i)
   {
@@ -127,7 +127,7 @@ std::vector<float> getProject(Position axis, std::vector<Position> verticle){
   return listProject;
 }
 //
-std::vector<Position> getAxisList(std::vector<Position> verticle){
+std::vector<Position> getAxisList(const std::vector<Position>& verticle){
   std::vector<Position> listAxis;
   float magnitude;
   for (int i = 0; i < verticle.size(); ++i)
@@ -144,7 +144,7 @@ std::vector<Position> getAxisList(std::vector<Position> verticle){
   return listAxis;
 }
 //
-bool isCollisionAxis(Position axis, std::vector<Position> verticle1, std::vector<Position> verticle2){
+bool isCollisionAxis(const Position& axis, const std::vector<Position>& verticle1, const std::vector<Position>& verticle2){
   std::vector<float> listProj1;
   std::vector<float> listProj2;
   bool isCollision = false;
@@ -159,7 +159,7 @@ bool isCollisionAxis(Position axis, std::vector<Position> verticle1, std::vector
   return isCollision;
 }
 //
-bool isCollision(std::vector<Position> verticle1, std::vector<Position> verticle2){
+bool isCollision(const std::vector<Position>& verticle1, const std::vector<Position>& verticle2){
   std::vector<Position> listAxis;
   listAxis = getAxisList(verticle1);
   bool collision = false;
@@ -178,7 +178,7 @@ bool isCollision(std::vector<Position> verticle1, std::vector<Position> verticle
   return collision;
 }
 //fin des algo de collision
-std::vector<Position> hitbox4ToList(Hitbox4P hitbox){
+std::vector<Position> hitbox4ToList(const Hitbox4P& hitbox){
   std::vector<Position> verticle;
   verticle[0].x = hitbox.corner1.x;
   verticle[0].y = hitbox.corner1.y;
@@ -191,7 +191,7 @@ std::vector<Position> hitbox4ToList(Hitbox4P hitbox){
   return verticle;
 }
 //
-std::vector<Position> hitbox2ToList(Hitbox2P hitbox){
+std::vector<Position> hitbox2ToList(const Hitbox2P& hitbox){
   std::vector<Position> verticle;
   verticle[0].x = hitbox.corner1.x;
   verticle[0].y = hitbox.corner1.y;
@@ -200,7 +200,7 @@ std::vector<Position> hitbox2ToList(Hitbox2P hitbox){
   return verticle;
 }
 //
-Hitbox4P getHitboxCar(Car car, int longe, int large){
+Hitbox4P getHitboxCar(const Car& car, const int& longe, const int& large){
   Hitbox4P hitbox;
   float angleRad = fmod((M_PI - car.direction * (M_PI/8)+2*M_PI),(2*M_PI));
   float diag = hypot(large, longe);
@@ -216,7 +216,7 @@ Hitbox4P getHitboxCar(Car car, int longe, int large){
   return hitbox;
 }
 //
-int countTour(Car car, Flag flag, int nbFlag){
+int countTour(Car& car, const Flag& flag, const int& nbFlag){
   if (flag.nb == 0 && car.flag == nbFlag-1)
   {
     car.laps++;
@@ -231,7 +231,7 @@ int countTour(Car car, Flag flag, int nbFlag){
 
 
 //Algo de moi meme
-int redirectIfPunchWall(Car car, Wall wall){
+int redirectIfPunchWall(const Car& car, const Wall& wall){
 	int mustRedir = (car.direction - wall.directionStop +16) %16;
 	if (mustRedir == 0){
 		return wall.directionStop;
@@ -243,13 +243,13 @@ int redirectIfPunchWall(Car car, Wall wall){
 	return -1;
 }
 
-float calculateNorme(float x, float y){
+float calculateNorme(const float& x, const float& y){
 	return hypot(x, y);
 }
 
-Speed calculateSpeed(Car car, int acceleration, 
-	int avgAcceleration, bool isAccelerate, 
-	bool isBreack, bool isNitro, float dt){
+Speed calculateSpeed(const Car& car, int acceleration, 
+	const int& avgAcceleration, const bool& isAccelerate, 
+	const bool& isBreack, const bool& isNitro, const float& dt){
 	
 	float angleRad = fmod((M_PI - car.direction * (M_PI /8)
 			+ 2 * M_PI), (2 * M_PI));
@@ -311,15 +311,15 @@ Speed calculateSpeed(Car car, int acceleration,
 }
 
 
-void moveCar(Car *car, float dt){
-	car->pos.x = car->pos.x + car->speed.x * dt;
-	car->pos.y = car->pos.y + car->speed.y * dt;
+void moveCar(Car& car, const float& dt){
+	car.pos.x = car.pos.x + car.speed.x * dt;
+	car.pos.y = car.pos.y + car.speed.y * dt;
 }
 
 
 //il doit y avoir obligatoirement une place de libre dans nitroList 
-Bonus generateNitro(std::vector<Position> spawnNitro,
-		std::vector<Bonus> nitroList){
+Bonus generateNitro(const std::vector<Position>& spawnNitro,
+		const std::vector<Bonus>& nitroList){
 	Bonus nitro;
 	bool present = false;
 	do{
@@ -336,17 +336,17 @@ Bonus generateNitro(std::vector<Position> spawnNitro,
 	return nitro;
 }
 
-void recalculateSpeedDirection(Car *car){
-	float angleRad = fmod((M_PI - car->direction * (M_PI / 8) + 2*M_PI),
+void recalculateSpeedDirection(Car& car){
+	float angleRad = fmod((M_PI - car.direction * (M_PI / 8) + 2*M_PI),
 			(2 * M_PI));
-	float normeVitesse = calculateNorme(car->speed.x, car->speed.y);
-	car->speed.x = cos(angleRad) * normeVitesse;
-	car->speed.y = sin(angleRad) * normeVitesse;
+	float normeVitesse = calculateNorme(car.speed.x, car.speed.y);
+	car.speed.x = cos(angleRad) * normeVitesse;
+	car.speed.y = sin(angleRad) * normeVitesse;
 }
 
 
-
-void makeLevel(Ground level, std::string src){
+void makeLevel(Ground& level, std::string src){
+	Ground cache;
 	ifstream levelData(src);
 
 	if(levelData)
@@ -362,22 +362,24 @@ void makeLevel(Ground level, std::string src){
 		std::regex flagPattern("\\(([0-9]+),([0-9]+)\\)-([0-9]+)-\\(([0-9]+),([0-9]+)\\)");
 		
 		std::smatch m;
-		
+
 	    while(getline(levelData, line)){
 	    	std::string token = line.substr(0, line.find(delimiter));
 	    	if (token == "Wall"){
 		    	line = line.substr(line.find(delimiter)+2);
 	    		while (std::regex_search(line, m, wallPattern)){
-
+	    			
 	    			Wall wall;
+	    			
 	    			wall.hitbox.corner1.x = std::stoi(m[1]);
 	    			wall.hitbox.corner1.y = std::stoi(m[2]);
 	    			wall.directionStop = std::stoi(m[3]);
 	    			wall.hitbox.corner2.x = std::stoi(m[4]);
 	    			wall.hitbox.corner2.y = std::stoi(m[5]);
-	    			level.walls.push_back(wall);
-	    			line = line.substr(line.find(")-")+1);
 	    			
+	    			level.walls.push_back(wall);
+	    			
+	    			line = line.substr(line.find(")-")+1);
 	    		}
 	    	}
 	    	if (token == "Nitro"){
@@ -413,6 +415,8 @@ void makeLevel(Ground level, std::string src){
 	    		
 	    	}
 	    }
+	    cout << cache.walls.size() << " " << cache.spawnPosNitro.size()<< " " << cache.muds.size() << " " << cache.flags.size() << endl;
+	    
 	}
 	else
 	{
@@ -461,6 +465,7 @@ int main() {
    * le temps entre deux frames.
    */
   Clock clock;
+  
   Ground level;
   makeLevel(level, levelFile + ".txt");
   
@@ -590,7 +595,7 @@ int main() {
      	playerCar.direction = ( playerCar.direction - 1) % 16;
      }
      if (left || right) {
-     	recalculateSpeedDirection(&playerCar);
+     	recalculateSpeedDirection(playerCar);
      }
      
      if (lastActiveLeft > 0){
@@ -600,12 +605,12 @@ int main() {
          lastActiveRight -= dt;
      }
      
-     
+    
     for (int i = 0; i < level.walls.size(); i++) {
     	if (isCollision(hitbox4ToList(playerCar.hitbox),
     			hitbox2ToList(level.walls[i].hitbox))){
     				redirectIfPunchWall( playerCar, level.walls[i]);
-    				recalculateSpeedDirection(&playerCar);
+    				recalculateSpeedDirection(playerCar);
     				malusBonusSpeed = malusBonusSpeed - 0.40;
     	}
     }
@@ -660,7 +665,7 @@ int main() {
 	
     
 	playerCar.speed = playerNewSpeed;
-	moveCar(&playerCar, dt);
+	moveCar(playerCar, dt);
 	malusBonusSpeed = 1;
 
     
