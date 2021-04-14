@@ -462,8 +462,8 @@ int main() {
    */
   Clock clock;
   Ground level;
-  makeLevel(level, levelFile + ".txt");
-  
+  //makeLevel(level, levelFile + ".txt");
+ cout << level;
   sf::Texture backgroundTexture;
   backgroundTexture.loadFromFile(levelFile + ".png");
   sf::Sprite background;
