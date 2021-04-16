@@ -415,7 +415,7 @@ void makeLevel(Ground& level, std::string src){
 	    		
 	    	}
 	    }
-	    cout << cache.walls.size() << " " << cache.spawnPosNitro.size()<< " " << cache.muds.size() << " " << cache.flags.size() << endl;
+	    
 	    
 	}
 	else
@@ -434,6 +434,7 @@ int main() {
 	
 	const float TIME_BEFORE_REACTIVATE = 0.1;
 	
+	int idCurrentWindow = 0;
 	
 	std::string levelFile("level1");
 	
@@ -441,8 +442,8 @@ int main() {
 	
 	const int NITRO_SPAWN_TIME = 10000;
 	const int ACCELERATION = 30;
-	bool up, down, left, right, nitro;
-	up = down = left = right = nitro = false;
+	bool up, down, left, right, nitro, enter;
+	up = down = left = right = nitro = enter = false;
 	
 	double lastActiveUp, lastActiveDown, lastActiveLeft, lastActiveRight, lastActiveNitro;
 	lastActiveUp = lastActiveDown = lastActiveLeft = lastActiveRight = lastActiveNitro = 0;
@@ -552,6 +553,9 @@ int main() {
     		  nitro = true;
     		  lastActiveNitro = TIME_BEFORE_REACTIVATE;
     	  }
+    	  else if (event.key.code == sf::Keyboard::Return){
+    	      	enter = true;
+    	  }
       }
       if (event.type == Event::KeyReleased) {
     	  if (event.key.code == sf::Keyboard::Left){
@@ -569,6 +573,9 @@ int main() {
     	  else if (event.key.code == sf::Keyboard::Backspace){
     		  nitro = false;
     	  }
+    	  else if (event.key.code == sf::Keyboard::Return){
+    	      enter = false;
+    	  }
       }
 
     }
@@ -583,111 +590,132 @@ int main() {
     
     float dt = clock.restart().asSeconds();
     
-    
-    
-    //On applique la direction a la voiture 
-     if (left && lastActiveLeft <= 0){
-     	lastActiveLeft = TIME_BEFORE_REACTIVATE + dt;
-     	playerCar.direction = ( playerCar.direction + 1) % 16;
-     }
-     if (right && lastActiveRight <= 0) {
- 		lastActiveRight = TIME_BEFORE_REACTIVATE + dt;
-     	playerCar.direction = ( playerCar.direction - 1) % 16;
-     }
-     if (left || right) {
-     	recalculateSpeedDirection(playerCar);
-     }
-     
-     if (lastActiveLeft > 0){
-    	 lastActiveLeft -= dt;
-     }
-     if (lastActiveRight){
-         lastActiveRight -= dt;
-     }
-     
-    
-    for (int i = 0; i < level.walls.size(); i++) {
-    	if (isCollision(hitbox4ToList(playerCar.hitbox),
-    			hitbox2ToList(level.walls[i].hitbox))){
-    				redirectIfPunchWall( playerCar, level.walls[i]);
-    				recalculateSpeedDirection(playerCar);
-    				malusBonusSpeed = malusBonusSpeed - 0.40;
-    	}
-    }
-    
-    for (int i = 0; i < level.muds.size(); i++) {
-        if (isCollision( hitbox4ToList (playerCar.hitbox),
-       			hitbox4ToList(level.muds[i].hitbox))){
-       				malusBonusSpeed = malusBonusSpeed - 0.20;
-       	}
-    }
-    
-    for (int i = 0; i < nitroList.size(); i++) {
-    	if (isCollision( hitbox4ToList (playerCar.hitbox),
-    			hitbox4ToList(nitroList[i].hitbox))){
-    		playerCar.nbNitro = playerCar.nbNitro + 1;
-			nitroList[i].pos.x = 0;
-			nitroList[i].pos.y = 0;
-    	}
-    }
-    
-     
-    //On calcule ensuite la nouvelle vitesse de la voiture
-    Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * malusBonusSpeed, ACCELERATION, up, down, nitro, dt);
-    
-    
-    //Timer Pour le spawn de nitro
-    timer += dt;
-    bool empty = false;
-    int i = 0;
-    if (timer == NITRO_SPAWN_TIME){
-    	do{
-    		if (nitroList[i].pos.x == 0 && nitroList[i].pos.y == 0){
-    			empty = true;
-    		} else {
-    			empty = false;
-    		}
-    		i++;
-    	} while (i < nitroList.size() || empty == true);
-    }
-    
-	if (empty == true){
-		nitroList[i] = generateNitro(level.spawnPosNitro, nitroList);
-	}
-	
-	//Comte les tours
-	for (int i = 0; i < level.flags.size(); i++) {
-	    if (isCollision(hitbox4ToList(playerCar.hitbox),
-	   			hitbox2ToList(level.flags[i].hitbox))){
-	    	countTour(playerCar, level.flags[i], level.flags.size());
-    	}
-	}
-	
-    
-	playerCar.speed = playerNewSpeed;
-	moveCar(playerCar, dt);
-	malusBonusSpeed = 1;
+    if (idCurrentWindow == 0){
+    	
+    	if (enter){
+    		idCurrentWindow = 1;
 
+    	}
+    	
+    	sf::Text enterText = sf::Text();
+    	enterText.setString("Insert COIN (or press enter)");
+    	enterText.setFillColor(sf::Color(0,0,0,1));
+    	enterText.setPosition(WINDOW_WIDTH/2, WINDOW_HEIGHT/2);
+    	
+    	window.clear(Color::White);
+    	
+    	window.draw(enterText);
+    	
+    
+    }
     
     
-    /*
-     * Affichage de l'état du jeu.
-     * À chaque tour de boucle, on efface tout grâce à `clear` (qui prend
-     * en paramètre la couleur de fond), puis on dessine tous les éléments,
-     * puis on affiche la nouvelle image grâce à `display`.
-     */
-    
-	window.clear(Color::White);
+    else if (idCurrentWindow == 1){
+	    //On applique la direction a la voiture 
+	     if (left && lastActiveLeft <= 0){
+	     	lastActiveLeft = TIME_BEFORE_REACTIVATE + dt;
+	     	playerCar.direction = ( playerCar.direction + 1) % 16;
+	     }
+	     if (right && lastActiveRight <= 0) {
+	 		lastActiveRight = TIME_BEFORE_REACTIVATE + dt;
+	     	playerCar.direction = ( playerCar.direction - 1) % 16;
+	     }
+	     if (left || right) {
+	     	recalculateSpeedDirection(playerCar);
+	     }
+	     
+	     if (lastActiveLeft > 0){
+	    	 lastActiveLeft -= dt;
+	     }
+	     if (lastActiveRight){
+	         lastActiveRight -= dt;
+	     }
+	     
+	    
+	    for (int i = 0; i < level.walls.size(); i++) {
+	    	if (isCollision(hitbox4ToList(playerCar.hitbox),
+	    			hitbox2ToList(level.walls[i].hitbox))){
+	    				redirectIfPunchWall( playerCar, level.walls[i]);
+	    				recalculateSpeedDirection(playerCar);
+	    				malusBonusSpeed = malusBonusSpeed - 0.40;
+	    	}
+	    }
+	    
+	    for (int i = 0; i < level.muds.size(); i++) {
+	        if (isCollision( hitbox4ToList (playerCar.hitbox),
+	       			hitbox4ToList(level.muds[i].hitbox))){
+	       				malusBonusSpeed = malusBonusSpeed - 0.20;
+	       	}
+	    }
+	    
+	    for (int i = 0; i < nitroList.size(); i++) {
+	    	if (isCollision( hitbox4ToList (playerCar.hitbox),
+	    			hitbox4ToList(nitroList[i].hitbox))){
+	    		playerCar.nbNitro = playerCar.nbNitro + 1;
+				nitroList[i].pos.x = 0;
+				nitroList[i].pos.y = 0;
+	    	}
+	    }
+	    
+	     
+	    //On calcule ensuite la nouvelle vitesse de la voiture
+	    Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * malusBonusSpeed, ACCELERATION, up, down, nitro, dt);
+	    
+	    
+	    //Timer Pour le spawn de nitro
+	    timer += dt;
+	    bool empty = false;
+	    int i = 0;
+	    if (timer == NITRO_SPAWN_TIME){
+	    	do{
+	    		if (nitroList[i].pos.x == 0 && nitroList[i].pos.y == 0){
+	    			empty = true;
+	    		} else {
+	    			empty = false;
+	    		}
+	    		i++;
+	    	} while (i < nitroList.size() || empty == true);
+	    }
+	    
+		if (empty == true){
+			nitroList[i] = generateNitro(level.spawnPosNitro, nitroList);
+		}
+		
+		//Comte les tours
+		for (int i = 0; i < level.flags.size(); i++) {
+		    if (isCollision(hitbox4ToList(playerCar.hitbox),
+		   			hitbox2ToList(level.flags[i].hitbox))){
+		    	countTour(playerCar, level.flags[i], level.flags.size());
+	    	}
+		}
+		
+	    
+		playerCar.speed = playerNewSpeed;
+		moveCar(playerCar, dt);
+		malusBonusSpeed = 1;
 	
-	window.draw(background);
+	    
+	    
+	    /*
+	     * Affichage de l'état du jeu.
+	     * À chaque tour de boucle, on efface tout grâce à `clear` (qui prend
+	     * en paramètre la couleur de fond), puis on dessine tous les éléments,
+	     * puis on affiche la nouvelle image grâce à `display`.
+	     */
+	    
+		window.clear(Color::White);
+		
+		window.draw(background);
+		
+		sf::RectangleShape carShape(sf::Vector2f(CAR_LONGUEUR, CAR_HAUTEUR));
+		carShape.setPosition(playerCar.pos.x + CAR_LONGUEUR/2 , playerCar.pos.y + CAR_HAUTEUR/2);
+		carShape.setOrigin(CAR_LONGUEUR/2, CAR_HAUTEUR/2);
+		carShape.setRotation(180 - (playerCar.direction/16.0 * 360));
+		carShape.setFillColor(sf::Color::Blue);
+		
+		window.draw(carShape);
 	
-	sf::RectangleShape carShape(sf::Vector2f(CAR_LONGUEUR, CAR_HAUTEUR));
-	carShape.setPosition(playerCar.pos.x + CAR_LONGUEUR/2 , playerCar.pos.y + CAR_HAUTEUR/2);
-	carShape.setOrigin(CAR_LONGUEUR/2, CAR_HAUTEUR/2);
-	carShape.setRotation(180 - (playerCar.direction/16.0 * 360));
-	carShape.setFillColor(sf::Color::Blue);
-	
-	window.draw(carShape);
+    }
 
     window.display();
     
