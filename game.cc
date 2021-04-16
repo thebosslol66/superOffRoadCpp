@@ -18,6 +18,7 @@
 #include <array>
 #include <vector>
 #include <algorithm>
+#include <assert.h>
 
 using namespace std;
 using namespace sf;
@@ -119,7 +120,7 @@ int vectorDotProduct(const Position& pt1, const Position& pt2){
 }
 //
 std::vector<float> getProject(const Position& axis, const std::vector<Position>& verticle){
-  std::vector<float> listProject;
+  std::vector<float> listProject(verticle.size());
   for (int i = 0; i < verticle.size(); ++i)
   {
     listProject[i] = vectorDotProduct(axis, verticle[i]);
@@ -128,7 +129,7 @@ std::vector<float> getProject(const Position& axis, const std::vector<Position>&
 }
 //
 std::vector<Position> getAxisList(const std::vector<Position>& verticle){
-  std::vector<Position> listAxis;
+  std::vector<Position> listAxis(verticle.size());
   float magnitude;
   for (int i = 0; i < verticle.size(); ++i)
   {
@@ -145,8 +146,8 @@ std::vector<Position> getAxisList(const std::vector<Position>& verticle){
 }
 //
 bool isCollisionAxis(const Position& axis, const std::vector<Position>& verticle1, const std::vector<Position>& verticle2){
-  std::vector<float> listProj1;
-  std::vector<float> listProj2;
+  std::vector<float> listProj1(verticle1.size());
+  std::vector<float> listProj2(verticle2.size());
   bool isCollision = false;
   listProj1 = getProject(axis, verticle1);
   listProj2 = getProject(axis, verticle2);
@@ -160,7 +161,7 @@ bool isCollisionAxis(const Position& axis, const std::vector<Position>& verticle
 }
 //
 bool isCollision(const std::vector<Position>& verticle1, const std::vector<Position>& verticle2){
-  std::vector<Position> listAxis;
+  std::vector<Position> listAxis(verticle1.size());
   listAxis = getAxisList(verticle1);
   bool collision = false;
   int count = 0;
@@ -179,7 +180,7 @@ bool isCollision(const std::vector<Position>& verticle1, const std::vector<Posit
 }
 //fin des algo de collision
 std::vector<Position> hitbox4ToList(const Hitbox4P& hitbox){
-  std::vector<Position> verticle;
+  std::vector<Position> verticle(4);
   verticle[0].x = hitbox.corner1.x;
   verticle[0].y = hitbox.corner1.y;
   verticle[1].x = hitbox.corner2.x;
@@ -192,7 +193,7 @@ std::vector<Position> hitbox4ToList(const Hitbox4P& hitbox){
 }
 //
 std::vector<Position> hitbox2ToList(const Hitbox2P& hitbox){
-  std::vector<Position> verticle;
+  std::vector<Position> verticle(2);
   verticle[0].x = hitbox.corner1.x;
   verticle[0].y = hitbox.corner1.y;
   verticle[1].x = hitbox.corner2.x;
@@ -468,8 +469,8 @@ int main() {
   Clock clock;
   
   Ground level;
-  makeLevel(level, levelFile + ".txt");
-  
+  //makeLevel(level, levelFile + ".txt");
+  //cout << level;
   sf::Texture backgroundTexture;
   backgroundTexture.loadFromFile(levelFile + ".png");
   sf::Sprite background;
