@@ -425,6 +425,52 @@ void makeLevel(Ground& level, std::string src){
 	}
 }
 
+
+
+
+//fonction de débugage
+//affichage de la vrai htibox des murs
+
+int getWallLength(Wall wall){
+  return(hypot((wall.hitbox.corner2.x - wall.hitbox.corner1.x),(wall.hitbox.corner2.y - wall.hitbox.corner1.y)));
+}
+
+float getWallRotation(Wall wall){
+  double im;
+  double re;
+  im = wall.hitbox.corner2.y-wall.hitbox.corner1.y;
+  re = wall.hitbox.corner2.x-wall.hitbox.corner1.x;
+  cout<<re<<" "<<im<<"    ";
+  if (re >=0)
+  {
+    return((asin(im / getWallLength(wall)))*(180/M_PI));
+  }
+  else if (re<0 && im<=0)
+  {
+    return((asin(im / getWallLength(wall)))*(180/M_PI)-180);
+  }
+  else if (re<0 && im>0)
+  {
+    return((asin(im / getWallLength(wall)))*(180/M_PI)+90);
+
+  }
+  {
+    return 5000;
+  }
+
+}
+
+void printListWall(std::vector<Wall> listWall){
+
+  for (int i = 0; i < listWall.size(); ++i)
+  {
+    cout <<"("<< listWall[i].hitbox.corner1.x<< ","<<listWall[i].hitbox.corner1.y<<")";
+    cout <<"("<< listWall[i].hitbox.corner2.x<< ","<<listWall[i].hitbox.corner2.y<<")";
+    cout << "  ";
+  }
+  cout << endl;
+}
+
 int main() {
 	
 	
@@ -468,15 +514,13 @@ int main() {
   Clock clock;
   
   Ground level;
-  //makeLevel(level, levelFile + ".txt");
-  //cout << level;
+  makeLevel(level, levelFile + ".txt");
   sf::Texture backgroundTexture;
   backgroundTexture.loadFromFile(levelFile + ".png");
   sf::Sprite background;
   background.setTexture(backgroundTexture);
   
   background.setScale(sf::Vector2f((WINDOW_WIDTH/backgroundTexture.getSize().x), (WINDOW_HEIGHT/backgroundTexture.getSize().y)));
-  
   /*
   level.walls = [];
   level.spawnPosNitro = [];
@@ -498,7 +542,22 @@ int main() {
   std::vector<Bonus> nitroList;
   
   
-  
+  printListWall(level.walls);
+  cout << getWallLength(level.walls[2])<<endl;
+
+  std::vector<sf::RectangleShape> listWallPrint;
+  sf::RectangleShape wallShape;
+
+  for (int i = 0; i < level.walls.size(); ++i)
+  {
+    wallShape.setSize(sf::Vector2f(1,getWallLength(level.walls[i])));
+    wallShape.setPosition(level.walls[i].hitbox.corner1.x,level.walls[i].hitbox.corner1.y);
+    wallShape.setRotation(getWallRotation(level.walls[i])-90);
+    wallShape.setFillColor(sf::Color::Red);
+    listWallPrint.push_back(wallShape);
+    cout << wallShape.getSize().x <<" "<<wallShape.getSize().y;
+    cout <<" "<< wallShape.getRotation()<< endl;
+  }
 
 
   /*
@@ -608,8 +667,9 @@ int main() {
      
     
     for (int i = 0; i < level.walls.size(); i++) {
-    	if (isCollision(hitbox4ToList(playerCar.hitbox),
-    			hitbox2ToList(level.walls[i].hitbox))){
+      //cout << i<<endl;
+    	if (isCollision(hitbox4ToList(playerCar.hitbox),hitbox2ToList(level.walls[i].hitbox))){
+            cout << "collision";
     				redirectIfPunchWall( playerCar, level.walls[i]);
     				recalculateSpeedDirection(playerCar);
     				malusBonusSpeed = malusBonusSpeed - 0.40;
@@ -689,6 +749,13 @@ int main() {
 	carShape.setFillColor(sf::Color::Blue);
 	
 	window.draw(carShape);
+
+
+  for (int i = 0; i < listWallPrint.size(); ++i)
+  {
+    window.draw(listWallPrint[i]);
+  }
+
 
     window.display();
     
