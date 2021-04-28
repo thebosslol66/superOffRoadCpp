@@ -770,14 +770,16 @@ int main() {
 		carShape.setFillColor(sf::Color::Blue);
 		
 		window.draw(carShape);
+		
+		for (int i = 0; i < listWallPrint.size(); ++i)
+		  {
+		    window.draw(listWallPrint[i]);
+		  }
 	
     }
 
 
-  for (int i = 0; i < listWallPrint.size(); ++i)
-  {
-    window.draw(listWallPrint[i]);
-  }
+  
 
 
     window.display();
