@@ -163,11 +163,6 @@ bool isCollisionAxis(const Position& axis, const std::vector<Position>& verticle
 bool isCollision(const std::vector<Position>& verticle1, const std::vector<Position>& verticle2){
   std::vector<Position> listAxis(verticle1.size());
   listAxis = getAxisList(verticle1);
-  for (int i = 0; i < verticle1.size(); ++i)
-  {
-    cout<< verticle1[i].x<<verticle1[i].y<<" / ";
-    cout<< listAxis[i].x<<","<<listAxis[i].y<<" {} ";
-  }
   bool collision = false;
   int count = 0;
   for (int i = 0; i < listAxis.size(); ++i)
@@ -243,11 +238,11 @@ int countTour(Car& car, const Flag& flag, const int& nbFlag){
 int redirectIfPunchWall(const Car& car, const Wall& wall){
 	int mustRedir = (car.direction - wall.directionStop +16) %16;
 	if (mustRedir == 0){
-		return wall.directionStop;
+		return car.direction;
 	} else if(mustRedir < 4) {
-		return ( wall.directionStop - 4) % 16;
-	} else if (mustRedir > 12){
 		return ( wall.directionStop + 4) % 16;
+	} else if (mustRedir > 12){
+		return ( wall.directionStop + 12) % 16;
 	}
 	return -1;
 }
@@ -692,7 +687,7 @@ int main() {
 	     }
 	     if (right && lastActiveRight <= 0) {
 	 		lastActiveRight = TIME_BEFORE_REACTIVATE + dt;
-	     	playerCar.direction = ( playerCar.direction - 1) % 16;
+	     	playerCar.direction = ( playerCar.direction + 15) % 16;
 	     }
 	     if (left || right) {
 	     	recalculateSpeedDirection(playerCar);
@@ -705,20 +700,27 @@ int main() {
 	         lastActiveRight -= dt;
 	     }
 	     
-	    
+	     playerCar.hitbox = getHitboxCar(playerCar, CAR_LONGUEUR/2, CAR_HAUTEUR/2);
+	     
 	    for (int i = 0; i < level.walls.size(); i++) {
 	    	if (isCollision(hitbox4ToList(playerCar.hitbox),
 	    			hitbox2ToList(level.walls[i].hitbox))){
-	    				redirectIfPunchWall( playerCar, level.walls[i]);
+	    				int direction = redirectIfPunchWall(playerCar, level.walls[i]);
+	    				if (playerCar.direction == direction){
+	    					playerCar.speed.x = 0;
+	    					playerCar.speed.y = 0;
+	    					malusBonusSpeed = 0;
+	    				}
+	    				playerCar.direction = direction;
 	    				recalculateSpeedDirection(playerCar);
-	    				malusBonusSpeed = malusBonusSpeed - 0.40;
+	    				malusBonusSpeed *= 0.60;
 	    	}
 	    }
 	    
 	    for (int i = 0; i < level.muds.size(); i++) {
 	        if (isCollision( hitbox4ToList (playerCar.hitbox),
 	       			hitbox4ToList(level.muds[i].hitbox))){
-	       				malusBonusSpeed = malusBonusSpeed - 0.20;
+	       				malusBonusSpeed *= 0.80;
 	       	}
 	    }
 	    
