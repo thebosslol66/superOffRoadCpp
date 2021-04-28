@@ -504,7 +504,7 @@ int main() {
 	std::string levelFile("level1");
 	
 	sf::Font font;
-	font.loadFromFile("arial.ttf");
+	font.loadFromFile("PixelOperator.ttf");
 	
 	
 	const int NITRO_SPAWN_TIME = 10000;
@@ -788,7 +788,7 @@ int main() {
 	    	sf::Text enterText = sf::Text();
 		   	enterText.setString("Insert COIN (or press enter)");
 		   	enterText.setFont(font);
-		   	enterText.setCharacterSize(30);
+		   	enterText.setCharacterSize(60);
 
 	    	if (textAlphaValue <= 255){
 	    		enterText.setFillColor(sf::Color(0,0,0,textAlphaValue));
