@@ -650,56 +650,19 @@ int main() {
     
     float dt = clock.restart().asSeconds();
     
-<<<<<<< HEAD
     if (idCurrentWindow == 0){
     	
     	if (enter){
     		idCurrentWindow = 1;
-
-=======
-    
-    
-    //On applique la direction a la voiture 
-     if (left && lastActiveLeft <= 0){
-     	lastActiveLeft = TIME_BEFORE_REACTIVATE + dt;
-     	playerCar.direction = ( playerCar.direction + 1) % 16;
-     }
-     if (right && lastActiveRight <= 0) {
- 		lastActiveRight = TIME_BEFORE_REACTIVATE + dt;
-     	playerCar.direction = ( playerCar.direction - 1) % 16;
-     }
-     if (left || right) {
-     	recalculateSpeedDirection(playerCar);
-     }
-     
-     if (lastActiveLeft > 0){
-    	 lastActiveLeft -= dt;
-     }
-     if (lastActiveRight){
-         lastActiveRight -= dt;
-     }
-     
-    
-    for (int i = 0; i < level.walls.size(); i++) {
-      //cout << i<<endl;
-    	if (isCollision(hitbox4ToList(playerCar.hitbox),hitbox2ToList(level.walls[i].hitbox))){
-            cout << "collision";
-    				redirectIfPunchWall( playerCar, level.walls[i]);
-    				recalculateSpeedDirection(playerCar);
-    				malusBonusSpeed = malusBonusSpeed - 0.40;
->>>>>>> ff7b7257d4bce96655176defc6b6d3b28151f0aa
     	}
-    	
     	sf::Text enterText = sf::Text();
     	enterText.setString("Insert COIN (or press enter)");
-    	enterText.setFillColor(sf::Color(0,0,0,1));
-    	enterText.setPosition(WINDOW_WIDTH/2, WINDOW_HEIGHT/2);
-    	
-    	window.clear(Color::White);
-    	
-    	window.draw(enterText);
-    	
-    
+       	enterText.setFillColor(sf::Color(0,0,0,1));
+ 	   	enterText.setPosition(WINDOW_WIDTH/2, WINDOW_HEIGHT/2);
+    	    	
+       	window.clear(Color::White);
+    	    	
+       	window.draw(enterText);
     }
     
     
