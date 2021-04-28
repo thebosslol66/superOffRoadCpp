@@ -485,6 +485,8 @@ int main() {
 	
 	std::string levelFile("level1");
 	
+	sf::Font font;
+	font.loadFromFile("arial.ttf");
 	
 	
 	const int NITRO_SPAWN_TIME = 10000;
@@ -497,7 +499,14 @@ int main() {
 	
 	const int CAR_LONGUEUR = 40;
 	const int CAR_HAUTEUR = 20;
-			
+	
+	
+	/*
+	 * Variables pour l'ecran titre
+	 */
+	
+	int textAlphaValue = 0;
+	
 			
   /*
    * Une RenderWindow est une fenêtre qui permet de récupérer des événements
@@ -650,21 +659,11 @@ int main() {
     
     float dt = clock.restart().asSeconds();
     
-    if (idCurrentWindow == 0){
-    	
-    	if (enter){
-    		idCurrentWindow = 1;
-    	}
-    	sf::Text enterText = sf::Text();
-    	enterText.setString("Insert COIN (or press enter)");
-       	enterText.setFillColor(sf::Color(0,0,0,1));
- 	   	enterText.setPosition(WINDOW_WIDTH/2, WINDOW_HEIGHT/2);
-    	    	
-       	window.clear(Color::White);
-    	    	
-       	window.draw(enterText);
-    }
     
+    if (idCurrentWindow == 0){
+    	textAlphaValue += 170 * dt;
+    	textAlphaValue %= 510;
+    }
     
     else if (idCurrentWindow == 1){
 	    //On applique la direction a la voiture 
@@ -750,16 +749,43 @@ int main() {
 		moveCar(playerCar, dt);
 		malusBonusSpeed = 1;
 	
-	    
-	    
-	    /*
-	     * Affichage de l'état du jeu.
-	     * À chaque tour de boucle, on efface tout grâce à `clear` (qui prend
-	     * en paramètre la couleur de fond), puis on dessine tous les éléments,
-	     * puis on affiche la nouvelle image grâce à `display`.
-	     */
-	    
-		window.clear(Color::White);
+    }
+    
+    /*
+    	     * Affichage de l'état du jeu.
+    	     * À chaque tour de boucle, on efface tout grâce à `clear` (qui prend
+    	     * en paramètre la couleur de fond), puis on dessine tous les éléments,
+    	     * puis on affiche la nouvelle image grâce à `display`.
+    	     */
+    
+	window.clear(Color::White);
+		
+	if (idCurrentWindow == 0){
+		    	
+	    	if (enter){
+	    		idCurrentWindow = 1;
+	    	}
+		    	
+	    	sf::Text enterText = sf::Text();
+		   	enterText.setString("Insert COIN (or press enter)");
+		   	enterText.setFont(font);
+		   	enterText.setCharacterSize(30);
+
+	    	if (textAlphaValue <= 255){
+	    		enterText.setFillColor(sf::Color(0,0,0,textAlphaValue));
+	    		
+	    	}
+	    	else {
+	    		enterText.setFillColor(sf::Color(0,0,0,509 - textAlphaValue));
+	    	}
+	      	
+	 	   	enterText.setPosition(WINDOW_WIDTH/2 - enterText.getLocalBounds().width/2, WINDOW_HEIGHT*7/8 - enterText.getLocalBounds().height/2);
+
+		       	
+	     	window.draw(enterText);
+   }
+	
+	else if (idCurrentWindow == 1){
 		
 		window.draw(background);
 		
@@ -779,12 +805,8 @@ int main() {
     }
 
 
-  
-
-
     window.display();
     
-    float framerate = 1 / (clock.getElapsedTime().asSeconds());
     sf::sleep(sf::seconds((1.0/MAX_FPS)-clock.getElapsedTime().asSeconds()));
     //std::cout << framerate << std::endl;
 
