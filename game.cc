@@ -163,6 +163,11 @@ bool isCollisionAxis(const Position& axis, const std::vector<Position>& verticle
 bool isCollision(const std::vector<Position>& verticle1, const std::vector<Position>& verticle2){
   std::vector<Position> listAxis(verticle1.size());
   listAxis = getAxisList(verticle1);
+  for (int i = 0; i < verticle1.size(); ++i)
+  {
+    cout<< verticle1[i].x<<verticle1[i].y<<" / ";
+    cout<< listAxis[i].x<<","<<listAxis[i].y<<" {} ";
+  }
   bool collision = false;
   int count = 0;
   for (int i = 0; i < listAxis.size(); ++i)
@@ -188,7 +193,7 @@ std::vector<Position> hitbox4ToList(const Hitbox4P& hitbox){
   verticle[2].x = hitbox.corner3.x;
   verticle[2].y = hitbox.corner3.y;
   verticle[3].x = hitbox.corner4.x;
-  verticle[3].y = hitbox.corner1.y;
+  verticle[3].y = hitbox.corner4.y;
   return verticle;
 }
 //
@@ -203,17 +208,20 @@ std::vector<Position> hitbox2ToList(const Hitbox2P& hitbox){
 //
 Hitbox4P getHitboxCar(const Car& car, const int& longe, const int& large){
   Hitbox4P hitbox;
-  float angleRad = fmod((M_PI - car.direction * (M_PI/8)+2*M_PI),(2*M_PI));
-  float diag = hypot(large, longe);
-  float angleCar = (asin(large/diag));
-  hitbox.corner1.x = car.pos.x - cos(angleRad - angleCar)*diag;
-  hitbox.corner1.y = car.pos.y + sin(angleRad - angleCar)*diag;
-  hitbox.corner2.x = car.pos.x - cos(angleRad + angleCar)*diag;
-  hitbox.corner2.y = car.pos.y + sin(angleRad + angleCar)*diag;
-  hitbox.corner3.x = car.pos.x + cos(angleRad - angleCar)*diag;
-  hitbox.corner3.y = car.pos.y + sin(angleRad + angleCar)*diag;
-  hitbox.corner4.x = car.pos.x + cos(angleRad - angleCar)*diag;
-  hitbox.corner4.y = car.pos.y + sin(angleRad - angleCar)*diag;
+  double angleRad = fmod((M_PI - car.direction * (M_PI/8)+2*M_PI),(2*M_PI));
+  //cout<<angleRad<<" / ";
+  double diag = hypot(large, longe);
+  double angleCar = (asin(large/diag));
+  //cout<<angleCar<<" : ";
+  //cout<<+sin(angleRad + angleCar)*diag<<endl;
+  hitbox.corner1.x = static_cast<int>(car.pos.x - cos(angleRad - angleCar)*diag);
+  hitbox.corner1.y = static_cast<int>(car.pos.y - sin(angleRad - angleCar)*diag);
+  hitbox.corner2.x = static_cast<int>(car.pos.x - cos(angleRad + angleCar)*diag);
+  hitbox.corner2.y = static_cast<int>(car.pos.y - sin(angleRad + angleCar)*diag);
+  hitbox.corner3.x = static_cast<int>(car.pos.x + cos(angleRad - angleCar)*diag);
+  hitbox.corner3.y = static_cast<int>(car.pos.y + sin(angleRad - angleCar)*diag);
+  hitbox.corner4.x = static_cast<int>(car.pos.x + cos(angleRad + angleCar)*diag);
+  hitbox.corner4.y = static_cast<int>(car.pos.y + sin(angleRad + angleCar)*diag);
   return hitbox;
 }
 //
@@ -440,7 +448,7 @@ float getWallRotation(Wall wall){
   double re;
   im = wall.hitbox.corner2.y-wall.hitbox.corner1.y;
   re = wall.hitbox.corner2.x-wall.hitbox.corner1.x;
-  cout<<re<<" "<<im<<"    ";
+  //cout<<re<<" "<<im<<"    ";
   if (re >=0)
   {
     return((asin(im / getWallLength(wall)))*(180/M_PI));
@@ -469,6 +477,16 @@ void printListWall(std::vector<Wall> listWall){
     cout << "  ";
   }
   cout << endl;
+}
+//affichage de la hitboxde la voiture
+
+void printHitboxCar(Car car){
+  std::vector<Position> listPosCar;
+  listPosCar = hitbox4ToList(car.hitbox);
+  for (int i = 0; i < listPosCar.size(); ++i)
+  {
+    cout<<"("<<listPosCar[i].x<<","<<listPosCar[i].y<<")"<<endl;
+  }
 }
 
 int main() {
@@ -511,8 +529,9 @@ int main() {
    * Une Clock permet de compter le temps. Vous en aurez besoin pour savoir
    * le temps entre deux frames.
    */
-  Clock clock;
-  
+  Clock clock;   
+  int cnt = 0;
+
   Ground level;
   makeLevel(level, levelFile + ".txt");
   sf::Texture backgroundTexture;
@@ -550,13 +569,13 @@ int main() {
 
   for (int i = 0; i < level.walls.size(); ++i)
   {
-    wallShape.setSize(sf::Vector2f(1,getWallLength(level.walls[i])));
+    wallShape.setSize(sf::Vector2f(3,getWallLength(level.walls[i])));
     wallShape.setPosition(level.walls[i].hitbox.corner1.x,level.walls[i].hitbox.corner1.y);
     wallShape.setRotation(getWallRotation(level.walls[i])-90);
     wallShape.setFillColor(sf::Color::Red);
     listWallPrint.push_back(wallShape);
-    cout << wallShape.getSize().x <<" "<<wallShape.getSize().y;
-    cout <<" "<< wallShape.getRotation()<< endl;
+    //cout << wallShape.getSize().x <<" "<<wallShape.getSize().y;
+    //cout <<" "<< wallShape.getRotation()<< endl;
   }
 
 
@@ -665,16 +684,46 @@ int main() {
          lastActiveRight -= dt;
      }
      
-    
+    playerCar.hitbox = getHitboxCar(playerCar,CAR_LONGUEUR/2,CAR_HAUTEUR/2);
+    cnt++;
+ 
+   
+
     for (int i = 0; i < level.walls.size(); i++) {
-      //cout << i<<endl;
+      // if (cnt == 100)
+      // {
+      //   cout<<playerCar.hitbox.corner1.x <<","<<playerCar.hitbox.corner1.y <<"/";
+      //   cout<<playerCar.hitbox.corner2.x <<","<<playerCar.hitbox.corner2.y <<"/";
+      //   cout<<playerCar.hitbox.corner3.x <<","<<playerCar.hitbox.corner3.y <<"/";
+      //   cout<<playerCar.hitbox.corner4.x <<","<<playerCar.hitbox.corner4.y <<" / "<<playerCar.direction<<endl;
+      //   cnt = 0;
+      //   cout << hitbox4ToList(playerCar.hitbox)[0].x<<",";
+      //   cout << hitbox4ToList(playerCar.hitbox)[0].y<<" / ";
+      //   cout << hitbox4ToList(playerCar.hitbox)[1].x<<",";
+      //   cout << hitbox4ToList(playerCar.hitbox)[1].y<<" / ";
+      //   cout << hitbox4ToList(playerCar.hitbox)[2].x<<",";
+      //   cout << hitbox4ToList(playerCar.hitbox)[2].y<<" / ";
+      //   cout << hitbox4ToList(playerCar.hitbox)[3].x<<",";
+      //   cout << hitbox4ToList(playerCar.hitbox)[3].y<<endl;      
+      // }
+      // cout<<isCollision(hitbox4ToList(playerCar.hitbox),hitbox2ToList(level.walls[i].hitbox))<<endl;
+      // cout<<level.walls[i].hitbox.corner1.x<<",";
+      // cout<<level.walls[i].hitbox.corner1.y<<" / ";
+      // cout<<level.walls[i].hitbox.corner2.x<<",";
+      // cout<<level.walls[i].hitbox.corner2.y<< "{}";
+      // cout<<hitbox2ToList(level.walls[i].hitbox)[0].x<<",";
+      // cout<<hitbox2ToList(level.walls[i].hitbox)[0].y<<" / ";
+      // cout<<hitbox2ToList(level.walls[i].hitbox)[1].x<<",";
+      // cout<<hitbox2ToList(level.walls[i].hitbox)[1].y<<" {} ";
     	if (isCollision(hitbox4ToList(playerCar.hitbox),hitbox2ToList(level.walls[i].hitbox))){
-            cout << "collision";
+            cout << "collision"<<endl;
     				redirectIfPunchWall( playerCar, level.walls[i]);
     				recalculateSpeedDirection(playerCar);
     				malusBonusSpeed = malusBonusSpeed - 0.40;
     	}
     }
+    cout<<endl;
+
     
     for (int i = 0; i < level.muds.size(); i++) {
         if (isCollision( hitbox4ToList (playerCar.hitbox),
