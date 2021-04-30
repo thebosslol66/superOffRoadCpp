@@ -529,6 +529,8 @@ int main() {
    * http://www.sfml-dev.org/documentation/2.1/classsf_1_1RenderWindow.php
    */
   RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE);
+  
+  window.setSize(sf::Vector2u(WINDOW_WIDTH, WINDOW_HEIGHT));
 
   /*
    * Une Clock permet de compter le temps. Vous en aurez besoin pour savoir
@@ -701,6 +703,7 @@ int main() {
 	     }
 	     
 	     playerCar.hitbox = getHitboxCar(playerCar, CAR_LONGUEUR/2, CAR_HAUTEUR/2);
+	    
 	     
 	    for (int i = 0; i < level.walls.size(); i++) {
 	    	if (isCollision(hitbox4ToList(playerCar.hitbox),
@@ -799,10 +802,11 @@ int main() {
 	    	else {
 	    		enterText.setFillColor(sf::Color(0,0,0,509 - textAlphaValue));
 	    	}
+	    	
 	      	
 	 	   	enterText.setPosition(WINDOW_WIDTH/2 - enterText.getLocalBounds().width/2, WINDOW_HEIGHT*7/8 - enterText.getLocalBounds().height/2);
 
-		       	
+	 	   	
 	     	window.draw(enterText);
    }
 	
