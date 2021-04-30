@@ -118,93 +118,77 @@ struct Ground
 int vectorDotProduct(const Position& pt1, const Position& pt2){
   return (pt1.x * pt2.x + pt1.y * pt2.y);
 }
-//
-std::vector<float> getProject(const Position& axis, const std::vector<Position>& verticle){
-  std::vector<float> listProject(verticle.size());
-  for (int i = 0; i < verticle.size(); ++i)
+ bool isCollisionPoint(Position posPoint, Position centreCercle,int rayon){
+  int distance = (posPoint.x - centreCercle.x)*(posPoint.x - centreCercle.x) + (posPoint.y - centreCercle.y) * (posPoint.y - centreCercle.y);
+  if (distance > rayon*rayon)
   {
-    listProject[i] = vectorDotProduct(axis, verticle[i]);
+    return false;
+  }else{
+    return true;
   }
-  return listProject;
-}
-//
-std::vector<Position> getAxisList(const std::vector<Position>& verticle){
-  std::vector<Position> listAxis(verticle.size());
-  float magnitude;
-  for (int i = 0; i < verticle.size(); ++i)
+ }
+
+bool isCollisionDroite(Car car, Wall wall,int rayon){
+  Position axis;
+  float numerateur;
+  float denominateur;
+  float ci;
+  axis.x = wall.hitbox.corner2.x - wall.hitbox.corner1.x;
+  axis.y = wall.hitbox.corner2.y - wall.hitbox.corner1.y;
+  Position ac;
+  ac.x = car.pos.x - wall.hitbox.corner1.x;
+  ac.y = car.pos.y - wall.hitbox.corner1.y;
+  numerateur = axis.x * ac.y - axis.y * ac.x;
+  if (numerateur < 0 )
   {
-    listAxis[i].x = -(verticle[i+1%4].y - verticle[i].y);
-    listAxis[i].y = (verticle[i+1%4].x - verticle[i].y);
-    magnitude = hypot(listAxis[i].x, listAxis[i].y);
-    if (magnitude != 0)
+    numerateur = -numerateur;
+  }
+  denominateur = hypot(axis.x,axis.y);
+  ci = numerateur / denominateur;
+  if (ci <= rayon)
+  {
+    return true;
+  }else{
+    return false;
+  }
+}
+bool isCollision(Car car, Wall wall, int rayon){
+  Position ab,ac,bc;
+  float dotproduct1, dotproduct2;
+  if (!isCollisionDroite(car,wall,rayon))
+  {
+    return false;
+  }else{
+    ab.x = wall.hitbox.corner2.x - wall.hitbox.corner1.x;
+    ab.y = wall.hitbox.corner2.y - wall.hitbox.corner1.y;
+    ac.x = car.pos.x - wall.hitbox.corner1.x;
+    ac.y = car.pos.y - wall.hitbox.corner1.y;
+    bc.x = car.pos.x - wall.hitbox.corner2.x;
+    bc.y = car.pos.y - wall.hitbox.corner2.y;
+    dotproduct1 = vectorDotProduct(ab,ac);
+    ab.x = -ab.x;
+    ab.y = -ab.y;
+    dotproduct2 = vectorDotProduct(ab, bc);
+    if (dotproduct1>=0 && dotproduct2 >= 0)
     {
-      listAxis[i].x /= magnitude;
-      listAxis[i].y /= magnitude;
+      return true;
+    }
+    if (isCollisionPoint(wall.hitbox.corner1,car.pos,rayon))
+    {
+      return true;
+    }
+    if (isCollisionPoint(wall.hitbox.corner2,car.pos,rayon))
+    {
+      return true;
+    }else{
+      return false;
     }
   }
-  return listAxis;
+
 }
-//
-bool isCollisionAxis(const Position& axis, const std::vector<Position>& verticle1, const std::vector<Position>& verticle2){
-  std::vector<float> listProj1(verticle1.size());
-  std::vector<float> listProj2(verticle2.size());
-  bool isCollision = false;
-  listProj1 = getProject(axis, verticle1);
-  listProj2 = getProject(axis, verticle2);
-  std::sort(listProj1.begin(), listProj1.end());
-  std::sort(listProj1.begin(), listProj1.end());
-  if (listProj1[listProj1.size()-1]>=listProj2[0] && listProj1[0] <= listProj2[listProj2.size()-1])
-  {
-    isCollision = true;
-  }
-  return isCollision;
-}
-//
-bool isCollision(const std::vector<Position>& verticle1, const std::vector<Position>& verticle2){
-  std::vector<Position> listAxis(verticle1.size());
-  listAxis = getAxisList(verticle1);
-  for (int i = 0; i < verticle1.size(); ++i)
-  {
-    cout<< verticle1[i].x<<verticle1[i].y<<" / ";
-    cout<< listAxis[i].x<<","<<listAxis[i].y<<" {} ";
-  }
-  bool collision = false;
-  int count = 0;
-  for (int i = 0; i < listAxis.size(); ++i)
-  {
-    if (isCollisionAxis(listAxis[i], verticle1, verticle2))
-    {
-      count++;
-    }
-  }
-  if (count == listAxis.size())
-  {
-    collision = true;
-  }
-  return collision;
-}
-//fin des algo de collision
-std::vector<Position> hitbox4ToList(const Hitbox4P& hitbox){
-  std::vector<Position> verticle(4);
-  verticle[0].x = hitbox.corner1.x;
-  verticle[0].y = hitbox.corner1.y;
-  verticle[1].x = hitbox.corner2.x;
-  verticle[1].y = hitbox.corner2.y;
-  verticle[2].x = hitbox.corner3.x;
-  verticle[2].y = hitbox.corner3.y;
-  verticle[3].x = hitbox.corner4.x;
-  verticle[3].y = hitbox.corner4.y;
-  return verticle;
-}
-//
-std::vector<Position> hitbox2ToList(const Hitbox2P& hitbox){
-  std::vector<Position> verticle(2);
-  verticle[0].x = hitbox.corner1.x;
-  verticle[0].y = hitbox.corner1.y;
-  verticle[1].x = hitbox.corner2.x;
-  verticle[1].y = hitbox.corner2.y;
-  return verticle;
-}
+
+
+
 //
 Hitbox4P getHitboxCar(const Car& car, const int& longe, const int& large){
   Hitbox4P hitbox;
@@ -480,14 +464,7 @@ void printListWall(std::vector<Wall> listWall){
 }
 //affichage de la hitboxde la voiture
 
-void printHitboxCar(Car car){
-  std::vector<Position> listPosCar;
-  listPosCar = hitbox4ToList(car.hitbox);
-  for (int i = 0; i < listPosCar.size(); ++i)
-  {
-    cout<<"("<<listPosCar[i].x<<","<<listPosCar[i].y<<")"<<endl;
-  }
-}
+
 
 int main() {
 	
@@ -566,7 +543,7 @@ int main() {
   playerCar.flag = 0;
   playerCar.nbNitro = 3;
   float timer = 0;
-  
+  bool collision = false;
   float malusBonusSpeed = 1.0;
   std::vector<Bonus> nitroList;
   
@@ -574,19 +551,7 @@ int main() {
   printListWall(level.walls);
   cout << getWallLength(level.walls[2])<<endl;
 
-  std::vector<sf::RectangleShape> listWallPrint;
-  sf::RectangleShape wallShape;
 
-  for (int i = 0; i < level.walls.size(); ++i)
-  {
-    wallShape.setSize(sf::Vector2f(3,getWallLength(level.walls[i])));
-    wallShape.setPosition(level.walls[i].hitbox.corner1.x,level.walls[i].hitbox.corner1.y);
-    wallShape.setRotation(getWallRotation(level.walls[i])-90);
-    wallShape.setFillColor(sf::Color::Red);
-    listWallPrint.push_back(wallShape);
-    //cout << wallShape.getSize().x <<" "<<wallShape.getSize().y;
-    //cout <<" "<< wallShape.getRotation()<< endl;
-  }
 
 
   /*
@@ -704,32 +669,32 @@ int main() {
 	     if (lastActiveRight){
 	         lastActiveRight -= dt;
 	     }
-	     
-	    
+       collision = false;
+       //cout<<playerCar.pos.x<<","<<playerCar.pos.y<<endl;
 	    for (int i = 0; i < level.walls.size(); i++) {
-	    	if (isCollision(hitbox4ToList(playerCar.hitbox),
-	    			hitbox2ToList(level.walls[i].hitbox))){
-	    				redirectIfPunchWall( playerCar, level.walls[i]);
-	    				recalculateSpeedDirection(playerCar);
-	    				malusBonusSpeed = malusBonusSpeed - 0.40;
+	    	if (isCollision(playerCar,level.walls[i],CAR_HAUTEUR/2)){
+          collision = true;
+	    				// redirectIfPunchWall( playerCar, level.walls[i]);
+	    				// recalculateSpeedDirection(playerCar);
+	    				// malusBonusSpeed = malusBonusSpeed - 0.40;
 	    	}
 	    }
 	    
-	    for (int i = 0; i < level.muds.size(); i++) {
-	        if (isCollision( hitbox4ToList (playerCar.hitbox),
-	       			hitbox4ToList(level.muds[i].hitbox))){
-	       				malusBonusSpeed = malusBonusSpeed - 0.20;
-	       	}
-	    }
+	   //  for (int i = 0; i < level.muds.size(); i++) {
+	   //      if (isCollision( hitbox4ToList (playerCar.hitbox),
+	   //     			hitbox4ToList(level.muds[i].hitbox))){
+	   //     				malusBonusSpeed = malusBonusSpeed - 0.20;
+	   //     	}
+	   //  }
 	    
-	    for (int i = 0; i < nitroList.size(); i++) {
-	    	if (isCollision( hitbox4ToList (playerCar.hitbox),
-	    			hitbox4ToList(nitroList[i].hitbox))){
-	    		playerCar.nbNitro = playerCar.nbNitro + 1;
-				nitroList[i].pos.x = 0;
-				nitroList[i].pos.y = 0;
-	    	}
-	    }
+	   //  for (int i = 0; i < nitroList.size(); i++) {
+	   //  	if (isCollision( hitbox4ToList (playerCar.hitbox),
+	   //  			hitbox4ToList(nitroList[i].hitbox))){
+	   //  		playerCar.nbNitro = playerCar.nbNitro + 1;
+				// nitroList[i].pos.x = 0;
+				// nitroList[i].pos.y = 0;
+	   //  	}
+	   //  }
 	    
 	     
 	    //On calcule ensuite la nouvelle vitesse de la voiture
@@ -756,12 +721,12 @@ int main() {
 		}
 		
 		//Comte les tours
-		for (int i = 0; i < level.flags.size(); i++) {
-		    if (isCollision(hitbox4ToList(playerCar.hitbox),
-		   			hitbox2ToList(level.flags[i].hitbox))){
-		    	countTour(playerCar, level.flags[i], level.flags.size());
-	    	}
-		}
+		// for (int i = 0; i < level.flags.size(); i++) {
+		//     if (isCollision(hitbox4ToList(playerCar.hitbox),
+		//    			hitbox2ToList(level.flags[i].hitbox))){
+		//     	countTour(playerCar, level.flags[i], level.flags.size());
+	  //    	}
+		// }
 		
 	    
 		playerCar.speed = playerNewSpeed;
@@ -808,14 +773,28 @@ int main() {
 		
 		window.draw(background);
 		
-		sf::RectangleShape carShape(sf::Vector2f(CAR_LONGUEUR, CAR_HAUTEUR));
-		carShape.setPosition(playerCar.pos.x + CAR_LONGUEUR/2 , playerCar.pos.y + CAR_HAUTEUR/2);
-		carShape.setOrigin(CAR_LONGUEUR/2, CAR_HAUTEUR/2);
-		carShape.setRotation(180 - (playerCar.direction/16.0 * 360));
-		carShape.setFillColor(sf::Color::Blue);
-		
+		sf::CircleShape carShape(10,50);
+		carShape.setPosition(playerCar.pos.x,playerCar.pos.y);
+    if (collision)
+    {
+      carShape.setFillColor(sf::Color::Red);  
+    }else{
+		  carShape.setFillColor(sf::Color::Blue);
+		}
 		window.draw(carShape);
-		
+    std::vector<sf::RectangleShape> listWallPrint;
+    sf::RectangleShape wallShape;
+
+    for (int i = 0; i < level.walls.size(); ++i)
+    {
+      wallShape.setSize(sf::Vector2f(1,getWallLength(level.walls[i])));
+      wallShape.setPosition(level.walls[i].hitbox.corner1.x+10,level.walls[i].hitbox.corner1.y+10);
+      wallShape.setRotation(getWallRotation(level.walls[i])-90);
+      wallShape.setFillColor(sf::Color::Red);
+      listWallPrint.push_back(wallShape);
+      //cout << wallShape.getSize().x <<" "<<wallShape.getSize().y;
+      //cout <<" "<< wallShape.getRotation()<< endl;
+    }
 		for (int i = 0; i < listWallPrint.size(); ++i)
 		  {
 		    window.draw(listWallPrint[i]);
