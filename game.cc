@@ -679,7 +679,9 @@ int main() {
 	     if (lastActiveRight){
 	         lastActiveRight -= dt;
 	     }
-<<<<<<< HEAD
+
+
+       
        collision = false;
        //cout<<playerCar.pos.x<<","<<playerCar.pos.y<<endl;
 	    for (int i = 0; i < level.walls.size(); i++) {
