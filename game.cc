@@ -152,20 +152,11 @@ bool isCollisionDroite(Car car, Wall wall,int rayon){
     return false;
   }
 }
-<<<<<<< HEAD
+
 bool isCollision(Car car, Wall wall, int rayon){
   Position ab,ac,bc;
   float dotproduct1, dotproduct2;
   if (!isCollisionDroite(car,wall,rayon))
-=======
-//
-bool isCollision(const std::vector<Position>& verticle1, const std::vector<Position>& verticle2){
-  std::vector<Position> listAxis(verticle1.size());
-  listAxis = getAxisList(verticle1);
-  bool collision = false;
-  int count = 0;
-  for (int i = 0; i < listAxis.size(); ++i)
->>>>>>> 86a62ebe35226649f03c3eceacb8513d25d2a6a3
   {
     return false;
   }else{
