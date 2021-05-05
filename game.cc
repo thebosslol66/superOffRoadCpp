@@ -45,7 +45,12 @@ struct Math {
         uniform_real_distribution <float> dist(0.0f, 1.0f);
         return dist(engine);
     }
+    static float arrondir(float val, float prec)
+    {
+        return std::round(val/prec)*prec;
+    }
 };
+
 
 /*
  * La structure Rectangle contient des champs pour manipuler un rectangle
@@ -93,6 +98,8 @@ struct Car {
     int nbNitro;
     float malusBonusSpeed;
     bool collision;
+    int botPositionToTarget;
+    double lastActive;
 };
 struct Bonus {
     Position pos;
@@ -176,7 +183,7 @@ bool isCollision(Car car, Wall wall, int rayon) {
     }
 
 }
-bool isCollision(Car car, Bonus bonus, int rayon) {
+bool isCollision(const Car &car, const Bonus &bonus, const int &rayon) {
     bool colision = false;
     if (hypot(car.pos.x - bonus.pos.x, car.pos.y - bonus.pos.y) <= rayon + bonus.rayon) {
         colision = true;
@@ -185,9 +192,19 @@ bool isCollision(Car car, Bonus bonus, int rayon) {
     }
     return colision;
 }
-bool isCollision(Car car, Mud mud, int rayon) {
+bool isCollision(const Car &car, const Mud &mud, const int &rayon) {
     bool colision = false;
     if (hypot(car.pos.x - mud.pos.x, car.pos.y - mud.pos.y) <= rayon + mud.rayon) {
+        colision = true;
+    }else{
+      colision = false;
+    }
+    return colision;
+}
+
+bool isCollision(const Car &car, const Position &pos, const int &rayon) {
+    bool colision = false;
+    if (hypot(car.pos.x - pos.x, car.pos.y - pos.y) <= rayon) {
         colision = true;
     }else{
       colision = false;
@@ -487,8 +504,8 @@ int main() {
         bool up, down, left, right, nitro, enter;
         up = down = left = right = nitro = enter = false;
 
-        double lastActiveUp, lastActiveDown, lastActiveLeft, lastActiveRight, lastActiveNitro;
-        lastActiveUp = lastActiveDown = lastActiveLeft = lastActiveRight = lastActiveNitro = 0;
+        double lastActiveNitro;
+        lastActiveNitro = 0;
 
         const int CAR_LONGUEUR = 40;
         const int CAR_HAUTEUR = 20;
@@ -541,6 +558,7 @@ int main() {
         playerCar.nbNitro = 3;
         playerCar.malusBonusSpeed = 1.0;
         playerCar.collision = false;
+        playerCar.lastActive = 0;
         float timer = 0;
 
         std::vector < Bonus > nitroList;
@@ -599,6 +617,8 @@ int main() {
         Enemie1.nbNitro = 3;
         Enemie1.malusBonusSpeed = 1.0;
         Enemie1.collision = false;
+        Enemie1.botPositionToTarget = 0;
+        Enemie1.lastActive = 0;
 
         Car Enemie2;
 
@@ -613,6 +633,8 @@ int main() {
         Enemie2.nbNitro = 3;
         Enemie2.malusBonusSpeed = 1.0;
         Enemie2.collision = false;
+        Enemie2.botPositionToTarget = 0;
+        Enemie2.lastActive = 0;
 
         Car Enemie3;
 
@@ -627,11 +649,34 @@ int main() {
         Enemie3.nbNitro = 3;
         Enemie3.malusBonusSpeed = 1.0;
         Enemie3.collision = false;
+        Enemie3.botPositionToTarget = 0;
+        Enemie3.lastActive = 0;
 
         std::vector < Car* > Enemies;
         Enemies.push_back(&Enemie1);
-        Enemies.push_back(&Enemie2);
-        Enemies.push_back(&Enemie3);
+        //Enemies.push_back(&Enemie2);
+        //Enemies.push_back(&Enemie3);
+        
+        
+        std::vector < Position > botLine;
+        
+        Position pos1;
+        pos1.x = 250;
+        pos1.y = 250;
+		Position pos2;
+		pos2.x = 250;
+		pos2.y = 750;
+		Position pos3;
+		pos3.x = 750;
+		pos3.y = 750;
+		Position pos4;
+		pos4.x = 750;
+		pos4.y = 250;
+		
+		botLine.push_back(pos1);
+		botLine.push_back(pos2);
+		botLine.push_back(pos3);
+		botLine.push_back(pos4);
 
         /*
          * La boucle de jeu principale. La condition de fin est la fermeture de la
@@ -673,10 +718,8 @@ int main() {
                         right = true;
                     } else if (event.key.code == sf::Keyboard::Up) {
                         up = true;
-                        lastActiveUp = TIME_BEFORE_REACTIVATE;
                     } else if (event.key.code == sf::Keyboard::Down) {
                         down = true;
-                        lastActiveDown = TIME_BEFORE_REACTIVATE;
                     } else if (event.key.code == sf::Keyboard::Backspace) {
                         nitro = true;
                         lastActiveNitro = TIME_BEFORE_REACTIVATE;
@@ -714,22 +757,19 @@ int main() {
                 textAlphaValue %= 510;
             } else if (idCurrentWindow == 1) {
                 //On applique la direction a la voiture 
-                if (left && lastActiveLeft <= 0) {
-                    lastActiveLeft = TIME_BEFORE_REACTIVATE + dt;
+                if (left && playerCar.lastActive <= 0) {
+                	playerCar.lastActive = TIME_BEFORE_REACTIVATE + dt;
                     playerCar.direction = (playerCar.direction + 1) % 16;
                 }
-                if (right && lastActiveRight <= 0) {
-                    lastActiveRight = TIME_BEFORE_REACTIVATE + dt;
+                if (right && playerCar.lastActive <= 0) {
+                	playerCar.lastActive = TIME_BEFORE_REACTIVATE + dt;
                     playerCar.direction = (playerCar.direction + 15) % 16;
                 }
                 if (left || right) {
                     recalculateSpeedDirection(playerCar);
                 }
-                if (lastActiveLeft > 0) {
-                    lastActiveLeft -= dt;
-                }
-                if (lastActiveRight) {
-                    lastActiveRight -= dt;
+                if (playerCar.lastActive > 0) {
+                	playerCar.lastActive -= dt;
                 }
 
                 playerCar.collision = false;
@@ -814,7 +854,66 @@ int main() {
 
                 for (int j = 0; j < Enemies.size(); j++) {
                     Car* enemie = Enemies[j];
-                    enemie->collision = false;
+                    
+                    if (enemie->lastActive <= 0){
+	                    float pointx = botLine[enemie->botPositionToTarget].x;
+	                    float pointy = botLine[enemie->botPositionToTarget].y;
+	                    
+	                    float pointxCentre = Math::arrondir(cos(fmod((M_PI - enemie->direction * (M_PI / 8) +
+	                            2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR/2.0 + enemie->pos.x + CAR_LONGUEUR / 2;
+	                    float pointyCentre = Math::arrondir(sin(fmod((M_PI - enemie->direction * (M_PI / 8) +
+	                            2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR/2.0 + enemie->pos.y + CAR_HAUTEUR / 2;
+						float pointxDroite = Math::arrondir(cos(fmod((M_PI - (enemie->direction+15) * (M_PI / 8) +
+	                            2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR/2.0 + enemie->pos.x + CAR_LONGUEUR / 2;
+			            float pointyDroite = Math::arrondir(sin(fmod((M_PI - (enemie->direction+15) * (M_PI / 8) +
+	                            2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR/2.0 + enemie->pos.y + CAR_HAUTEUR / 2;
+			                            		
+						float pointxGauche = Math::arrondir(cos(fmod((M_PI - (enemie->direction+1) * (M_PI / 8) +
+	                            2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR/2.0 + enemie->pos.x + CAR_LONGUEUR / 2;
+			            float pointyGauche= Math::arrondir(sin(fmod((M_PI - (enemie->direction+1) * (M_PI / 8) +
+	                            2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR/2.0 + enemie->pos.y + CAR_HAUTEUR / 2;
+			            
+						float distanceCentre = hypot(pointxCentre - pointx, pointyCentre - pointy);
+						float distanceDroite = hypot(pointxDroite - pointx, pointyDroite - pointy);
+						float distanceGauche = hypot(pointxGauche - pointx, pointyGauche - pointy);
+						
+						if (distanceCentre < distanceDroite && distanceCentre < distanceGauche ){//pas de changement de direction
+						}
+						else if (distanceDroite < distanceCentre){
+							enemie->direction = fmod(enemie->direction+15, 16);
+							recalculateSpeedDirection(enemie);
+							enemie->lastActive = TIME_BEFORE_REACTIVATE + dt;
+						}
+						else if ( distanceGauche < distanceCentre){
+							enemie->direction = fmod(enemie->direction+1, 16);
+							recalculateSpeedDirection(enemie);
+							enemie->lastActive = TIME_BEFORE_REACTIVATE + dt;
+						} else if (distanceCentre > distanceDroite && distanceCentre > distanceGauche ){
+							if (Math::random() < 0.5){
+								enemie->direction = fmod(enemie->direction+15, 16);
+							}
+							else {
+								enemie->direction = fmod(enemie->direction+1, 16);
+							}
+							recalculateSpeedDirection(enemie);
+							enemie->lastActive = TIME_BEFORE_REACTIVATE + dt;
+						}
+                    }
+					
+					if (isCollision(*enemie, botLine[enemie->botPositionToTarget], CAR_LONGUEUR)){
+						enemie->botPositionToTarget = fmod(enemie->botPositionToTarget + 1,botLine.size());
+					}
+					
+					if (enemie->lastActive > 0) {
+						enemie->lastActive -= dt;
+					}
+					
+					
+					
+					
+					
+					
+					
                     for (int i = 0; i < level.walls.size(); i++) {
                         if (isCollision(*enemie, level.walls[i], CAR_HAUTEUR / 2)) {
                             int direction = redirectIfPunchWall(enemie, level.walls[i]);
@@ -938,7 +1037,6 @@ int main() {
                     lines[level.walls.size()].position = sf::Vector2f(level.walls[0].hitbox.corner1.x+20, level.walls[0].hitbox.corner1.y+10);
                     lines[level.walls.size()].color = sf::Color::Red;
                     window.draw(lines);
-                    
 
                 }
                 
