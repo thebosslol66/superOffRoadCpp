@@ -444,7 +444,7 @@ int main() {
         font.loadFromFile("PixelOperator.ttf");
 
         const int NITRO_SPAWN_TIME = 10000;
-        const int ACCELERATION = 30;
+        const int ACCELERATION = 50;
         bool up, down, left, right, nitro, enter;
         up = down = left = right = nitro = enter = false;
 
@@ -477,7 +477,7 @@ int main() {
         int cnt = 0;
 
         Ground level;
-        makeLevel(level, levelFile + ".txt");
+        //makeLevel(level, levelFile + ".txt");
         sf::Texture backgroundTexture;
         backgroundTexture.loadFromFile(levelFile + ".png");
         sf::Sprite background;
@@ -507,7 +507,6 @@ int main() {
         std::vector < Bonus > nitroList;
 
         printListWall(level.walls);
-        cout << getWallLength(level.walls[2]) << endl;
 
         /*Walls 
          */
@@ -892,17 +891,21 @@ int main() {
 
                     std::vector < sf::RectangleShape > listWallPrint;
                     sf::RectangleShape wallShape;
-                    sf::VertexArray lines(sf::LineStrip, level.walls.size());
+                    sf::VertexArray lines(sf::LineStrip, level.walls.size()+1);
                     for (int i = 0; i < level.walls.size(); ++i) {
-                        lines[i].position = sf::Vector2f(level.walls[i].hitbox.corner1.x, level.walls[i].hitbox.corner1.y);
+                        lines[i].position = sf::Vector2f(level.walls[i].hitbox.corner1.x+20, level.walls[i].hitbox.corner1.y+10);
+                        lines[i].color = sf::Color::Red;
                     }
-
-                    window.display();
-
-                    sf::sleep(sf::seconds((1.0 / MAX_FPS) - clock.getElapsedTime().asSeconds()));
-                    //std::cout << framerate << std::endl;
+                    lines[level.walls.size()].position = sf::Vector2f(level.walls[0].hitbox.corner1.x+20, level.walls[0].hitbox.corner1.y+10);
+                    lines[level.walls.size()].color = sf::Color::Red;
+                    window.draw(lines);
 
                 }
+
+                window.display();
+
+                 sf::sleep(sf::seconds((1.0 / MAX_FPS) - clock.getElapsedTime().asSeconds()));
+                //std::cout << framerate << std::endl;
 
             }
             return 0;
