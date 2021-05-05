@@ -678,18 +678,18 @@ int main() {
 	    for (int i = 0; i < level.walls.size(); i++) {
 	    	if (isCollision(playerCar,level.walls[i],CAR_HAUTEUR/2)){
           collision = true;
-	    				// redirectIfPunchWall( playerCar, level.walls[i]);
-	    				// recalculateSpeedDirection(playerCar);
-	    				// malusBonusSpeed = malusBonusSpeed - 0.40;
+          int direction = redirectIfPunchWall(playerCar, level.walls[i]);
+          if (playerCar.direction == direction){
+                  playerCar.speed.x = 0;
+                  playerCar.speed.y = 0;
+                  malusBonusSpeed = 0;
+             }
+          playerCar.direction = direction;
+          recalculateSpeedDirection(playerCar);
+          malusBonusSpeed *= 0.60;
 	    	}
 	    }
-	    
-	   //  for (int i = 0; i < level.muds.size(); i++) {
-	   //      if (isCollision( hitbox4ToList (playerCar.hitbox),
-	   //     			hitbox4ToList(level.muds[i].hitbox))){
-	   //     				malusBonusSpeed = malusBonusSpeed - 0.20;
-	   //     	}
-	   //  }
+	
 	     
 	    //  playerCar.hitbox = getHitboxCar(playerCar, CAR_LONGUEUR/2, CAR_HAUTEUR/2);
 	     
