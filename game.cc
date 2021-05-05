@@ -88,6 +88,7 @@ struct Wall
 };
 struct Car
 {
+  int state;
   Position pos;
   Speed speed;
   int direction;
@@ -275,18 +276,50 @@ Speed calculateSpeed(const Car& car, int acceleration,
 	}
 	
 	if (acceleration != 0){
-		if ((normeSpeed / maxSpeed) > 0.95){
-			accelerationX = 9;
-			accelerationY = 0;
+		cout << normeSpeed << " " << maxSpeed << " " << (acceleration/ (float)avgAcceleration) << endl;
+		if(acceleration != avgAcceleration){
+			if (normeSpeed >= maxSpeed * (acceleration/ (float)avgAcceleration)){
+				normeSpeed = maxSpeed * (acceleration/ (float)avgAcceleration);
+				accelerationX = cos(angleRad)*(normeSpeed);
+				accelerationY = sin(angleRad)*(normeSpeed);
+										
+
+				speed.x = accelerationX;
+				speed.y = accelerationY;
+			}
+			
+			else {
+						accelerationX = cos(angleRad)*(acceleration * 2 - 
+								(1/5 * normeSpeed * 2));
+						accelerationY = sin(angleRad)*(acceleration * 2 - 
+										(1/5 * normeSpeed * 2));
+						
+
+						speed.x = car.speed.x + accelerationX * dt;
+						speed.y = car.speed.y + accelerationY * dt;
+			}
+		}
+		else if ((normeSpeed / maxSpeed) > 0.95){
+
+			accelerationX = cos(angleRad)*(maxSpeed);
+			accelerationY = sin(angleRad)*(maxSpeed);
+
+			speed.x = accelerationX;
+			speed.y = accelerationY;
 		} else {
 			accelerationX = cos(angleRad)*(acceleration * 2 - 
 					(1/5 * normeSpeed * 2));
 			accelerationY = sin(angleRad)*(acceleration * 2 - 
 							(1/5 * normeSpeed * 2));
+			
+
+			speed.x = car.speed.x + accelerationX * dt;
+			speed.y = car.speed.y + accelerationY * dt;
+
 		}
+
 		
-		speed.x = car.speed.x + accelerationX * dt;
-		speed.y = car.speed.y + accelerationY * dt;
+		
 	}
 	else {
 		
@@ -535,6 +568,7 @@ int main() {
   level.flags = [];
   */
   Car playerCar;
+  playerCar.state = 1;
   playerCar.pos.x = 500;//la position initial de la voiture en x
   playerCar.pos.y = 500;//la position initial de la voiture en y
   playerCar.speed.x = 0;
@@ -670,9 +704,9 @@ int main() {
 	     if (lastActiveRight){
 	         lastActiveRight -= dt;
 	     }
-
-
+	     
        
+<<<<<<< HEAD
        collision = false;
        //cout<<playerCar.pos.x<<","<<playerCar.pos.y<<endl;
 	    for (int i = 0; i < level.walls.size(); i++) {
@@ -690,40 +724,55 @@ int main() {
 	    	}
 	    }
 	
+=======
+>>>>>>> 239e9cc0962c1a7886ba177e77a891c3a92c190e
 	     
-	    //  playerCar.hitbox = getHitboxCar(playerCar, CAR_LONGUEUR/2, CAR_HAUTEUR/2);
+	     bool isWallCollide = false;
+		 for (int i = 0; i < level.walls.size(); i++) {
+		 	if (isCollision(playerCar,level.walls[i],CAR_HAUTEUR/2)){
+		 				int direction = redirectIfPunchWall(playerCar, level.walls[i]);
+		 				if (playerCar.direction == direction){
+		 					playerCar.speed.x = 0;
+		 					playerCar.speed.y = 0;
+		 					malusBonusSpeed = 0;
+		 				}
+		 				if (direction >= 0){
+			 				playerCar.direction = direction;
+			 				recalculateSpeedDirection(playerCar);
+			 				if (playerCar.state != 2){
+			 					playerCar.state = 2;
+			 				}
+		 				}
+		 	}
+		 	if (isCollision(playerCar,level.walls[i],CAR_LONGUEUR)){
+		 		isWallCollide = true;
+ 			}
+		 }
 	     
-	    // for (int i = 0; i < level.walls.size(); i++) {
-	    // 	if (isCollision(hitbox4ToList(playerCar.hitbox),
-	    // 			hitbox2ToList(level.walls[i].hitbox))){
-	    // 				int direction = redirectIfPunchWall(playerCar, level.walls[i]);
-	    // 				if (playerCar.direction == direction){
-	    // 					playerCar.speed.x = 0;
-	    // 					playerCar.speed.y = 0;
-	    // 					malusBonusSpeed = 0;
-	    // 				}
-	    // 				playerCar.direction = direction;
-	    // 				recalculateSpeedDirection(playerCar);
-	    // 				malusBonusSpeed *= 0.60;
-	    // 	}
-	    // }
-	    
-	    // for (int i = 0; i < level.muds.size(); i++) {
-	    //     if (isCollision( hitbox4ToList (playerCar.hitbox),
-	    //    			hitbox4ToList(level.muds[i].hitbox))){
-	    //    				malusBonusSpeed *= 0.80;
-	    //    	}
-	    // }
-	    
-	   //  for (int i = 0; i < nitroList.size(); i++) {
-	   //  	if (isCollision( hitbox4ToList (playerCar.hitbox),
-	   //  			hitbox4ToList(nitroList[i].hitbox))){
-	   //  		playerCar.nbNitro = playerCar.nbNitro + 1;
-				// nitroList[i].pos.x = 0;
-				// nitroList[i].pos.y = 0;
-	   //  	}
-	   //  }
-	    
+	     if (playerCar.state == 2 and !isWallCollide){
+	    	 playerCar.state = 1;
+	    	 
+	     }
+	     if (playerCar.state == 2){
+	    	 malusBonusSpeed *= 0.60;
+	     }
+		
+		// for (int i = 0; i < level.muds.size(); i++) {
+		//     if (isCollision( hitbox4ToList (playerCar.hitbox),
+		//    			hitbox4ToList(level.muds[i].hitbox))){
+		//    				malusBonusSpeed *= 0.80;
+		//    	}
+		// }
+		//
+		// for (int i = 0; i < nitroList.size(); i++) {
+		// 	if (isCollision( hitbox4ToList (playerCar.hitbox),
+		// 			hitbox4ToList(nitroList[i].hitbox))){
+		// 		playerCar.nbNitro = playerCar.nbNitro + 1;
+		//		// nitroList[i].pos.x = 0;
+		//		// nitroList[i].pos.y = 0;
+		// 	}
+		// }
+		
 	     
 	    //On calcule ensuite la nouvelle vitesse de la voiture
 	    Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * malusBonusSpeed, ACCELERATION, up, down, nitro, dt);
@@ -801,15 +850,15 @@ int main() {
 		
 		window.draw(background);
 		
-		sf::CircleShape carShape(10,50);
-		carShape.setPosition(playerCar.pos.x,playerCar.pos.y);
-    if (collision)
-    {
-      carShape.setFillColor(sf::Color::Red);  
-    }else{
-		  carShape.setFillColor(sf::Color::Blue);
-		}
+		sf::RectangleShape carShape(sf::Vector2f(CAR_LONGUEUR, CAR_HAUTEUR));
+				carShape.setPosition(playerCar.pos.x + CAR_LONGUEUR/2 , playerCar.pos.y + CAR_HAUTEUR/2);
+				carShape.setOrigin(CAR_LONGUEUR/2, CAR_HAUTEUR/2);
+				carShape.setRotation(180 - (playerCar.direction/16.0 * 360));
+				carShape.setFillColor(sf::Color::Blue);
+				
+				
 		window.draw(carShape);
+		
     std::vector<sf::RectangleShape> listWallPrint;
     sf::RectangleShape wallShape;
 
