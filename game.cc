@@ -182,8 +182,9 @@ bool isCollision(Car car, Wall wall, int rayon){
 
 }
 bool isCollision(Car car,Bonus bonus, int rayon){
-  if(true){
-    
+  bool colision = false;
+  if(hypot(car.pos.x-bonus.pos.x,car.pos.y-bonus.pos.y)<= rayon+bonus.rayon){
+    colision = true;
   }
 }
 
@@ -438,30 +439,8 @@ int getWallLength(Wall wall){
   return(hypot((wall.hitbox.corner2.x - wall.hitbox.corner1.x),(wall.hitbox.corner2.y - wall.hitbox.corner1.y)));
 }
 
-float getWallRotation(Wall wall){
-  double im;
-  double re;
-  im = wall.hitbox.corner2.y-wall.hitbox.corner1.y;
-  re = wall.hitbox.corner2.x-wall.hitbox.corner1.x;
-  //cout<<re<<" "<<im<<"    ";
-  if (re >=0)
-  {
-    return((asin(im / getWallLength(wall)))*(180/M_PI));
-  }
-  else if (re<0 && im<=0)
-  {
-    return((asin(im / getWallLength(wall)))*(180/M_PI)-180);
-  }
-  else if (re<0 && im>0)
-  {
-    return((asin(im / getWallLength(wall)))*(180/M_PI)+90);
 
-  }
-  {
-    return 5000;
-  }
 
-}
 
 void printListWall(std::vector<Wall> listWall){
 
@@ -619,7 +598,7 @@ int main() {
     		  lastActiveNitro = TIME_BEFORE_REACTIVATE;
     	  }
     	  else if (event.key.code == sf::Keyboard::Return){
-    	      	enter = true;
+          enter = true;
     	  }
       }
       if (event.type == Event::KeyReleased) {
@@ -639,10 +618,9 @@ int main() {
     		  nitro = false;
     	  }
     	  else if (event.key.code == sf::Keyboard::Return){
-    	      enter = false;
+          enter = false;
     	  }
       }
-
     }
 
     /*
@@ -654,8 +632,6 @@ int main() {
    
     
     float dt = clock.restart().asSeconds();
-    
-    
     if (idCurrentWindow == 0){
     	textAlphaValue += 170 * dt;
     	textAlphaValue %= 510;
@@ -663,59 +639,55 @@ int main() {
     
     else if (idCurrentWindow == 1){
 	    //On applique la direction a la voiture 
-	     if (left && lastActiveLeft <= 0){
+      if (left && lastActiveLeft <= 0){
 	     	lastActiveLeft = TIME_BEFORE_REACTIVATE + dt;
 	     	playerCar.direction = ( playerCar.direction + 1) % 16;
-	     }
-	     if (right && lastActiveRight <= 0) {
-	 		lastActiveRight = TIME_BEFORE_REACTIVATE + dt;
+      }
+      if (right && lastActiveRight <= 0) {
+	 		  lastActiveRight = TIME_BEFORE_REACTIVATE + dt;
 	     	playerCar.direction = ( playerCar.direction + 15) % 16;
-	     }
-	     if (left || right) {
+      }
+      if (left || right) {
 	     	recalculateSpeedDirection(playerCar);
-	     }
-	     
-	     if (lastActiveLeft > 0){
-	    	 lastActiveLeft -= dt;
-	     }
-	     if (lastActiveRight){
-	         lastActiveRight -= dt;
-	     }
+      } 
+      if (lastActiveLeft > 0){
+        lastActiveLeft -= dt;
+      }
+      if (lastActiveRight){
+        lastActiveRight -= dt;
+      }
 	     
        
 
 
 	     
-	     bool isWallCollide = false;
-		 for (int i = 0; i < level.walls.size(); i++) {
-		 	if (isCollision(playerCar,level.walls[i],CAR_HAUTEUR/2)){
-		 				int direction = redirectIfPunchWall(playerCar, level.walls[i]);
-		 				if (playerCar.direction == direction){
-		 					playerCar.speed.x = 0;
-		 					playerCar.speed.y = 0;
-		 					malusBonusSpeed = 0;
-		 				}
-		 				if (direction >= 0){
-			 				playerCar.direction = direction;
-			 				recalculateSpeedDirection(playerCar);
-			 				if (playerCar.state != 2){
-			 					playerCar.state = 2;
-			 				}
-		 				}
-		 	}
-		 	if (isCollision(playerCar,level.walls[i],CAR_LONGUEUR)){
-		 		isWallCollide = true;
- 			}
-		 }
-	     
-	     if (playerCar.state == 2 and !isWallCollide){
-	    	 playerCar.state = 1;
-	    	 
-	     }
-	     if (playerCar.state == 2){
-	    	 malusBonusSpeed *= 0.60;
-	     }
-		
+      bool isWallCollide = false;
+		  for (int i = 0; i < level.walls.size(); i++) {
+  		 	if (isCollision(playerCar,level.walls[i],CAR_HAUTEUR/2)){
+  		 		int direction = redirectIfPunchWall(playerCar, level.walls[i]);
+  		 		if (playerCar.direction == direction){
+  		 			playerCar.speed.x = 0;
+  		 			playerCar.speed.y = 0;
+  		 			malusBonusSpeed = 0;
+  		 		}
+  		 		if (direction >= 0){
+  			 		playerCar.direction = direction;
+  			 		recalculateSpeedDirection(playerCar);
+  			 		if (playerCar.state != 2){
+  			 			playerCar.state = 2;
+  			 		}
+  		 		}
+  		 	}
+  		 	if (isCollision(playerCar,level.walls[i],CAR_LONGUEUR)){
+  		 		isWallCollide = true;
+   			}
+		  }  
+      if (playerCar.state == 2 and !isWallCollide){
+	    	playerCar.state = 1;
+	    }
+      if (playerCar.state == 2){
+	    	malusBonusSpeed *= 0.60;
+      }		
 		// for (int i = 0; i < level.muds.size(); i++) {
 		//     if (isCollision( hitbox4ToList (playerCar.hitbox),
 		//    			hitbox4ToList(level.muds[i].hitbox))){
@@ -752,22 +724,22 @@ int main() {
 	    	} while (i < nitroList.size() || empty == true);
 	    }
 	    
-		if (empty == true){
-			nitroList[i] = generateNitro(level.spawnPosNitro, nitroList);
-		}
+		  if (empty == true){
+			  nitroList[i] = generateNitro(level.spawnPosNitro, nitroList);
+		  }
 		
-		//Comte les tours
-		// for (int i = 0; i < level.flags.size(); i++) {
-		//     if (isCollision(hitbox4ToList(playerCar.hitbox),
-		//    			hitbox2ToList(level.flags[i].hitbox))){
-		//     	countTour(playerCar, level.flags[i], level.flags.size());
-	  //    	}
-		// }
+		  //Comte les tours
+		  // for (int i = 0; i < level.flags.size(); i++) {
+		  //     if (isCollision(hitbox4ToList(playerCar.hitbox),
+		  //    			hitbox2ToList(level.flags[i].hitbox))){
+		  //     	countTour(playerCar, level.flags[i], level.flags.size());
+      //    	}
+		  // }
 		
 	    
-		playerCar.speed = playerNewSpeed;
-		moveCar(playerCar, dt);
-		malusBonusSpeed = 1;
+		  playerCar.speed = playerNewSpeed;
+		  moveCar(playerCar, dt);
+		  malusBonusSpeed = 1;
 	
     }
     
@@ -778,73 +750,62 @@ int main() {
     	     * puis on affiche la nouvelle image grâce à `display`.
     	     */
     
-	window.clear(Color::White);
-		
-	if (idCurrentWindow == 0){
-		    	
-	    	if (enter){
-	    		idCurrentWindow = 1;
-	    	}
-		    	
-	    	sf::Text enterText = sf::Text();
-		   	enterText.setString("Insert COIN (or press enter)");
-		   	enterText.setFont(font);
-		   	enterText.setCharacterSize(60);
+  	window.clear(Color::White);
+  		
+  	if (idCurrentWindow == 0){
+  		    	
+  	    	if (enter){
+  	    		idCurrentWindow = 1;
+  	    	}
+  		    	
+  	    	sf::Text enterText = sf::Text();
+  		   	enterText.setString("Insert COIN (or press enter)");
+  		   	enterText.setFont(font);
+  		   	enterText.setCharacterSize(60);
 
-	    	if (textAlphaValue <= 255){
-	    		enterText.setFillColor(sf::Color(0,0,0,textAlphaValue));
-	    		
-	    	}
-	    	else {
-	    		enterText.setFillColor(sf::Color(0,0,0,509 - textAlphaValue));
-	    	}
-	      	
-	 	   	enterText.setPosition(WINDOW_WIDTH/2 - enterText.getLocalBounds().width/2, WINDOW_HEIGHT*7/8 - enterText.getLocalBounds().height/2);
+  	    	if (textAlphaValue <= 255){
+  	    		enterText.setFillColor(sf::Color(0,0,0,textAlphaValue));
+  	    		
+  	    	}
+  	    	else {
+  	    		enterText.setFillColor(sf::Color(0,0,0,509 - textAlphaValue));
+  	    	}
+  	      	
+  	 	   	enterText.setPosition(WINDOW_WIDTH/2 - enterText.getLocalBounds().width/2, WINDOW_HEIGHT*7/8 - enterText.getLocalBounds().height/2);
 
-		       	
-	     	window.draw(enterText);
-   }
-	
-	else if (idCurrentWindow == 1){
-		
-		window.draw(background);
-		
-		sf::RectangleShape carShape(sf::Vector2f(CAR_LONGUEUR, CAR_HAUTEUR));
-				carShape.setPosition(playerCar.pos.x + CAR_LONGUEUR/2 , playerCar.pos.y + CAR_HAUTEUR/2);
-				carShape.setOrigin(CAR_LONGUEUR/2, CAR_HAUTEUR/2);
-				carShape.setRotation(180 - (playerCar.direction/16.0 * 360));
-				carShape.setFillColor(sf::Color::Blue);
-				
-				
-		window.draw(carShape);
-		
-    std::vector<sf::RectangleShape> listWallPrint;
-    sf::RectangleShape wallShape;
+  		       	
+  	     	window.draw(enterText);
+     }
+  	
+  	else if (idCurrentWindow == 1){
+  		
+  		window.draw(background);
+  		
+  		sf::RectangleShape carShape(sf::Vector2f(CAR_LONGUEUR, CAR_HAUTEUR));
+  		carShape.setPosition(playerCar.pos.x + CAR_LONGUEUR/2 , playerCar.pos.y + CAR_HAUTEUR/2);
+  		carShape.setOrigin(CAR_LONGUEUR/2, CAR_HAUTEUR/2);
+  		carShape.setRotation(180 - (playerCar.direction/16.0 * 360));
+  		carShape.setFillColor(sf::Color::Blue);
+  				
+  				
+  		window.draw(carShape);
+  		
+      sf::VertexArray lines(sf::LineStrip, level.walls.size());
+      for (int i = 0; i < level.walls.size(); ++i)
+      {
+        lines[i].position = sf::Vector2f(level.walls[i].hitbox.corner1.x,level.walls[i].hitbox.corner1.y);
+      }
 
-    for (int i = 0; i < level.walls.size(); ++i)
-    {
-      wallShape.setSize(sf::Vector2f(1,getWallLength(level.walls[i])));
-      wallShape.setPosition(level.walls[i].hitbox.corner1.x+10,level.walls[i].hitbox.corner1.y+10);
-      wallShape.setRotation(getWallRotation(level.walls[i])-90);
-      wallShape.setFillColor(sf::Color::Red);
-      listWallPrint.push_back(wallShape);
-      //cout << wallShape.getSize().x <<" "<<wallShape.getSize().y;
-      //cout <<" "<< wallShape.getRotation()<< endl;
+      window.draw(lines);
+
+
+      window.display();
+      
+      sf::sleep(sf::seconds((1.0/MAX_FPS)-clock.getElapsedTime().asSeconds()));
+      //std::cout << framerate << std::endl;
+
     }
-		for (int i = 0; i < listWallPrint.size(); ++i)
-		  {
-		    window.draw(listWallPrint[i]);
-		  }
-	
-    }
-
-
-    window.display();
-    
-    sf::sleep(sf::seconds((1.0/MAX_FPS)-clock.getElapsedTime().asSeconds()));
-    //std::cout << framerate << std::endl;
 
   }
-
   return 0;
 }
