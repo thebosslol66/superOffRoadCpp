@@ -89,6 +89,8 @@ struct Car
   int laps;
   int flag;
   int nbNitro;
+  float malusBonusSpeed;
+  bool collision;
 };
 struct Bonus
 {
@@ -553,9 +555,11 @@ int main() {
   playerCar.laps = 0;
   playerCar.flag = 0;
   playerCar.nbNitro = 3;
+  playerCar.malusBonusSpeed = 1.0;
+  playerCar.collision = false;
   float timer = 0;
-  bool collision = false;
-  float malusBonusSpeed = 1.0;
+   
+  
   std::vector<Bonus> nitroList;
   
   
@@ -563,7 +567,93 @@ int main() {
   cout << getWallLength(level.walls[2])<<endl;
 
 
-
+  /*Walls 
+  */
+  
+  Wall wall;
+  	    			
+  wall.hitbox.corner1.x = 200;
+  wall.hitbox.corner1.y = 200;
+  wall.directionStop = 0;
+  wall.hitbox.corner2.x = 200;
+  wall.hitbox.corner2.y = 800;
+  	    			
+  level.walls.push_back(wall);
+  
+  wall.hitbox.corner1.x = 200;
+  wall.hitbox.corner1.y = 800;
+  wall.directionStop = 4;
+  wall.hitbox.corner2.x = 800;
+  wall.hitbox.corner2.y = 800;
+  	    			
+  level.walls.push_back(wall);
+  
+  wall.hitbox.corner1.x = 800;
+  wall.hitbox.corner1.y = 800;
+  wall.directionStop = 8;
+  wall.hitbox.corner2.x = 800;
+  wall.hitbox.corner2.y = 200;
+  	    			
+  level.walls.push_back(wall);
+  
+  wall.hitbox.corner1.x = 800;
+  wall.hitbox.corner1.y = 200;
+  wall.directionStop = 12;
+  wall.hitbox.corner2.x = 200;
+  wall.hitbox.corner2.y = 200;
+  	    			
+  level.walls.push_back(wall);
+  
+  /* Enemies car */
+  
+  Car Enemie1;
+  
+  Enemie1.state = 1;
+  Enemie1.pos.x = 300;//la position initial de la voiture en x
+  Enemie1.pos.y = 500;//la position initial de la voiture en y
+  Enemie1.speed.x = 0;
+  Enemie1.speed.y = 0;
+  Enemie1.direction = 0;
+  Enemie1.laps = 0;
+  Enemie1.flag = 0;
+  Enemie1.nbNitro = 3;
+  Enemie1.malusBonusSpeed = 1.0;
+  Enemie1.collision = false;
+  
+  Car Enemie2;
+  
+  Enemie2.state = 1;
+  Enemie2.pos.x = 400;//la position initial de la voiture en x
+  Enemie2.pos.y = 500;//la position initial de la voiture en y
+  Enemie2.speed.x = 0;
+  Enemie2.speed.y = 0;
+  Enemie2.direction = 0;
+  Enemie2.laps = 0;
+  Enemie2.flag = 0;
+  Enemie2.nbNitro = 3;
+  Enemie2.malusBonusSpeed = 1.0;
+  Enemie2.collision = false;
+  
+  Car Enemie3;
+  
+  Enemie3.state = 1;
+  Enemie3.pos.x = 600;//la position initial de la voiture en x
+  Enemie3.pos.y = 500;//la position initial de la voiture en y
+  Enemie3.speed.x = 0;
+  Enemie3.speed.y = 0;
+  Enemie3.direction = 0;
+  Enemie3.laps = 0;
+  Enemie3.flag = 0;
+  Enemie3.nbNitro = 3;
+  Enemie3.malusBonusSpeed = 1.0;
+  Enemie3.collision = false;
+  
+  
+  std::vector<Car> Enemies;
+  Enemies.push_back(Enemie1);
+  Enemies.push_back(Enemie2);
+  Enemies.push_back(Enemie3);
+  
 
   /*
    * La boucle de jeu principale. La condition de fin est la fermeture de la
@@ -685,14 +775,14 @@ int main() {
 
 
 	     
-	     bool isWallCollide = false;
+	     playerCar.collision = false;
 		 for (int i = 0; i < level.walls.size(); i++) {
 		 	if (isCollision(playerCar,level.walls[i],CAR_HAUTEUR/2)){
 		 				int direction = redirectIfPunchWall(playerCar, level.walls[i]);
 		 				if (playerCar.direction == direction){
 		 					playerCar.speed.x = 0;
 		 					playerCar.speed.y = 0;
-		 					malusBonusSpeed = 0;
+		 					playerCar.malusBonusSpeed = 0;
 		 				}
 		 				if (direction >= 0){
 			 				playerCar.direction = direction;
@@ -703,16 +793,16 @@ int main() {
 		 				}
 		 	}
 		 	if (isCollision(playerCar,level.walls[i],CAR_LONGUEUR)){
-		 		isWallCollide = true;
+		 		playerCar.collision = true;
  			}
 		 }
 	     
-	     if (playerCar.state == 2 and !isWallCollide){
+	     if (playerCar.state == 2 and !playerCar.collision){
 	    	 playerCar.state = 1;
 	    	 
 	     }
 	     if (playerCar.state == 2){
-	    	 malusBonusSpeed *= 0.60;
+	    	 playerCar.malusBonusSpeed *= 0.60;
 	     }
 		
 		// for (int i = 0; i < level.muds.size(); i++) {
@@ -733,7 +823,7 @@ int main() {
 		
 	     
 	    //On calcule ensuite la nouvelle vitesse de la voiture
-	    Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * malusBonusSpeed, ACCELERATION, up, down, nitro, dt);
+	    Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * playerCar.malusBonusSpeed, ACCELERATION, up, down, nitro, dt);
 	    
 	    
 	    //Timer Pour le spawn de nitro
@@ -766,7 +856,80 @@ int main() {
 	    
 		playerCar.speed = playerNewSpeed;
 		moveCar(playerCar, dt);
-		malusBonusSpeed = 1;
+		playerCar.malusBonusSpeed = 1;
+		
+		
+		
+		
+		
+		 
+		for (int j = 0; j < Enemies.size();j++){
+			Car enemie = Enemies[j];
+			enemie.collision = false;
+				 for (int i = 0; i < level.walls.size(); i++) {
+				 	if (isCollision(enemie,level.walls[i],CAR_HAUTEUR/2)){
+				 				int direction = redirectIfPunchWall(enemie, level.walls[i]);
+				 				if (enemie.direction == direction){
+				 					enemie.speed.x = 0;
+				 					enemie.speed.y = 0;
+				 					enemie.malusBonusSpeed = 0;
+				 				}
+				 				if (direction >= 0){
+				 					enemie.direction = direction;
+					 				recalculateSpeedDirection(enemie);
+					 				if (enemie.state != 2){
+					 					enemie.state = 2;
+					 				}
+				 				}
+				 	}
+				 	if (isCollision(enemie,level.walls[i],CAR_LONGUEUR)){
+				 		enemie.collision = true;
+		 			}
+				 }
+			     
+			     if (enemie.state == 2 and !enemie.collision){
+			    	 enemie.state = 1;
+			    	 
+			     }
+			     if (enemie.state == 2){
+			    	 enemie.malusBonusSpeed *= 0.60;
+			     }
+				
+				// for (int i = 0; i < level.muds.size(); i++) {
+				//     if (isCollision( hitbox4ToList (playerCar.hitbox),
+				//    			hitbox4ToList(level.muds[i].hitbox))){
+				//    				malusBonusSpeed *= 0.80;
+				//    	}
+				// }
+				//
+				// for (int i = 0; i < nitroList.size(); i++) {
+				// 	if (isCollision( hitbox4ToList (playerCar.hitbox),
+				// 			hitbox4ToList(nitroList[i].hitbox))){
+				// 		playerCar.nbNitro = playerCar.nbNitro + 1;
+				//		// nitroList[i].pos.x = 0;
+				//		// nitroList[i].pos.y = 0;
+				// 	}
+				// }
+				
+			     
+			    //On calcule ensuite la nouvelle vitesse de la voiture
+			    Speed enemieNewSpeed = calculateSpeed(enemie, ACCELERATION * enemie.malusBonusSpeed, ACCELERATION, true, false, false, dt);
+			    
+			    
+				
+				//Comte les tours
+				// for (int i = 0; i < level.flags.size(); i++) {
+				//     if (isCollision(hitbox4ToList(playerCar.hitbox),
+				//    			hitbox2ToList(level.flags[i].hitbox))){
+				//     	countTour(playerCar, level.flags[i], level.flags.size());
+			  //    	}
+				// }
+				
+			    
+			    enemie.speed = enemieNewSpeed;
+				moveCar(enemie, dt);
+				enemie.malusBonusSpeed = 1;
+		}
 	
     }
     
@@ -809,6 +972,18 @@ int main() {
 		window.draw(background);
 		
 		sf::RectangleShape carShape(sf::Vector2f(CAR_LONGUEUR, CAR_HAUTEUR));
+		
+
+		for (int j = 0; j < Enemies.size();j++){
+			Car enemie = Enemies[j];
+			carShape.setPosition(enemie.pos.x + CAR_LONGUEUR/2 , enemie.pos.y + CAR_HAUTEUR/2);
+							carShape.setOrigin(CAR_LONGUEUR/2, CAR_HAUTEUR/2);
+							carShape.setRotation(180 - (enemie.direction/16.0 * 360));
+							carShape.setFillColor(sf::Color::Yellow);
+							window.draw(carShape);
+		}
+		
+		
 				carShape.setPosition(playerCar.pos.x + CAR_LONGUEUR/2 , playerCar.pos.y + CAR_HAUTEUR/2);
 				carShape.setOrigin(CAR_LONGUEUR/2, CAR_HAUTEUR/2);
 				carShape.setRotation(180 - (playerCar.direction/16.0 * 360));
@@ -816,6 +991,7 @@ int main() {
 				
 				
 		window.draw(carShape);
+		
 		
     std::vector<sf::RectangleShape> listWallPrint;
     sf::RectangleShape wallShape;
