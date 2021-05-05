@@ -706,26 +706,8 @@ int main() {
 	     }
 	     
        
-<<<<<<< HEAD
-       collision = false;
-       //cout<<playerCar.pos.x<<","<<playerCar.pos.y<<endl;
-	    for (int i = 0; i < level.walls.size(); i++) {
-	    	if (isCollision(playerCar,level.walls[i],CAR_HAUTEUR/2)){
-          collision = true;
-          int direction = redirectIfPunchWall(playerCar, level.walls[i]);
-          if (playerCar.direction == direction){
-                  playerCar.speed.x = 0;
-                  playerCar.speed.y = 0;
-                  malusBonusSpeed = 0;
-             }
-          playerCar.direction = direction;
-          recalculateSpeedDirection(playerCar);
-          malusBonusSpeed *= 0.60;
-	    	}
-	    }
-	
-=======
->>>>>>> 239e9cc0962c1a7886ba177e77a891c3a92c190e
+
+
 	     
 	     bool isWallCollide = false;
 		 for (int i = 0; i < level.walls.size(); i++) {
