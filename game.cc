@@ -654,8 +654,8 @@ int main() {
 
         std::vector < Car* > Enemies;
         Enemies.push_back(&Enemie1);
-        //Enemies.push_back(&Enemie2);
-        //Enemies.push_back(&Enemie3);
+        Enemies.push_back(&Enemie2);
+        Enemies.push_back(&Enemie3);
         
         
         std::vector < Position > botLine;
