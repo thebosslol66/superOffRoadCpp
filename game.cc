@@ -64,13 +64,7 @@ struct Hitbox2P
   Position corner1;
   Position corner2;
 };
-struct Hitbox4P
-{
-  Position corner1;
-  Position corner2;
-  Position corner3;
-  Position corner4;
-};
+
 struct Speed
 {
   float x;
@@ -93,19 +87,18 @@ struct Car
   Speed speed;
   int direction;
   int laps;
-  Hitbox4P hitbox;
   int flag;
   int nbNitro;
 };
 struct Bonus
 {
   Position pos;
-  Hitbox4P hitbox;
+  int rayon;
 };
 struct Mud
 {
   Position pos;
-  Hitbox4P hitbox;
+  int rayon;
 };
 struct Ground
 {
@@ -188,28 +181,12 @@ bool isCollision(Car car, Wall wall, int rayon){
   }
 
 }
-
-
-
-//
-Hitbox4P getHitboxCar(const Car& car, const int& longe, const int& large){
-  Hitbox4P hitbox;
-  double angleRad = fmod((M_PI - car.direction * (M_PI/8)+2*M_PI),(2*M_PI));
-  //cout<<angleRad<<" / ";
-  double diag = hypot(large, longe);
-  double angleCar = (asin(large/diag));
-  //cout<<angleCar<<" : ";
-  //cout<<+sin(angleRad + angleCar)*diag<<endl;
-  hitbox.corner1.x = static_cast<int>(car.pos.x - cos(angleRad - angleCar)*diag);
-  hitbox.corner1.y = static_cast<int>(car.pos.y - sin(angleRad - angleCar)*diag);
-  hitbox.corner2.x = static_cast<int>(car.pos.x - cos(angleRad + angleCar)*diag);
-  hitbox.corner2.y = static_cast<int>(car.pos.y - sin(angleRad + angleCar)*diag);
-  hitbox.corner3.x = static_cast<int>(car.pos.x + cos(angleRad - angleCar)*diag);
-  hitbox.corner3.y = static_cast<int>(car.pos.y + sin(angleRad - angleCar)*diag);
-  hitbox.corner4.x = static_cast<int>(car.pos.x + cos(angleRad + angleCar)*diag);
-  hitbox.corner4.y = static_cast<int>(car.pos.y + sin(angleRad + angleCar)*diag);
-  return hitbox;
+bool isCollision(Car car,Bonus bonus, int rayon){
+  if(true){
+    
+  }
 }
+
 //
 int countTour(Car& car, const Flag& flag, const int& nbFlag){
   if (flag.nb == 0 && car.flag == nbFlag-1)
