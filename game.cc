@@ -276,7 +276,6 @@ Speed calculateSpeed(const Car& car, int acceleration,
 	}
 	
 	if (acceleration != 0){
-		cout << normeSpeed << " " << maxSpeed << " " << (acceleration/ (float)avgAcceleration) << endl;
 		if(acceleration != avgAcceleration){
 			if (normeSpeed >= maxSpeed * (acceleration/ (float)avgAcceleration)){
 				normeSpeed = maxSpeed * (acceleration/ (float)avgAcceleration);
