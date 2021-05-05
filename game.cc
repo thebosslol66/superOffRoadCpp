@@ -180,7 +180,19 @@ bool isCollision(Car car, Bonus bonus, int rayon) {
     bool colision = false;
     if (hypot(car.pos.x - bonus.pos.x, car.pos.y - bonus.pos.y) <= rayon + bonus.rayon) {
         colision = true;
+    }else{
+      colision = false;
     }
+    return colision;
+}
+bool isCollision(Car car, Mud mud, int rayon) {
+    bool colision = false;
+    if (hypot(car.pos.x - mud.pos.x, car.pos.y - mud.pos.y) <= rayon + mud.rayon) {
+        colision = true;
+    }else{
+      colision = false;
+    }
+    return colision;
 }
 
 //
