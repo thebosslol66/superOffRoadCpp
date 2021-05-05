@@ -104,6 +104,7 @@ struct Mud {
 };
 struct Ground {
     std::vector < Wall > walls;
+    std::vector < Wall > walls2;
     std::vector < Position > spawnPosNitro;
     std::vector < Mud > muds;
     std::vector < Flag > flags;
@@ -468,12 +469,12 @@ void printListWall(std::vector < Wall > listWall) {
 
 int main() {
 
-        const int WINDOW_WIDTH = 1600;
-        const int WINDOW_HEIGHT = 1200;
+        const int WINDOW_WIDTH = 1320;
+        const int WINDOW_HEIGHT = 880;
         const std::string WINDOW_TITLE = "Super off Road";
         const int MAX_FPS = 120;
 
-        const float TIME_BEFORE_REACTIVATE = 0.1;
+        const float TIME_BEFORE_REACTIVATE = 0.05;
 
         int idCurrentWindow = 0;
 
@@ -583,6 +584,38 @@ int main() {
         wall.hitbox.corner2.y = 200;
 
         level.walls.push_back(wall);
+
+        wall.hitbox.corner1.x = 300;
+        wall.hitbox.corner1.y = 300;
+        wall.directionStop = 8;
+        wall.hitbox.corner2.x = 300;
+        wall.hitbox.corner2.y = 700;
+
+        level.walls2.push_back(wall);
+
+        wall.hitbox.corner1.x = 300;
+        wall.hitbox.corner1.y = 700;
+        wall.directionStop = 12;
+        wall.hitbox.corner2.x = 700;
+        wall.hitbox.corner2.y = 700;
+
+        level.walls2.push_back(wall);
+
+        wall.hitbox.corner1.x = 700;
+        wall.hitbox.corner1.y = 700;
+        wall.directionStop = 0;
+        wall.hitbox.corner2.x = 700;
+        wall.hitbox.corner2.y = 300;
+
+        level.walls2.push_back(wall);
+
+        wall.hitbox.corner1.x = 700;
+        wall.hitbox.corner1.y = 300;
+        wall.directionStop = 4;
+        wall.hitbox.corner2.x = 300;
+        wall.hitbox.corner2.y = 300;
+
+        level.walls2.push_back(wall);
 
         /* Enemies car */
 
@@ -750,6 +783,34 @@ int main() {
                         }
                     }
                     if (isCollision(playerCar, level.walls[i], CAR_LONGUEUR)) {
+                        playerCar.collision = true;
+                    }
+                }
+
+                if (playerCar.state == 2 and!playerCar.collision) {
+                    playerCar.state = 1;
+
+                }
+                if (playerCar.state == 2) {
+                    playerCar.malusBonusSpeed *= 0.60;
+                }
+                for (int i = 0; i < level.walls2.size(); i++) {
+                    if (isCollision(playerCar, level.walls2[i], CAR_HAUTEUR / 2)) {
+                        int direction = redirectIfPunchWall(playerCar, level.walls2[i]);
+                        if (playerCar.direction == direction) {
+                            playerCar.speed.x = 0;
+                            playerCar.speed.y = 0;
+                            playerCar.malusBonusSpeed = 0;
+                        }
+                        if (direction >= 0) {
+                            playerCar.direction = direction;
+                            recalculateSpeedDirection(playerCar);
+                            if (playerCar.state != 2) {
+                                playerCar.state = 2;
+                            }
+                        }
+                    }
+                    if (isCollision(playerCar, level.walls2[i], CAR_LONGUEUR)) {
                         playerCar.collision = true;
                     }
                 }
@@ -931,6 +992,7 @@ int main() {
                     std::vector < sf::RectangleShape > listWallPrint;
                     sf::RectangleShape wallShape;
                     sf::VertexArray lines(sf::LineStrip, level.walls.size()+1);
+                    sf::VertexArray lines2(sf::LineStrip, level.walls2.size()+1);
                     for (int i = 0; i < level.walls.size(); ++i) {
                         lines[i].position = sf::Vector2f(level.walls[i].hitbox.corner1.x+20, level.walls[i].hitbox.corner1.y+10);
                         lines[i].color = sf::Color::Red;
@@ -938,7 +1000,13 @@ int main() {
                     lines[level.walls.size()].position = sf::Vector2f(level.walls[0].hitbox.corner1.x+20, level.walls[0].hitbox.corner1.y+10);
                     lines[level.walls.size()].color = sf::Color::Red;
                     window.draw(lines);
-                    
+                    for (int i = 0; i < level.walls2.size(); ++i) {
+                        lines2[i].position = sf::Vector2f(level.walls2[i].hitbox.corner1.x+20, level.walls2[i].hitbox.corner1.y+10);
+                        lines2[i].color = sf::Color::Red;
+                    }
+                    lines2[level.walls.size()].position = sf::Vector2f(level.walls2[0].hitbox.corner1.x+20, level.walls2[0].hitbox.corner1.y+10);
+                    lines2[level.walls.size()].color = sf::Color::Red;
+                    window.draw(lines2);                   
 
                 }
                 
