@@ -100,6 +100,7 @@ struct Car {
     bool collision;
     int botPositionToTarget;
     double lastActive;
+    Position posInterBot;
 };
 struct Bonus {
     Position pos;
@@ -213,6 +214,21 @@ bool isCollision(const Car &car, const Position &pos, const int &rayon) {
     return colision;
 }
 
+Position randomInCircle(const Position &pos, const float &rayon){
+	float rtheta = Math::random()*2*M_PI;
+	float rdist = Math::random()* rayon;
+	Position rpos;
+	rpos.x = Math::arrondir((cos(rtheta)*rdist +pos.x), 0.01);
+	rpos.y = (sin(rtheta)*rdist + pos.y);
+	return rpos;
+	
+}
+Position centerPosition(const Position &pos1, const Position &pos2){
+	Position cpos;
+		cpos.x = Math::arrondir((pos1.x + pos2.x)/2, 0.01);
+		cpos.y = Math::arrondir((pos1.y + pos2.y)/2, 0.01);
+		return cpos;
+}
 //
 int countTour(Car & car,
     const Flag & flag,
@@ -510,6 +526,8 @@ int main() {
 
         const int CAR_LONGUEUR = 40;
         const int CAR_HAUTEUR = 20;
+        
+        const float RANDOM_DIST_FOR_BOTS = 30;
 
         /*
          * Variables pour l'ecran titre
@@ -531,7 +549,6 @@ int main() {
          * le temps entre deux frames.
          */
         Clock clock;
-        int cnt = 0;
 
         Ground level;
         //makeLevel(level, levelFile + ".txt");
@@ -806,8 +823,8 @@ int main() {
 
         std::vector < Car* > Enemies;
         Enemies.push_back(&Enemie1);
-        //Enemies.push_back(&Enemie2);
-        //Enemies.push_back(&Enemie3);
+        Enemies.push_back(&Enemie2);
+        Enemies.push_back(&Enemie3);
         
         
         std::vector < Position > botLine;
@@ -1036,8 +1053,16 @@ int main() {
                     Car* enemie = Enemies[j];
                     
                     if (enemie->lastActive <= 0){
-	                    float pointx = botLine[enemie->botPositionToTarget].x;
-	                    float pointy = botLine[enemie->botPositionToTarget].y;
+                    	float pointx;
+                    	float pointy;
+                    	if (enemie->posInterBot.x > 0){
+                    		pointx = enemie->posInterBot.x;
+                    		pointy = enemie->posInterBot.y;
+                    	}
+                    	else{
+                    		pointx = botLine[enemie->botPositionToTarget].x;
+                    		pointy = botLine[enemie->botPositionToTarget].y;
+                    	}
 	                    
 	                    float pointxCentre = Math::arrondir(cos(fmod((M_PI - enemie->direction * (M_PI / 8) +
 	                            2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR/2.0 + enemie->pos.x + CAR_LONGUEUR / 2;
@@ -1081,7 +1106,16 @@ int main() {
                     }
 					
 					if (isCollision(*enemie, botLine[enemie->botPositionToTarget], CAR_LONGUEUR)){
+						
+						enemie->posInterBot = randomInCircle(centerPosition(botLine[enemie->botPositionToTarget], botLine[fmod(enemie->botPositionToTarget + 1,botLine.size())]), RANDOM_DIST_FOR_BOTS);
+							
 						enemie->botPositionToTarget = fmod(enemie->botPositionToTarget + 1,botLine.size());
+					}
+					
+					if (enemie->posInterBot.x > 0){
+						if (isCollision(*enemie, enemie->posInterBot, CAR_LONGUEUR)){
+							enemie->posInterBot.x = -1;
+						}
 					}
 					
 					if (enemie->lastActive > 0) {
