@@ -590,7 +590,7 @@ int main() {
 
         wall.hitbox.corner1.x = 450;
         wall.hitbox.corner1.y = 750;
-        wall.directionStop = 14;
+        wall.directionStop = 2;
         wall.hitbox.corner2.x = 200;
         wall.hitbox.corner2.y = 500;
 
@@ -600,21 +600,13 @@ int main() {
         wall.hitbox.corner1.y = 500;
         wall.directionStop = 0;
         wall.hitbox.corner2.x = 200;
-        wall.hitbox.corner2.y = 300;
+        wall.hitbox.corner2.y = 200;
 
         level.walls.push_back(wall);
 
         wall.hitbox.corner1.x = 200;
-        wall.hitbox.corner1.y = 300;
-        wall.directionStop = 1;
-        wall.hitbox.corner2.x = 250;
-        wall.hitbox.corner2.y = 150;
-
-        level.walls.push_back(wall);
-
-        wall.hitbox.corner1.x = 250;
-        wall.hitbox.corner1.y = 150;
-        wall.directionStop = 2;
+        wall.hitbox.corner1.y = 200;
+        wall.directionStop = 14;
         wall.hitbox.corner2.x = 350;
         wall.hitbox.corner2.y = 50;
 
@@ -630,7 +622,7 @@ int main() {
 
         wall.hitbox.corner1.x = 600;
         wall.hitbox.corner1.y = 50;
-        wall.directionStop = 6;
+        wall.directionStop = 10;
         wall.hitbox.corner2.x = 800;
         wall.hitbox.corner2.y = 250;
 
@@ -640,13 +632,13 @@ int main() {
         wall.hitbox.corner1.y = 250;
         wall.directionStop = 8;
         wall.hitbox.corner2.x = 800;
-        wall.hitbox.corner2.y = 400;
+        wall.hitbox.corner2.y = 350;
 
         level.walls.push_back(wall);
 
         wall.hitbox.corner1.x = 800;
-        wall.hitbox.corner1.y = 400;
-        wall.directionStop = 5;
+        wall.hitbox.corner1.y = 350;
+        wall.directionStop = 10;
         wall.hitbox.corner2.x = 900;
         wall.hitbox.corner2.y = 450;
 
@@ -658,9 +650,11 @@ int main() {
         wall.hitbox.corner2.x = 1100;
         wall.hitbox.corner2.y = 450;
 
+        level.walls.push_back(wall);
+
         wall.hitbox.corner1.x = 1100;
         wall.hitbox.corner1.y = 450;
-        wall.directionStop = 6;
+        wall.directionStop = 10;
         wall.hitbox.corner2.x = 1200;
         wall.hitbox.corner2.y = 550;
 
@@ -676,7 +670,7 @@ int main() {
 
         wall.hitbox.corner1.x = 1200;
         wall.hitbox.corner1.y = 650;
-        wall.directionStop = 10;
+        wall.directionStop = 6;
         wall.hitbox.corner2.x = 1100;
         wall.hitbox.corner2.y = 750;
 
@@ -692,7 +686,7 @@ int main() {
 
         wall.hitbox.corner1.x = 450;
         wall.hitbox.corner1.y = 600;
-        wall.directionStop = 6;
+        wall.directionStop = 10;
         wall.hitbox.corner2.x = 350;
         wall.hitbox.corner2.y = 500;
 
@@ -708,23 +702,23 @@ int main() {
 
         wall.hitbox.corner1.x = 350;
         wall.hitbox.corner1.y = 300;
-        wall.directionStop = 9;
-        wall.hitbox.corner2.x = 400;
+        wall.directionStop = 6;
+        wall.hitbox.corner2.x = 500;
         wall.hitbox.corner2.y = 150;
 
         level.walls2.push_back(wall);
 
-        wall.hitbox.corner1.x = 400;
+        wall.hitbox.corner1.x = 500;
         wall.hitbox.corner1.y = 150;
-        wall.directionStop = 4;
+        wall.directionStop = 2;
         wall.hitbox.corner2.x = 600;
-        wall.hitbox.corner2.y = 150;
+        wall.hitbox.corner2.y = 250;
 
         level.walls2.push_back(wall);
 
         wall.hitbox.corner1.x = 600;
-        wall.hitbox.corner1.y = 150;
-        wall.directionStop = 15;
+        wall.hitbox.corner1.y = 250;
+        wall.directionStop = 4;
         wall.hitbox.corner2.x = 650;
         wall.hitbox.corner2.y = 250;
 
@@ -740,7 +734,7 @@ int main() {
 
         wall.hitbox.corner1.x = 650;
         wall.hitbox.corner1.y = 400;
-        wall.directionStop = 14;
+        wall.directionStop = 2;
         wall.hitbox.corner2.x = 800;
         wall.hitbox.corner2.y = 550;
 
