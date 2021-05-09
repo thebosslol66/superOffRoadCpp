@@ -1001,7 +1001,7 @@ int main() {
               }
             }
           }
-          if (isCollision(playerCar, level.walls[i], CAR_LONGUEUR)) {
+          if (isCollision(playerCar, level.walls[i], CAR_HAUTEUR+5)) {
             playerCar.collision = true;
           }
         }
@@ -1029,7 +1029,7 @@ int main() {
               }
             }
           }
-          if (isCollision(playerCar, level.walls2[i], CAR_LONGUEUR)) {
+          if (isCollision(playerCar, level.walls2[i], CAR_HAUTEUR+5)) {
             playerCar.collision = true;
           }
         }
@@ -1253,7 +1253,7 @@ int main() {
 
           for (int j = 0; j < Enemies.size(); j++) {
             Car * enemie = Enemies[j];
-            carShape.setPosition(enemie -> pos.x + CAR_LONGUEUR / 2, enemie -> pos.y + CAR_HAUTEUR / 2);
+            carShape.setPosition(enemie -> pos.x, enemie -> pos.y);
             carShape.setOrigin(CAR_LONGUEUR / 2, CAR_HAUTEUR / 2);
             carShape.setRotation(180 - (enemie -> direction / 16.0 * 360));
             carShape.setFillColor(sf::Color::Yellow);
