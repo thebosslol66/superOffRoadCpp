@@ -154,6 +154,29 @@ bool isCollisionDroite(Car car, Wall wall, int rayon) {
   }
 }
 
+bool isCollisionDroite(Car car, Flag wall, int rayon) {
+  Position axis;
+  float numerateur;
+  float denominateur;
+  float ci;
+  axis.x = wall.hitbox.corner2.x - wall.hitbox.corner1.x;
+  axis.y = wall.hitbox.corner2.y - wall.hitbox.corner1.y;
+  Position ac;
+  ac.x = car.pos.x - wall.hitbox.corner1.x;
+  ac.y = car.pos.y - wall.hitbox.corner1.y;
+  numerateur = axis.x * ac.y - axis.y * ac.x;
+  if (numerateur < 0) {
+    numerateur = -numerateur;
+  }
+  denominateur = hypot(axis.x, axis.y);
+  ci = numerateur / denominateur;
+  if (ci <= rayon) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 bool isCollision(Car car, Wall wall, int rayon) {
   Position ab, ac, bc;
   float dotproduct1, dotproduct2;
@@ -182,8 +205,38 @@ bool isCollision(Car car, Wall wall, int rayon) {
       return false;
     }
   }
-
 }
+
+bool isCollision(Car car, Flag wall, int rayon) {
+  Position ab, ac, bc;
+  float dotproduct1, dotproduct2;
+  if (!isCollisionDroite(car, wall, rayon)) {
+    return false;
+  } else {
+    ab.x = wall.hitbox.corner2.x - wall.hitbox.corner1.x;
+    ab.y = wall.hitbox.corner2.y - wall.hitbox.corner1.y;
+    ac.x = car.pos.x - wall.hitbox.corner1.x;
+    ac.y = car.pos.y - wall.hitbox.corner1.y;
+    bc.x = car.pos.x - wall.hitbox.corner2.x;
+    bc.y = car.pos.y - wall.hitbox.corner2.y;
+    dotproduct1 = vectorDotProduct(ab, ac);
+    ab.x = -ab.x;
+    ab.y = -ab.y;
+    dotproduct2 = vectorDotProduct(ab, bc);
+    if (dotproduct1 >= 0 && dotproduct2 >= 0) {
+      return true;
+    }
+    if (isCollisionPoint(wall.hitbox.corner1, car.pos, rayon)) {
+      return true;
+    }
+    if (isCollisionPoint(wall.hitbox.corner2, car.pos, rayon)) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
+
 bool isCollision(const Car & car,
   const Bonus & bonus,
     const int & rayon) {
@@ -246,6 +299,7 @@ int countTour(Car & car,
   } else if (flag.nb - car.flag == 1) {
     car.flag++;
   }
+  cout<< car.laps<<endl;
   return car.laps;
 }
 //fin des algo de silvio
@@ -591,6 +645,8 @@ int main() {
     playerCar.collision = false;
     playerCar.lastActive = 0;
     float timer = 0;
+    int nbFlag;
+
 
     std::vector < Bonus > nitroList;
 
@@ -703,6 +759,14 @@ int main() {
     wall.directionStop = 10;
     wall.hitbox.corner2.x = 350;
     wall.hitbox.corner2.y = 500;
+
+    level.walls2.push_back(wall);
+
+    wall.hitbox.corner1.x = 350;
+    wall.hitbox.corner1.y = 500;
+    wall.directionStop = 10;
+    wall.hitbox.corner2.x = 350;
+    wall.hitbox.corner2.y = 300;
 
     level.walls2.push_back(wall);
 
@@ -823,8 +887,54 @@ int main() {
     //flag
     Flag flag;
 
-    flag.hitbox.corner1.x = 
+    flag.hitbox.corner1.x = 750;
+    flag.hitbox.corner1.y = 600;
+    flag.nb = 0;
+    flag.hitbox.corner2.x = 750;
+    flag.hitbox.corner2.y = 750;
 
+    level.flags.push_back(flag);
+
+    flag.hitbox.corner1.x = 450;
+    flag.hitbox.corner1.y = 600;
+    flag.nb = 1;
+    flag.hitbox.corner2.x = 450;
+    flag.hitbox.corner2.y = 750;
+
+    level.flags.push_back(flag);
+
+    flag.hitbox.corner1.x = 350;
+    flag.hitbox.corner1.y = 500;
+    flag.nb = 2;
+    flag.hitbox.corner2.x = 200;
+    flag.hitbox.corner2.y = 500;
+
+    level.flags.push_back(flag);
+
+    flag.hitbox.corner1.x = 500;
+    flag.hitbox.corner1.y = 50;
+    flag.nb = 3;
+    flag.hitbox.corner2.x = 500;
+    flag.hitbox.corner2.y = 200;
+
+    level.flags.push_back(flag);
+
+    flag.hitbox.corner1.x = 650;
+    flag.hitbox.corner1.y = 250;
+    flag.nb = 4;
+    flag.hitbox.corner2.x = 800;
+    flag.hitbox.corner2.y = 250;
+
+    level.flags.push_back(flag);
+
+    flag.hitbox.corner1.x = 1000;
+    flag.hitbox.corner1.y = 450;
+    flag.nb = 5;
+    flag.hitbox.corner2.x = 1000;
+    flag.hitbox.corner2.y = 550;
+
+    level.flags.push_back(flag);
+    nbFlag = level.flags.size();
     /* Enemies car */
 
     Car Enemie1;
@@ -991,6 +1101,7 @@ int main() {
 
 
       bool colisionMud = false;
+      bool colisionFlag = false;
       float dt = clock.restart().asSeconds();
       if (idCurrentWindow == 0) {
         textAlphaValue += 170 * dt;
@@ -1058,6 +1169,18 @@ int main() {
             }
         }
         //fin des colision joueur mud
+        //colision joueur flag
+        colisionFlag =false;
+        for (int i = 0; i < level.flags.size(); i++)
+        {
+          if (isCollision(playerCar, level.flags[i], CAR_HAUTEUR/2))
+          {
+            colisionFlag = true;
+            countTour(playerCar,level.flags[i], nbFlag);
+          }
+        }
+        //cout << playerCar.laps<< endl;
+
 
         //On calcule ensuite la nouvelle vitesse de la voiture
         Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * playerCar.malusBonusSpeed, ACCELERATION, up, down, nitro, dt);
@@ -1107,7 +1230,7 @@ int main() {
               pointy = botLine[enemie -> botPositionToTarget].y;
             }
             
-            cout << " x " << botLine[enemie -> botPositionToTarget].x << "  y " << botLine[enemie -> botPositionToTarget].y << endl;
+            //cout << " x " << botLine[enemie -> botPositionToTarget].x << "  y " << botLine[enemie -> botPositionToTarget].y << endl;
 
             float pointxCentre = Math::arrondir(cos(fmod((M_PI - enemie -> direction * (M_PI / 8) +
               2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR / 2.0 + enemie -> pos.x + CAR_LONGUEUR / 2;
@@ -1298,7 +1421,7 @@ int main() {
           carShape.setOrigin(CAR_LONGUEUR / 2, CAR_HAUTEUR / 2);
           carShape.setRotation(180 - (playerCar.direction / 16.0 * 360));
           carShape.setFillColor(sf::Color::Blue);
-          if (colisionMud == true)
+          if (colisionMud == true || colisionFlag == true)
           {
             carShape.setFillColor(sf::Color::Red);
           }
