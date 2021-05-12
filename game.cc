@@ -94,6 +94,7 @@ struct Car {
   int laps;
   int flag;
   int nbNitro;
+  double lastNitroUsedTime;
   float malusBonusSpeed;
   int botPositionToTarget;
   double lastActive;
@@ -298,7 +299,6 @@ int countTour(Car & car,
   } else if (flag.nb - car.flag == 1) {
     car.flag++;
   }
-  cout<< car.laps<<endl;
   return car.laps;
 }
 //fin des algo de silvio
@@ -356,8 +356,8 @@ Speed calculateSpeed(const Car & car, int acceleration,
   }
 
   if (isNitro) {
-    speed.x = cos(angleRad) * avgAcceleration * 6;
-    speed.y = sin(angleRad) * avgAcceleration * 6;
+    speed.x = cos(angleRad) * avgAcceleration * 7;
+    speed.y = sin(angleRad) * avgAcceleration * 7;
     return speed;
   }
 
@@ -577,23 +577,25 @@ int main() {
     font.loadFromFile("PixelOperator.ttf");
 
     const int NITRO_SPAWN_TIME = 10000;
-    const int ACCELERATION = 70;
+    const int ACCELERATION = 40;
     bool up, down, left, right, nitro, enter;
     up = down = left = right = nitro = enter = false;
 
     double lastActiveNitro;
     lastActiveNitro = 0;
+    
+    double TIME_NITRO_USED = 6.0;
 
     const int CAR_LONGUEUR = 40;
     const int CAR_HAUTEUR = 20;
 
-    const float RANDOM_DIST_FOR_BOTS = 60;
+    const float RANDOM_DIST_FOR_BOTS = 80;
     
     const float RANDOM_DIST_FOR_BOTS_MASTERMIND = 10;
     
-    const float RANDOM_DIST_FOR_BOTS_MEDIUM = 50;
+    const float RANDOM_DIST_FOR_BOTS_MEDIUM = 80;
     
-    const float RANDOM_DIST_FOR_BOTS_DUMY = 70;
+    const float RANDOM_DIST_FOR_BOTS_DUMY = 120;
 
     /*
      * Variables pour l'ecran titre
@@ -640,6 +642,7 @@ int main() {
     playerCar.laps = 0;
     playerCar.flag = 0;
     playerCar.nbNitro = 3;
+    playerCar.lastNitroUsedTime = 0;
     playerCar.malusBonusSpeed = 1.0;
     playerCar.lastActive = 0;
     float timer = 0;
@@ -762,7 +765,7 @@ int main() {
 
     wall.hitbox.corner1.x = 350;
     wall.hitbox.corner1.y = 500;
-    wall.directionStop = 10;
+    wall.directionStop = 8;
     wall.hitbox.corner2.x = 350;
     wall.hitbox.corner2.y = 300;
 
@@ -946,6 +949,7 @@ int main() {
     Enemie1.laps = 0;
     Enemie1.flag = 0;
     Enemie1.nbNitro = 3;
+    Enemie1.lastNitroUsedTime = 0;
     Enemie1.malusBonusSpeed = 1.0;
     Enemie1.botPositionToTarget = 0;
     Enemie1.posInterBot.x = 0;
@@ -964,6 +968,7 @@ int main() {
     Enemie2.laps = 0;
     Enemie2.flag = 0;
     Enemie2.nbNitro = 3;
+    Enemie2.lastNitroUsedTime = 0;
     Enemie2.malusBonusSpeed = 1.0;
     Enemie2.botPositionToTarget = 0;
     Enemie2.posInterBot.x = 0;
@@ -982,13 +987,14 @@ int main() {
     Enemie3.laps = 0;
     Enemie3.flag = 0;
     Enemie3.nbNitro = 3;
+    Enemie3.lastNitroUsedTime = 0;
     Enemie3.malusBonusSpeed = 1.0;
     Enemie3.botPositionToTarget = 0;
     Enemie3.posInterBot.x = 0;
     Enemie3.posInterBot.y = 0;
     Enemie3.lastActive = 0;
     Enemie3.botType = "dummy";
-
+    
     std::vector < Car * > Enemies;
     Enemies.push_back( & Enemie1);
     Enemies.push_back( & Enemie2);
@@ -1108,6 +1114,11 @@ int main() {
         textAlphaValue += 170 * dt;
         textAlphaValue %= 510;
       } else if (idCurrentWindow == 1) {
+    	  
+    	  if (playerCar.lastNitroUsedTime >= 0){
+    	  	playerCar.lastNitroUsedTime -= dt;
+    	  }
+		  
         //On applique la direction a la voiture 
         if (left && playerCar.lastActive <= 0) {
           playerCar.lastActive = TIME_BEFORE_REACTIVATE + dt;
@@ -1123,6 +1134,13 @@ int main() {
         if (playerCar.lastActive > 0) {
           playerCar.lastActive -= dt;
         }
+        
+        if (nitro && playerCar.lastNitroUsedTime <= 0 && playerCar.nbNitro > 0){
+        	playerCar.lastNitroUsedTime = TIME_NITRO_USED;
+        	playerCar.nbNitro -= 1;
+        }
+        	
+        	
         //colision joueur mur
         bool collisionWall = false;
         Wall wall;
@@ -1212,11 +1230,11 @@ int main() {
             countTour(playerCar,level.flags[i], nbFlag);
           }
         }
-        //cout << playerCar.laps<< endl;
+
 
 
         //On calcule ensuite la nouvelle vitesse de la voiture
-        Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * playerCar.malusBonusSpeed, ACCELERATION, up, down, nitro, dt);
+        Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * playerCar.malusBonusSpeed, ACCELERATION, up, down, playerCar.lastNitroUsedTime >= 0, dt);
 
         //Timer Pour le spawn de nitro
         timer += dt;
@@ -1251,6 +1269,8 @@ int main() {
         //truc pour les ennemies
         for (int j = 0; j < Enemies.size(); j++) {
           Car * enemie = Enemies[j];
+          
+          enemie -> lastNitroUsedTime -= dt;
 
           if (enemie -> lastActive <= 0) {
             float pointx;
@@ -1300,6 +1320,13 @@ int main() {
               }
               recalculateSpeedDirection(enemie);
               enemie -> lastActive = TIME_BEFORE_REACTIVATE + dt;
+            }
+            else {
+            	if (Math::random() > 0.05 && enemie -> nbNitro > 0 &&  enemie -> lastNitroUsedTime < 0){
+            		enemie -> lastNitroUsedTime = TIME_NITRO_USED;
+            		enemie -> nbNitro -= 1;
+            	}
+            	
             }
           }
 
@@ -1403,24 +1430,11 @@ int main() {
                 	  enemie -> malusBonusSpeed *= 0.40;
                   }
 
-            // for (int i = 0; i < level.muds.size(); i++) {
-            //     if (isCollision( hitbox4ToList (playerCar.hitbox),
-            //          hitbox4ToList(level.muds[i].hitbox))){
-            //            malusBonusSpeed *= 0.80;
-            //      }
-            // }
-            //
-            // for (int i = 0; i < nitroList.size(); i++) {
-            //  if (isCollision( hitbox4ToList (playerCar.hitbox),
-            //      hitbox4ToList(nitroList[i].hitbox))){
-            //    playerCar.nbNitro = playerCar.nbNitro + 1;
-            //    // nitroList[i].pos.x = 0;
-            //    // nitroList[i].pos.y = 0;
-            //  }
-            // }
+
+          
 
             //On calcule ensuite la nouvelle vitesse de la voiture
-          Speed enemieNewSpeed = calculateSpeed( * enemie, (ACCELERATION * enemie -> malusBonusSpeed) * 0.90, ACCELERATION * 0.90, true, false, false, dt);
+          Speed enemieNewSpeed = calculateSpeed( * enemie, (ACCELERATION * enemie -> malusBonusSpeed) * 0.90, ACCELERATION * 0.90, true, false, enemie -> lastNitroUsedTime >= 0, dt);
 
             //Comte les tours
             // for (int i = 0; i < level.flags.size(); i++) {
