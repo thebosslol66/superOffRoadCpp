@@ -302,6 +302,19 @@ int countTour(Car & car,
   }
   return car.laps;
 }
+
+int countTour(Car * car,
+  const Flag & flag,
+    const int & nbFlag) {
+  if (flag.nb == 0 && car -> flag == nbFlag - 1) {
+    car -> laps++;
+    car -> flag = 0;
+  } else if (flag.nb - car -> flag == 1) {
+    car -> flag++;
+  }
+  return car -> laps;
+}
+
 //fin des algo de silvio
 
 //Algo de moi meme
@@ -356,12 +369,6 @@ Speed calculateSpeed(const Car & car, int acceleration,
     acceleration = 0;
   }
 
-  if (isNitro && acceleration != 0) {
-    speed.x = cos(angleRad) * avgAcceleration * 6;
-    speed.y = sin(angleRad) * avgAcceleration * 6;
-    return speed;
-  }
-
   if (isBreack) {
     if (normeSpeed < (1 / 5 * (avgAcceleration * 5))) {
       normeSpeed = 0;
@@ -370,6 +377,12 @@ Speed calculateSpeed(const Car & car, int acceleration,
     speed.y = sin(angleRad) * (normeSpeed - normeSpeed * 3 * dt);
     return speed;
   }
+  
+  if (isNitro && acceleration != 0) {
+      speed.x = cos(angleRad) * avgAcceleration * 7;
+      speed.y = sin(angleRad) * avgAcceleration * 7;
+      return speed;
+    }
 
   if (acceleration != 0) {
     if (acceleration != avgAcceleration) {
@@ -569,25 +582,25 @@ int main() {
     font.loadFromFile("PixelOperator.ttf");
 
     const int NITRO_SPAWN_TIME = 1000;
-    const int ACCELERATION = 40;
+    const int ACCELERATION = 60;
     bool up, down, left, right, nitro, enter;
     up = down = left = right = nitro = enter = false;
 
     double lastActiveNitro;
     lastActiveNitro = 0;
     
-    double TIME_NITRO_USED = 6.0;
+    double TIME_NITRO_USED = 5.0;
 
     const int CAR_LONGUEUR = 40;
     const int CAR_HAUTEUR = 20;
 
-    const float RANDOM_DIST_FOR_BOTS = 80;
+    const float RANDOM_DIST_FOR_BOTS = 70;
     
     const float RANDOM_DIST_FOR_BOTS_MASTERMIND = 10;
     
-    const float RANDOM_DIST_FOR_BOTS_MEDIUM = 70;
+    const float RANDOM_DIST_FOR_BOTS_MEDIUM = 10;
     
-    const float RANDOM_DIST_FOR_BOTS_DUMY = 90;
+    const float RANDOM_DIST_FOR_BOTS_DUMY = 10;
 
     /*
      * Variables pour l'ecran titre
@@ -633,7 +646,7 @@ int main() {
     playerCar.direction = 0;
     playerCar.laps = 0;
     playerCar.flag = 0;
-    playerCar.nbNitro = 3;
+    playerCar.nbNitro = 10;
     playerCar.lastNitroUsedTime = 0;
     playerCar.malusBonusSpeed = 1.0;
     playerCar.lastActive = 0;
@@ -970,7 +983,7 @@ int main() {
     Enemie1.direction = 0;
     Enemie1.laps = 0;
     Enemie1.flag = 0;
-    Enemie1.nbNitro = 3;
+    Enemie1.nbNitro = 10;
     Enemie1.lastNitroUsedTime = 0;
     Enemie1.malusBonusSpeed = 1.0;
     Enemie1.botPositionToTarget = 0;
@@ -989,7 +1002,7 @@ int main() {
     Enemie2.direction = 0;
     Enemie2.laps = 0;
     Enemie2.flag = 0;
-    Enemie2.nbNitro = 3;
+    Enemie2.nbNitro = 10;
     Enemie2.lastNitroUsedTime = 0;
     Enemie2.malusBonusSpeed = 1.0;
     Enemie2.botPositionToTarget = 0;
@@ -1285,7 +1298,7 @@ int main() {
         for (int j = 0; j < Enemies.size(); j++) {
           Car * enemie = Enemies[j];
           
-          enemie -> lastNitroUsedTime -= dt;
+          
 
           if (enemie -> lastActive <= 0) {
             float pointx;
@@ -1338,7 +1351,11 @@ int main() {
             }
           }
           
-          if (Math::random() < 0.05 && enemie -> lastNitroUsedTime <= 0 && enemie -> nbNitro > 0){
+          if (enemie -> lastNitroUsedTime >= 0){
+        	  enemie -> lastNitroUsedTime -= dt;  
+          }
+          
+          if (Math::random() < 0.001 && enemie -> lastNitroUsedTime <= 0 && enemie -> nbNitro > 0){
         	  enemie -> lastNitroUsedTime = TIME_NITRO_USED;
         	  enemie -> nbNitro -=1;
           }
@@ -1445,16 +1462,29 @@ int main() {
 
           
 
+                  
+                  for (int i = 0; i < level.flags.size(); i++)
+                          {
+                            if (isCollision(* enemie, level.flags[i], CAR_HAUTEUR/2))
+                            {
+                              countTour(playerCar,level.flags[i], nbFlag);
+                            }
+                          }
+                  
+                  for (int i = 0; i < level.spawnPosNitro.size(); i++)
+                          {
+                            if (isCollision(* enemie, level.spawnPosNitro[i], CAR_HAUTEUR/2))
+                            {
+                              if (level.spawnPosNitro[i].present)
+                              {
+                            	  enemie -> nbNitro++;
+                                level.spawnPosNitro[i].present = false;
+                              }
+                            }
+                          }
             //On calcule ensuite la nouvelle vitesse de la voiture
           Speed enemieNewSpeed = calculateSpeed( * enemie, (ACCELERATION * enemie -> malusBonusSpeed) * 0.90, ACCELERATION * 0.90, true, false, enemie -> lastNitroUsedTime >= 0, dt);
 
-            //Comte les tours
-            // for (int i = 0; i < level.flags.size(); i++) {
-            //     if (isCollision(hitbox4ToList(playerCar.hitbox),
-            //          hitbox2ToList(level.flags[i].hitbox))){
-            //      countTour(playerCar, level.flags[i], level.flags.size());
-            //      }
-            // }
 
 
           enemie -> speed = enemieNewSpeed;
