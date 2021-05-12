@@ -983,7 +983,7 @@ int main() {
     Enemie1.direction = 0;
     Enemie1.laps = 0;
     Enemie1.flag = 0;
-    Enemie1.nbNitro = 10;
+    Enemie1.nbNitro = 100000;
     Enemie1.lastNitroUsedTime = 0;
     Enemie1.malusBonusSpeed = 1.0;
     Enemie1.botPositionToTarget = 0;
@@ -1002,7 +1002,7 @@ int main() {
     Enemie2.direction = 0;
     Enemie2.laps = 0;
     Enemie2.flag = 0;
-    Enemie2.nbNitro = 10;
+    Enemie2.nbNitro = 100000;
     Enemie2.lastNitroUsedTime = 0;
     Enemie2.malusBonusSpeed = 1.0;
     Enemie2.botPositionToTarget = 0;
@@ -1021,7 +1021,7 @@ int main() {
     Enemie3.direction = 0;
     Enemie3.laps = 0;
     Enemie3.flag = 0;
-    Enemie3.nbNitro = 3;
+    Enemie3.nbNitro = 100000;
     Enemie3.lastNitroUsedTime = 0;
     Enemie3.malusBonusSpeed = 1.0;
     Enemie3.botPositionToTarget = 0;
@@ -1483,7 +1483,7 @@ int main() {
                             }
                           }
             //On calcule ensuite la nouvelle vitesse de la voiture
-          Speed enemieNewSpeed = calculateSpeed( * enemie, (ACCELERATION * enemie -> malusBonusSpeed) * 0.90, ACCELERATION * 0.90, true, false, enemie -> lastNitroUsedTime >= 0, dt);
+          Speed enemieNewSpeed = calculateSpeed( * enemie, (ACCELERATION * enemie -> malusBonusSpeed) * 1.20, ACCELERATION * 1.20, true, false, enemie -> lastNitroUsedTime >= 0, dt);
 
 
 
