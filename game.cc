@@ -357,8 +357,8 @@ Speed calculateSpeed(const Car & car, int acceleration,
   }
 
   if (isNitro) {
-    speed.x = cos(angleRad) * avgAcceleration * 7;
-    speed.y = sin(angleRad) * avgAcceleration * 7;
+    speed.x = cos(angleRad) * avgAcceleration * 10;
+    speed.y = sin(angleRad) * avgAcceleration * 10;
     return speed;
   }
 
@@ -1335,13 +1335,6 @@ int main() {
               }
               recalculateSpeedDirection(enemie);
               enemie -> lastActive = TIME_BEFORE_REACTIVATE + dt;
-            }
-            else {
-            	if (Math::random() > 0.05 && enemie -> nbNitro > 0 &&  enemie -> lastNitroUsedTime < 0){
-            		enemie -> lastNitroUsedTime = TIME_NITRO_USED;
-            		enemie -> nbNitro -= 1;
-            	}
-            	
             }
           }
 
