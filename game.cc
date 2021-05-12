@@ -99,6 +99,7 @@ struct Car {
   int botPositionToTarget;
   double lastActive;
   Position posInterBot;
+  std::string botType;
 };
 struct Bonus {
   Position pos;
@@ -533,7 +534,13 @@ int main() {
     const int CAR_LONGUEUR = 40;
     const int CAR_HAUTEUR = 20;
 
-    const float RANDOM_DIST_FOR_BOTS = 30;
+    const float RANDOM_DIST_FOR_BOTS = 60;
+    
+    const float RANDOM_DIST_FOR_BOTS_MASTERMIND = 10;
+    
+    const float RANDOM_DIST_FOR_BOTS_MEDIUM = 50;
+    
+    const float RANDOM_DIST_FOR_BOTS_DUMY = 70;
 
     /*
      * Variables pour l'ecran titre
@@ -837,6 +844,7 @@ int main() {
     Enemie1.collision = false;
     Enemie1.botPositionToTarget = 0;
     Enemie1.lastActive = 0;
+    Enemie1.botType = "master";
 
     Car Enemie2;
 
@@ -853,6 +861,7 @@ int main() {
     Enemie2.collision = false;
     Enemie2.botPositionToTarget = 0;
     Enemie2.lastActive = 0;
+    Enemie2.botType = "medium";
 
     Car Enemie3;
 
@@ -869,6 +878,7 @@ int main() {
     Enemie3.collision = false;
     Enemie3.botPositionToTarget = 0;
     Enemie3.lastActive = 0;
+    Enemie3.botType = "dummy";
 
     std::vector < Car * > Enemies;
     Enemies.push_back( & Enemie1);
@@ -878,22 +888,42 @@ int main() {
     std::vector < Position > botLine;
 
     Position pos1;
-    pos1.x = 250;
-    pos1.y = 250;
+    pos1.x = 450;
+    pos1.y = 660;
     Position pos2;
-    pos2.x = 250;
-    pos2.y = 750;
+    pos2.x = 290;
+    pos2.y = 500;
     Position pos3;
-    pos3.x = 750;
-    pos3.y = 750;
+    pos3.x = 280;
+    pos3.y = 250;
     Position pos4;
-    pos4.x = 750;
-    pos4.y = 250;
+    pos4.x = 500;
+    pos4.y = 100;
+    Position pos5;
+    pos5.x = 700;
+    pos5.y = 250;
+    Position pos6;
+    pos6.x = 735;
+    pos6.y = 375;
+    Position pos7;
+    pos7.x = 845;
+    pos7.y = 495;
+    Position pos8;
+    pos8.x = 1060;
+    pos8.y = 510;
+    Position pos9;
+    pos9.x = 1060;
+    pos9.y = 650;
 
     botLine.push_back(pos1);
     botLine.push_back(pos2);
     botLine.push_back(pos3);
     botLine.push_back(pos4);
+    botLine.push_back(pos5);
+    botLine.push_back(pos6);
+    botLine.push_back(pos7);
+    botLine.push_back(pos8);
+    botLine.push_back(pos9);
 
     /*
      * La boucle de jeu principale. La condition de fin est la fermeture de la
@@ -985,9 +1015,16 @@ int main() {
         }
         //colision joueur mur
         playerCar.collision = false;
-        for (int i = 0; i < level.walls.size(); i++) {
-          if (isCollision(playerCar, level.walls[i], CAR_HAUTEUR / 2)) {
-            int direction = redirectIfPunchWall(playerCar, level.walls[i]);
+        Wall wall;
+        for (int i = 0; i < (level.walls.size() + level.walls2.size()); i++) {
+        	if (i < level.walls.size()){
+        		wall = level.walls[i];
+        	}
+        	else {
+        		wall = level.walls2[i - level.walls.size()];
+        	}
+          if (isCollision(playerCar, wall, CAR_HAUTEUR / 2)) {
+            int direction = redirectIfPunchWall(playerCar, wall);
             if (playerCar.direction == direction) {
               playerCar.speed.x = 0;
               playerCar.speed.y = 0;
@@ -1001,38 +1038,11 @@ int main() {
               }
             }
           }
-          if (isCollision(playerCar, level.walls[i], CAR_HAUTEUR+5)) {
+          if (isCollision(playerCar, wall, CAR_HAUTEUR+5)) {
             playerCar.collision = true;
           }
         }
-
-        if (playerCar.state == 2 and!playerCar.collision) {
-          playerCar.state = 1;
-
-        }
-        if (playerCar.state == 2) {
-          playerCar.malusBonusSpeed *= 0.60;
-        }
-        for (int i = 0; i < level.walls2.size(); i++) {
-          if (isCollision(playerCar, level.walls2[i], CAR_HAUTEUR / 2)) {
-            int direction = redirectIfPunchWall(playerCar, level.walls2[i]);
-            if (playerCar.direction == direction) {
-              playerCar.speed.x = 0;
-              playerCar.speed.y = 0;
-              playerCar.malusBonusSpeed = 0;
-            }
-            if (direction >= 0) {
-              playerCar.direction = direction;
-              recalculateSpeedDirection(playerCar);
-              if (playerCar.state != 2) {
-                playerCar.state = 2;
-              }
-            }
-          }
-          if (isCollision(playerCar, level.walls2[i], CAR_HAUTEUR+5)) {
-            playerCar.collision = true;
-          }
-        }
+        
 
         if (playerCar.state == 2 and!playerCar.collision) {
           playerCar.state = 1;
@@ -1098,6 +1108,8 @@ int main() {
               pointx = botLine[enemie -> botPositionToTarget].x;
               pointy = botLine[enemie -> botPositionToTarget].y;
             }
+            
+            cout << " x " << botLine[enemie -> botPositionToTarget].x << "  y " << botLine[enemie -> botPositionToTarget].y << endl;
 
             float pointxCentre = Math::arrondir(cos(fmod((M_PI - enemie -> direction * (M_PI / 8) +
               2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR / 2.0 + enemie -> pos.x + CAR_LONGUEUR / 2;
@@ -1138,8 +1150,17 @@ int main() {
           }
 
           if (isCollision( * enemie, botLine[enemie -> botPositionToTarget], CAR_LONGUEUR)) {
-
-            enemie -> posInterBot = randomInCircle(centerPosition(botLine[enemie -> botPositionToTarget], botLine[fmod(enemie -> botPositionToTarget + 1, botLine.size())]), RANDOM_DIST_FOR_BOTS);
+        	int randomDistForBot = 0;
+			if (enemie -> botType == "master"){
+				randomDistForBot = RANDOM_DIST_FOR_BOTS_MASTERMIND;
+			} else if (enemie -> botType == "medium"){
+				randomDistForBot = RANDOM_DIST_FOR_BOTS_MEDIUM;
+			} else if (enemie -> botType == "dumy"){
+				randomDistForBot = RANDOM_DIST_FOR_BOTS_DUMY;
+			} else {
+				randomDistForBot = RANDOM_DIST_FOR_BOTS;
+			}
+			enemie -> posInterBot = randomInCircle(centerPosition(botLine[enemie -> botPositionToTarget], botLine[fmod(enemie -> botPositionToTarget + 1, botLine.size())]), randomDistForBot);
 
             enemie -> botPositionToTarget = fmod(enemie -> botPositionToTarget + 1, botLine.size());
           }
@@ -1154,9 +1175,16 @@ int main() {
             enemie -> lastActive -= dt;
           }
 
-          for (int i = 0; i < level.walls.size(); i++) {
-            if (isCollision( * enemie, level.walls[i], CAR_HAUTEUR / 2)) {
-              int direction = redirectIfPunchWall(enemie, level.walls[i]);
+          Wall wall;
+          for (int i = 0; i < (level.walls.size() + level.walls2.size()); i++) {
+                  	if (i < level.walls.size()){
+                  		wall = level.walls[i];
+                  	}
+                  	else {
+                  		wall = level.walls2[i - level.walls.size()];
+                  	}
+            if (isCollision( * enemie, wall, CAR_HAUTEUR / 2)) {
+              int direction = redirectIfPunchWall(enemie, wall);
               if (enemie -> direction == direction) {
                 enemie -> speed.x = 0;
                 enemie -> speed.y = 0;
@@ -1170,7 +1198,7 @@ int main() {
                 }
               }
             }
-            if (isCollision( * enemie, level.walls[i], CAR_LONGUEUR)) {
+            if (isCollision( * enemie, wall, CAR_LONGUEUR)) {
               enemie -> collision = true;
             }
           }
