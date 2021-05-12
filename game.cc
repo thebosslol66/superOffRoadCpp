@@ -104,6 +104,7 @@ struct Car {
 struct Bonus {
   Position pos;
   int rayon;
+  bool present;
 };
 struct Mud {
   Position pos;
@@ -112,7 +113,7 @@ struct Mud {
 struct Ground {
   std::vector < Wall > walls;
   std::vector < Wall > walls2;
-  std::vector < Position > spawnPosNitro;
+  std::vector < Bonus > spawnPosNitro;
   std::vector < Mud > muds;
   std::vector < Flag > flags;
 };
@@ -435,22 +436,13 @@ void moveCar(Car * car,
 }
 
 //il doit y avoir obligatoirement une place de libre dans nitroList 
-Bonus generateNitro(const std::vector < Position > & spawnNitro,
-  const std::vector < Bonus > & nitroList) {
-  Bonus nitro;
-  bool present = false;
-  do {
-    int hazard = (int)(Math::random() * spawnNitro.size());
-    nitro.pos.x = spawnNitro[hazard].x;
-    nitro.pos.y = spawnNitro[hazard].y;
-    for (int i = 0; i < spawnNitro.size(); i++) {
-      if (nitroList[i].pos.x == nitro.pos.x &&
-        nitroList[i].pos.y == nitro.pos.y) {
-        present = true;
-      }
-    }
-  } while (present);
-  return nitro;
+void generateNitro(std::vector < Bonus > & nitroList) {
+  int random = static_cast<int>(Math::random()*nitroList.size());
+  if (!nitroList[random].present)
+  {
+    nitroList[random].present = true;
+  }
+
 }
 
 void recalculateSpeedDirection(Car & car) {
@@ -469,78 +461,78 @@ void recalculateSpeedDirection(Car * car) {
   car -> speed.y = sin(angleRad) * normeVitesse;
 }
 
-void makeLevel(Ground & level, std::string src) {
-  Ground cache;
-  ifstream levelData(src);
+// void makeLevel(Ground & level, std::string src) {
+//   Ground cache;
+//   ifstream levelData(src);
 
-  if (levelData) {
-    std::string line;
-    std::string delimiter = ":";
+//   if (levelData) {
+//     std::string line;
+//     std::string delimiter = ":";
 
-    std::regex wallPattern("\\(([0-9]+),([0-9]+)\\)-([0-9]+)-\\(([0-9]+),([0-9]+)\\)");
-    std::regex nitroPattern("\\(([0-9]+),([0-9]+)\\)");
+//     std::regex wallPattern("\\(([0-9]+),([0-9]+)\\)-([0-9]+)-\\(([0-9]+),([0-9]+)\\)");
+//     std::regex nitroPattern("\\(([0-9]+),([0-9]+)\\)");
 
-    std::regex flagPattern("\\(([0-9]+),([0-9]+)\\)-([0-9]+)-\\(([0-9]+),([0-9]+)\\)");
+//     std::regex flagPattern("\\(([0-9]+),([0-9]+)\\)-([0-9]+)-\\(([0-9]+),([0-9]+)\\)");
 
-    std::smatch m;
+//     std::smatch m;
 
-    while (getline(levelData, line)) {
-      std::string token = line.substr(0, line.find(delimiter));
-      if (token == "Wall") {
-        line = line.substr(line.find(delimiter) + 2);
-        while (std::regex_search(line, m, wallPattern)) {
+//     while (getline(levelData, line)) {
+//       std::string token = line.substr(0, line.find(delimiter));
+//       if (token == "Wall") {
+//         line = line.substr(line.find(delimiter) + 2);
+//         while (std::regex_search(line, m, wallPattern)) {
 
-          Wall wall;
+//           Wall wall;
 
-          wall.hitbox.corner1.x = std::stoi(m[1]);
-          wall.hitbox.corner1.y = std::stoi(m[2]);
-          wall.directionStop = std::stoi(m[3]);
-          wall.hitbox.corner2.x = std::stoi(m[4]);
-          wall.hitbox.corner2.y = std::stoi(m[5]);
+//           wall.hitbox.corner1.x = std::stoi(m[1]);
+//           wall.hitbox.corner1.y = std::stoi(m[2]);
+//           wall.directionStop = std::stoi(m[3]);
+//           wall.hitbox.corner2.x = std::stoi(m[4]);
+//           wall.hitbox.corner2.y = std::stoi(m[5]);
 
-          level.walls.push_back(wall);
+//           level.walls.push_back(wall);
 
-          line = line.substr(line.find(")-") + 1);
-        }
-      }
-      if (token == "Nitro") {
-        line = line.substr(line.find(delimiter) + 2);
-        while (std::regex_search(line, m, nitroPattern)) {
-          Position nitro;
-          nitro.x = std::stoi(m[1]);
-          nitro.y = std::stoi(m[2]);
-          level.spawnPosNitro.push_back(nitro);
-          line = line.substr(line.find(')') + 1);
-        }
-      }
+//           line = line.substr(line.find(")-") + 1);
+//         }
+//       }
+//       if (token == "Nitro") {
+//         line = line.substr(line.find(delimiter) + 2);
+//         while (std::regex_search(line, m, nitroPattern)) {
+//           Position nitro;
+//           nitro.x = std::stoi(m[1]);
+//           nitro.y = std::stoi(m[2]);
+//           level.spawnPosNitro.push_back(nitro);
+//           line = line.substr(line.find(')') + 1);
+//         }
+//       }
 
-      if (token == "Mud") {
-        line = line.substr(line.find(delimiter) + 2);
-        while (std::regex_search(line, m, nitroPattern)) {
-          Mud mud;
+//       if (token == "Mud") {
+//         line = line.substr(line.find(delimiter) + 2);
+//         while (std::regex_search(line, m, nitroPattern)) {
+//           Mud mud;
 
-        }
-      }
-      if (token == "Flag") {
-        line = line.substr(line.find(delimiter) + 2);
-        while (std::regex_search(line, m, flagPattern)) {
-          Flag newFlag;
-          newFlag.hitbox.corner1.x = std::stoi(m[1]);
-          newFlag.hitbox.corner1.y = std::stoi(m[2]);
-          newFlag.nb = std::stoi(m[3]);
-          newFlag.hitbox.corner2.x = std::stoi(m[4]);
-          newFlag.hitbox.corner2.y = std::stoi(m[5]);
-          level.flags.push_back(newFlag);
-          line = line.substr(m.position(0) + m.length(0));
-        }
+//         }
+//       }
+//       if (token == "Flag") {
+//         line = line.substr(line.find(delimiter) + 2);
+//         while (std::regex_search(line, m, flagPattern)) {
+//           Flag newFlag;
+//           newFlag.hitbox.corner1.x = std::stoi(m[1]);
+//           newFlag.hitbox.corner1.y = std::stoi(m[2]);
+//           newFlag.nb = std::stoi(m[3]);
+//           newFlag.hitbox.corner2.x = std::stoi(m[4]);
+//           newFlag.hitbox.corner2.y = std::stoi(m[5]);
+//           level.flags.push_back(newFlag);
+//           line = line.substr(m.position(0) + m.length(0));
+//         }
 
-      }
-    }
+//       }
+//     }
 
-  } else {
-    throw "Can't read the file " + src;
-  }
-}
+//   } else {
+//     throw "Can't read the file " + src;
+//   }
+// }
 
 //fonction de débugage
 //affichage de la vrai htibox des murs
@@ -647,9 +639,7 @@ int main() {
     playerCar.lastActive = 0;
     float timer = 0;
     int nbFlag;
-
-
-    std::vector < Bonus > nitroList;
+    int countNitro = 0;
 
     printListWall(level.walls);
 
@@ -658,6 +648,7 @@ int main() {
 
     Wall wall;
     Mud mud;
+    Bonus bonus;
 
     wall.hitbox.corner1.x = 450;
     wall.hitbox.corner1.y = 750;
@@ -936,6 +927,37 @@ int main() {
 
     level.flags.push_back(flag);
     nbFlag = level.flags.size();
+
+    //nitro
+    bonus.pos.x = 325;
+    bonus.pos.y = 175;
+    bonus.rayon = 10;
+    bonus.present = false;
+
+    level.spawnPosNitro.push_back(bonus);
+
+    bonus.pos.x = 625;
+    bonus.pos.y = 175;
+    bonus.rayon = 10;
+    bonus.present = false;
+
+    level.spawnPosNitro.push_back(bonus);
+
+    bonus.pos.x = 1125;
+    bonus.pos.y = 575;
+    bonus.rayon = 10;
+    bonus.present = false;
+
+    level.spawnPosNitro.push_back(bonus);
+
+    bonus.pos.x = 625;
+    bonus.pos.y = 675;
+    bonus.rayon = 10;
+    bonus.present = false;
+
+    level.spawnPosNitro.push_back(bonus);
+
+
     /* Enemies car */
 
     Car Enemie1;
@@ -1230,38 +1252,31 @@ int main() {
             countTour(playerCar,level.flags[i], nbFlag);
           }
         }
-
+        //colision joueur nitro
+        for (int i = 0; i < level.spawnPosNitro.size(); i++)
+        {
+          if (isCollision(playerCar, level.spawnPosNitro[i], CAR_HAUTEUR/2))
+          {
+            if (level.spawnPosNitro[i].present)
+            {
+              playerCar.nbNitro++;
+              level.spawnPosNitro[i].present = false;
+            }
+          }
+        }
 
 
         //On calcule ensuite la nouvelle vitesse de la voiture
         Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * playerCar.malusBonusSpeed, ACCELERATION, up, down, playerCar.lastNitroUsedTime >= 0, dt);
 
         //Timer Pour le spawn de nitro
-        timer += dt;
-        bool empty = false;
-        int i = 0;
-        if (timer == NITRO_SPAWN_TIME) {
-          do {
-            if (nitroList[i].pos.x == 0 && nitroList[i].pos.y == 0) {
-              empty = true;
-            } else {
-              empty = false;
-            }
-            i++;
-          } while (i < nitroList.size() || empty == true);
+        countNitro++;
+        if (countNitro == NITRO_SPAWN_TIME)
+        {
+          generateNitro(level.spawnPosNitro);
+          countNitro = 0;
         }
 
-        if (empty == true) {
-          nitroList[i] = generateNitro(level.spawnPosNitro, nitroList);
-        }
-
-          //Comte les tours
-          // for (int i = 0; i < level.flags.size(); i++) {
-          //     if (isCollision(hitbox4ToList(playerCar.hitbox),
-          //          hitbox2ToList(level.flags[i].hitbox))){
-          //      countTour(playerCar, level.flags[i], level.flags.size());
-          //      }
-          // }
 
         playerCar.speed = playerNewSpeed;
         moveCar(playerCar, dt);
@@ -1430,7 +1445,6 @@ int main() {
                 	  enemie -> malusBonusSpeed *= 0.40;
                   }
 
-
           
 
             //On calcule ensuite la nouvelle vitesse de la voiture
@@ -1443,6 +1457,7 @@ int main() {
             //      countTour(playerCar, level.flags[i], level.flags.size());
             //      }
             // }
+
 
           enemie -> speed = enemieNewSpeed;
           moveCar(enemie, dt);
@@ -1484,6 +1499,7 @@ int main() {
 
           sf::RectangleShape carShape(sf::Vector2f(CAR_LONGUEUR, CAR_HAUTEUR));
           sf::RectangleShape mudShape;
+          sf::CircleShape nitroShape;
 
           for (int j = 0; j < Enemies.size(); j++) {
             Car * enemie = Enemies[j];
@@ -1500,6 +1516,17 @@ int main() {
             mudShape.setOrigin(level.muds[j].rayon, level.muds[j].rayon);
             mudShape.setFillColor(sf::Color::Blue);
             window.draw(mudShape);
+          }
+          for (int j = 0; j < level.spawnPosNitro.size(); j++)
+          {
+            if (level.spawnPosNitro[j].present)
+            {
+              nitroShape.setRadius(10);
+              nitroShape.setPosition(level.spawnPosNitro[j].pos.x, level.spawnPosNitro[j].pos.y);
+              nitroShape.setOrigin(level.spawnPosNitro[j].rayon, level.spawnPosNitro[j].rayon);
+              nitroShape.setFillColor(sf::Color::Green);
+              window.draw(nitroShape);
+            }
           }
 
           carShape.setPosition(playerCar.pos.x, playerCar.pos.y);
