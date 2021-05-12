@@ -568,7 +568,7 @@ int main() {
     sf::Font font;
     font.loadFromFile("PixelOperator.ttf");
 
-    const int NITRO_SPAWN_TIME = 10000;
+    const int NITRO_SPAWN_TIME = 1000;
     const int ACCELERATION = 40;
     bool up, down, left, right, nitro, enter;
     up = down = left = right = nitro = enter = false;
@@ -1264,7 +1264,7 @@ int main() {
             }
           }
         }
-
+        cout<<playerCar.nbNitro<<endl;
 
         //On calcule ensuite la nouvelle vitesse de la voiture
         Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * playerCar.malusBonusSpeed, ACCELERATION, up, down, playerCar.lastNitroUsedTime >= 0, dt);
