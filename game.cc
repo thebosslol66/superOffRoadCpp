@@ -299,7 +299,6 @@ int countTour(Car & car,
   } else if (flag.nb - car.flag == 1) {
     car.flag++;
   }
-  cout<< car.laps<<endl;
   return car.laps;
 }
 //fin des algo de silvio
@@ -568,7 +567,7 @@ int main() {
     sf::Font font;
     font.loadFromFile("PixelOperator.ttf");
 
-    const int NITRO_SPAWN_TIME = 10000;
+    const int NITRO_SPAWN_TIME = 1000;
     const int ACCELERATION = 70;
     bool up, down, left, right, nitro, enter;
     up = down = left = right = nitro = enter = false;
@@ -636,9 +635,7 @@ int main() {
     playerCar.lastActive = 0;
     float timer = 0;
     int nbFlag;
-
-
-    std::vector < Bonus > nitroList;
+    int countNitro = 0;
 
     printListWall(level.walls);
 
@@ -935,6 +932,27 @@ int main() {
 
     level.spawnPosNitro.push_back(bonus);
 
+    bonus.pos.x = 625;
+    bonus.pos.y = 175;
+    bonus.rayon = 10;
+    bonus.present = false;
+
+    level.spawnPosNitro.push_back(bonus);
+
+    bonus.pos.x = 1125;
+    bonus.pos.y = 575;
+    bonus.rayon = 10;
+    bonus.present = false;
+
+    level.spawnPosNitro.push_back(bonus);
+
+    bonus.pos.x = 625;
+    bonus.pos.y = 675;
+    bonus.rayon = 10;
+    bonus.present = false;
+
+    level.spawnPosNitro.push_back(bonus);
+
 
     /* Enemies car */
 
@@ -1215,19 +1233,30 @@ int main() {
             countTour(playerCar,level.flags[i], nbFlag);
           }
         }
-        //cout << playerCar.laps<< endl;
+        //colision joueur nitro
+        for (int i = 0; i < level.spawnPosNitro.size(); i++)
+        {
+          if (isCollision(playerCar, level.spawnPosNitro[i], CAR_HAUTEUR/2))
+          {
+            if (level.spawnPosNitro[i].present)
+            {
+              playerCar.nbNitro++;
+              level.spawnPosNitro[i].present = false;
+            }
+          }
+        }
 
 
         //On calcule ensuite la nouvelle vitesse de la voiture
         Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * playerCar.malusBonusSpeed, ACCELERATION, up, down, nitro, dt);
 
         //Timer Pour le spawn de nitro
-        timer += dt;
-        bool empty = false;
-        int i = 0;
-        if (timer == NITRO_SPAWN_TIME){
+        countNitro++;
+        if (countNitro == NITRO_SPAWN_TIME)
+        {
           generateNitro(level.spawnPosNitro);
-        } 
+          countNitro = 0;
+        }
 
 
         playerCar.speed = playerNewSpeed;
@@ -1452,11 +1481,14 @@ int main() {
           }
           for (int j = 0; j < level.spawnPosNitro.size(); j++)
           {
-            nitroShape.setRadius(10);
-            nitroShape.setPosition(level.spawnPosNitro[j].pos.x, level.spawnPosNitro[j].pos.y);
-            nitroShape.setOrigin(level.spawnPosNitro[j].rayon, level.spawnPosNitro[j].rayon);
-            nitroShape.setFillColor(sf::Color::Green);
-            window.draw(nitroShape);
+            if (level.spawnPosNitro[j].present)
+            {
+              nitroShape.setRadius(10);
+              nitroShape.setPosition(level.spawnPosNitro[j].pos.x, level.spawnPosNitro[j].pos.y);
+              nitroShape.setOrigin(level.spawnPosNitro[j].rayon, level.spawnPosNitro[j].rayon);
+              nitroShape.setFillColor(sf::Color::Green);
+              window.draw(nitroShape);
+            }
           }
 
           carShape.setPosition(playerCar.pos.x, playerCar.pos.y);
