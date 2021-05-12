@@ -87,7 +87,7 @@ struct Wall {
   int directionStop;
 };
 struct Car {
-  int state;
+  int state;//1 pour normal, 2 contre un mur, 3 dans la boue, 4 contre un mur dans la boue
   Position pos;
   Speed speed;
   int direction;
@@ -95,7 +95,6 @@ struct Car {
   int flag;
   int nbNitro;
   float malusBonusSpeed;
-  bool collision;
   int botPositionToTarget;
   double lastActive;
   Position posInterBot;
@@ -588,7 +587,6 @@ int main() {
     playerCar.flag = 0;
     playerCar.nbNitro = 3;
     playerCar.malusBonusSpeed = 1.0;
-    playerCar.collision = false;
     playerCar.lastActive = 0;
     float timer = 0;
 
@@ -841,8 +839,9 @@ int main() {
     Enemie1.flag = 0;
     Enemie1.nbNitro = 3;
     Enemie1.malusBonusSpeed = 1.0;
-    Enemie1.collision = false;
     Enemie1.botPositionToTarget = 0;
+    Enemie1.posInterBot.x = 0;
+    Enemie1.posInterBot.y = 0;
     Enemie1.lastActive = 0;
     Enemie1.botType = "master";
 
@@ -858,8 +857,9 @@ int main() {
     Enemie2.flag = 0;
     Enemie2.nbNitro = 3;
     Enemie2.malusBonusSpeed = 1.0;
-    Enemie2.collision = false;
     Enemie2.botPositionToTarget = 0;
+    Enemie2.posInterBot.x = 0;
+    Enemie2.posInterBot.y = 0;
     Enemie2.lastActive = 0;
     Enemie2.botType = "medium";
 
@@ -875,8 +875,9 @@ int main() {
     Enemie3.flag = 0;
     Enemie3.nbNitro = 3;
     Enemie3.malusBonusSpeed = 1.0;
-    Enemie3.collision = false;
     Enemie3.botPositionToTarget = 0;
+    Enemie3.posInterBot.x = 0;
+    Enemie3.posInterBot.y = 0;
     Enemie3.lastActive = 0;
     Enemie3.botType = "dummy";
 
@@ -1014,7 +1015,7 @@ int main() {
           playerCar.lastActive -= dt;
         }
         //colision joueur mur
-        playerCar.collision = false;
+        bool collisionWall = false;
         Wall wall;
         for (int i = 0; i < (level.walls.size() + level.walls2.size()); i++) {
         	if (i < level.walls.size()){
@@ -1033,32 +1034,64 @@ int main() {
             if (direction >= 0) {
               playerCar.direction = direction;
               recalculateSpeedDirection(playerCar);
-              if (playerCar.state != 2) {
+              if (playerCar.state == 1) {
                 playerCar.state = 2;
+              }
+              else if (playerCar.state == 3) {
+                playerCar.state = 4;
               }
             }
           }
           if (isCollision(playerCar, wall, CAR_HAUTEUR+5)) {
-            playerCar.collision = true;
+            collisionWall = true;
           }
         }
         
+        //colision joueur mud
+        bool collisionMud = false;
+        for (int i = 0; i < level.muds.size(); i++) {
+           if (isCollision(playerCar, level.muds[i], CAR_HAUTEUR/2)) {
+        	   if (playerCar.state == 1) {
+        	     playerCar.state = 3;
+        	   }
+        	   else if (playerCar.state == 2) {
+        	     playerCar.state = 4;
+        	   }
+            collisionMud = true;
+           }
+        }
+                
 
-        if (playerCar.state == 2 and!playerCar.collision) {
+        if (playerCar.state == 2 and!collisionWall) {
           playerCar.state = 1;
 
         }
+        else if (playerCar.state == 4 and!collisionWall){
+        	playerCar.state = 3;
+        }
+        
+        else if (playerCar.state == 3 and!collisionMud) {
+            playerCar.state = 1;
+        }
+        
+        else if (playerCar.state == 4 and!collisionMud) {
+            playerCar.state = 2;
+        }
+        
         if (playerCar.state == 2) {
           playerCar.malusBonusSpeed *= 0.60;
         }
-        //fin des colision joueur mur
-        //colision joueur mud
-        colisionMud = false;
-        for (int i = 0; i < level.muds.size(); i++) {
-          if (isCollision(playerCar, level.muds[i], CAR_HAUTEUR/2)) {
-              colisionMud = true;
-            }
+        
+        else if (playerCar.state == 3) {
+          playerCar.malusBonusSpeed *= 0.70;
         }
+        
+        else if (playerCar.state == 4) {
+            playerCar.malusBonusSpeed *= 0.40;
+        }
+        
+        //fin des colision joueur mur
+        
         //fin des colision joueur mud
 
         //On calcule ensuite la nouvelle vitesse de la voiture
@@ -1109,7 +1142,10 @@ int main() {
               pointy = botLine[enemie -> botPositionToTarget].y;
             }
             
-            cout << " x " << botLine[enemie -> botPositionToTarget].x << "  y " << botLine[enemie -> botPositionToTarget].y << endl;
+          // if (enemie -> posInterBot.x > 0) {
+          // 	cout << " x " << enemie -> posInterBot.x << "  y " << enemie -> posInterBot.y << endl;
+          // }
+          // 
 
             float pointxCentre = Math::arrondir(cos(fmod((M_PI - enemie -> direction * (M_PI / 8) +
               2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR / 2.0 + enemie -> pos.x + CAR_LONGUEUR / 2;
@@ -1176,6 +1212,7 @@ int main() {
           }
 
           Wall wall;
+          bool collisionWall = false;
           for (int i = 0; i < (level.walls.size() + level.walls2.size()); i++) {
                   	if (i < level.walls.size()){
                   		wall = level.walls[i];
@@ -1193,23 +1230,60 @@ int main() {
               if (direction >= 0) {
                 enemie -> direction = direction;
                 recalculateSpeedDirection(enemie);
-                if (enemie -> state != 2) {
-                  enemie -> state = 2;
-                }
+                if ( enemie -> state == 1) {
+                	enemie -> state = 2;
+                              }
+                              else if (enemie -> state == 3) {
+                            	  enemie -> state = 4;
+                              }
               }
             }
             if (isCollision( * enemie, wall, CAR_LONGUEUR)) {
-              enemie -> collision = true;
+              collisionWall = true;
             }
           }
 
-          if (enemie -> state == 2 and!enemie -> collision) {
-            enemie -> state = 1;
+          bool collisionMud = false;
+                  for (int i = 0; i < level.muds.size(); i++) {
+                     if (isCollision(* enemie , level.muds[i], CAR_HAUTEUR/2)) {
+                  	   if (enemie -> state == 1) {
+                  		 enemie -> state = 3;
+                  	   }
+                  	   else if (enemie -> state == 2) {
+                  		 enemie -> state = 4;
+                  	   }
+                      collisionMud = true;
+                     }
+                  }
+                          
 
-          }
-          if (enemie -> state == 2) {
-            enemie -> malusBonusSpeed *= 0.60;
-          }
+                  if (enemie -> state == 2 and!collisionWall) {
+                	  enemie -> state = 1;
+
+                  }
+                  else if (enemie -> state == 4 and!collisionWall){
+                	  enemie -> state = 3;
+                  }
+                  
+                  else if (playerCar.state == 3 and!collisionMud) {
+                	  enemie -> state = 1;
+                  }
+                  
+                  else if (enemie -> state == 4 and!collisionMud) {
+                	  enemie -> state = 2;
+                  }
+                  
+                  if (enemie -> state == 2) {
+                	  enemie -> malusBonusSpeed *= 0.60;
+                  }
+                  
+                  else if (enemie -> state == 3) {
+                	  enemie -> malusBonusSpeed *= 0.70;
+                  }
+                  
+                  else if (enemie -> state == 4) {
+                	  enemie -> malusBonusSpeed *= 0.40;
+                  }
 
             // for (int i = 0; i < level.muds.size(); i++) {
             //     if (isCollision( hitbox4ToList (playerCar.hitbox),
@@ -1228,7 +1302,7 @@ int main() {
             // }
 
             //On calcule ensuite la nouvelle vitesse de la voiture
-          Speed enemieNewSpeed = calculateSpeed( * enemie, ACCELERATION * enemie -> malusBonusSpeed, ACCELERATION, true, false, false, dt);
+          Speed enemieNewSpeed = calculateSpeed( * enemie, (ACCELERATION * enemie -> malusBonusSpeed) * 0.90, ACCELERATION * 0.90, true, false, false, dt);
 
             //Comte les tours
             // for (int i = 0; i < level.flags.size(); i++) {
