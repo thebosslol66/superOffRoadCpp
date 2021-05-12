@@ -523,7 +523,7 @@ int main() {
     font.loadFromFile("PixelOperator.ttf");
 
     const int NITRO_SPAWN_TIME = 10000;
-    const int ACCELERATION = 50;
+    const int ACCELERATION = 70;
     bool up, down, left, right, nitro, enter;
     up = down = left = right = nitro = enter = false;
 
@@ -700,14 +700,6 @@ int main() {
     level.walls2.push_back(wall);
 
     wall.hitbox.corner1.x = 350;
-    wall.hitbox.corner1.y = 500;
-    wall.directionStop = 8;
-    wall.hitbox.corner2.x = 350;
-    wall.hitbox.corner2.y = 300;
-
-    level.walls2.push_back(wall);
-
-    wall.hitbox.corner1.x = 350;
     wall.hitbox.corner1.y = 300;
     wall.directionStop = 6;
     wall.hitbox.corner2.x = 500;
@@ -771,6 +763,8 @@ int main() {
 
     level.walls2.push_back(wall);
 
+    //mud
+
     mud.pos.x = 225;
     mud.pos.y = 475;
     mud.rayon = 25;
@@ -819,6 +813,10 @@ int main() {
 
     level.muds.push_back(mud);
 
+    //flag
+    Flag flag;
+
+    flag.hitbox.corner1.x = 
 
     /* Enemies car */
 
