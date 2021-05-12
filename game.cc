@@ -356,9 +356,9 @@ Speed calculateSpeed(const Car & car, int acceleration,
     acceleration = 0;
   }
 
-  if (isNitro) {
-    speed.x = cos(angleRad) * avgAcceleration * 10;
-    speed.y = sin(angleRad) * avgAcceleration * 10;
+  if (isNitro && acceleration != 0) {
+    speed.x = cos(angleRad) * avgAcceleration * 6;
+    speed.y = sin(angleRad) * avgAcceleration * 6;
     return speed;
   }
 
@@ -585,9 +585,9 @@ int main() {
     
     const float RANDOM_DIST_FOR_BOTS_MASTERMIND = 10;
     
-    const float RANDOM_DIST_FOR_BOTS_MEDIUM = 80;
+    const float RANDOM_DIST_FOR_BOTS_MEDIUM = 70;
     
-    const float RANDOM_DIST_FOR_BOTS_DUMY = 120;
+    const float RANDOM_DIST_FOR_BOTS_DUMY = 90;
 
     /*
      * Variables pour l'ecran titre
@@ -1104,7 +1104,7 @@ int main() {
             up = true;
           } else if (event.key.code == sf::Keyboard::Down) {
             down = true;
-          } else if (event.key.code == sf::Keyboard::Backspace) {
+          } else if (event.key.code == sf::Keyboard::Space) {
             nitro = true;
             lastActiveNitro = TIME_BEFORE_REACTIVATE;
           } else if (event.key.code == sf::Keyboard::Return) {
@@ -1120,7 +1120,7 @@ int main() {
             up = false;
           } else if (event.key.code == sf::Keyboard::Down) {
             down = false;
-          } else if (event.key.code == sf::Keyboard::Backspace) {
+          } else if (event.key.code == sf::Keyboard::Space) {
             nitro = false;
           } else if (event.key.code == sf::Keyboard::Return) {
             enter = false;
@@ -1336,6 +1336,11 @@ int main() {
               recalculateSpeedDirection(enemie);
               enemie -> lastActive = TIME_BEFORE_REACTIVATE + dt;
             }
+          }
+          
+          if (Math::random() < 0.05 && enemie -> lastNitroUsedTime <= 0 && enemie -> nbNitro > 0){
+        	  enemie -> lastNitroUsedTime = TIME_NITRO_USED;
+        	  enemie -> nbNitro -=1;
           }
 
           if (isCollision( * enemie, botLine[enemie -> botPositionToTarget], CAR_LONGUEUR)) {
