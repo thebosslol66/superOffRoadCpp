@@ -604,7 +604,7 @@ int main() {
     
     const float RANDOM_DIST_FOR_BOTS_DUMY = 10;
     const int NB_LAPS_FIN = 5;
-
+    float horloge;
     /*
      * Variables pour l'ecran titre
      */
@@ -1028,7 +1028,7 @@ int main() {
     Enemie3.lastActive = 0;
     Enemie3.botType = "dummy";
     Enemie3.score = 0;
-    Enemie3.color = sf::Color::Black;
+    Enemie3.color = sf::Color::Magenta;
     
     std::vector < Car * > Enemies;
     Enemies.push_back( & Enemie1);
@@ -1149,7 +1149,7 @@ int main() {
         textAlphaValue += 170 * dt;
         textAlphaValue %= 510;
       } else if (idCurrentWindow == 1) {
-    	  
+    	  timer = timer+dt;
     	  if (playerCar.lastNitroUsedTime >= 0){
     	  	playerCar.lastNitroUsedTime -= dt;
     	  }
@@ -1496,7 +1496,16 @@ int main() {
         {
           playerCar.score = score;
           score++;
-          idCurrentWindow =2; 
+          idCurrentWindow =2;
+          for (int j = 0; j < Enemies.size(); j++) {
+            Car * enemie = Enemies[j];
+            if (enemie -> score == 0)
+            {
+              enemie -> score = score;
+              score++;
+            }
+          }
+ 
         }       
         for (int j = 0; j < Enemies.size(); j++) {
           Car * enemie = Enemies[j];
@@ -1548,14 +1557,7 @@ int main() {
           sf::RectangleShape mudShape;
           sf::CircleShape nitroShape;
 
-          for (int j = 0; j < Enemies.size(); j++) {
-            Car * enemie = Enemies[j];
-            carShape.setPosition(enemie -> pos.x, enemie -> pos.y);
-            carShape.setOrigin(CAR_LONGUEUR / 2, CAR_HAUTEUR / 2);
-            carShape.setRotation(180 - (enemie -> direction / 16.0 * 360));
-            carShape.setFillColor(enemie -> color);
-            window.draw(carShape);
-          }
+          
           for (int j = 0; j < level.muds.size(); ++j)
           {
             mudShape.setSize(sf::Vector2f(level.muds[j].rayon*2, level.muds[j].rayon*2));
@@ -1574,6 +1576,14 @@ int main() {
               nitroShape.setFillColor(sf::Color::Green);
               window.draw(nitroShape);
             }
+          }
+          for (int j = 0; j < Enemies.size(); j++) {
+            Car * enemie = Enemies[j];
+            carShape.setPosition(enemie -> pos.x, enemie -> pos.y);
+            carShape.setOrigin(CAR_LONGUEUR / 2, CAR_HAUTEUR / 2);
+            carShape.setRotation(180 - (enemie -> direction / 16.0 * 360));
+            carShape.setFillColor(enemie -> color);
+            window.draw(carShape);
           }
 
           carShape.setPosition(playerCar.pos.x, playerCar.pos.y);
@@ -1613,6 +1623,12 @@ int main() {
           window.draw(infoShape);
           
 		  sf::Text tourCountText = sf::Text();
+      sf::Text horloge = sf::Text();
+      horloge.setFont(font);
+      horloge.setCharacterSize(40);
+      horloge.setString(std::to_string(timer));
+      horloge.setFillColor(sf::Color::Black);
+      horloge.setPosition(posXaffichage+140-horloge.getLocalBounds().width/2,posYaffichage-60);
 		         	  
 		         	  
 		         	  tourCountText.setFont(font);
@@ -1638,6 +1654,7 @@ int main() {
 		         	  
 		         	  window.draw(tourCountText);
 		         	  window.draw(nitroCountText);
+                window.draw(horloge);
           
           
           for(int i = 0; i < Enemies.size(); i++){
@@ -1685,15 +1702,6 @@ int main() {
         {
 
           cout << playerCar.score<<endl;
-          for (int j = 0; j < Enemies.size(); j++) {
-            Car * enemie = Enemies[j];
-            if (enemie -> score == 0)
-            {
-              enemie -> score = score;
-              score++;
-            }
-            cout<< enemie -> score<<endl;
-          }
         }
       
       
