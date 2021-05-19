@@ -603,13 +603,14 @@ int main() {
     const float RANDOM_DIST_FOR_BOTS_MEDIUM = 10;
     
     const float RANDOM_DIST_FOR_BOTS_DUMY = 10;
-    const int NB_LAPS_FIN = 5;
+    const int NB_LAPS_FIN = 1;
 
     /*
      * Variables pour l'ecran titre
      */
 
     int textAlphaValue = 0;
+    std::string countdown ="0";
 
 
     RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE);
@@ -1148,6 +1149,11 @@ int main() {
       if (idCurrentWindow == 0) {
         textAlphaValue += 170 * dt;
         textAlphaValue %= 510;
+        
+        if (enter) {
+          idCurrentWindow = 1;
+        }
+        
       } else if (idCurrentWindow == 1) {
     	  
     	  if (playerCar.lastNitroUsedTime >= 0){
@@ -1512,7 +1518,28 @@ int main() {
           playerCar.score = score;
         }
         cout<<score<<endl;
-      }
+      } else if (idCurrentWindow == 2) {
+
+          if (enter) {
+            idCurrentWindow = 1;
+          }
+        }
+      else if (idCurrentWindow == 3) {
+    	  std::string countdown = std::to_string(0);
+    	  timer += dt;
+    			  if (timer < 2.0){
+    				  countdown = std::to_string(3);
+    			  }
+    			  else if(timer < 4.0){
+    				  countdown = std::to_string(2);
+    			  }
+    			  else if (timer < 6.0){
+    				  countdown = std::to_string(1);
+    			  }
+    			  else {
+    				  idCurrentWindow = 1;
+    			  }
+              }
         /*
          * Affichage de l'état du jeu
          */
@@ -1521,9 +1548,6 @@ int main() {
 
         if (idCurrentWindow == 0) {
 
-          if (enter) {
-            idCurrentWindow = 1;
-          }
 
           sf::Text enterText = sf::Text();
           enterText.setString("Insert COIN (or press enter)");
@@ -1608,7 +1632,7 @@ int main() {
           
           
           sf::RectangleShape infoShape(sf::Vector2f(70, 100));
-          infoShape.setPosition(posXaffichage -5, posYaffichage - 5);
+          infoShape.setPosition(posXaffichage -5, posYaffichage + 10);
           infoShape.setFillColor(playerCar.color);
           window.draw(infoShape);
           
@@ -1666,7 +1690,7 @@ int main() {
         	  tourCountText.setPosition(posXaffichage + (10 + 60)*(i+1), posYaffichage);
         	  nitroCountText.setPosition(posXaffichage + (10 + 60)*(i+1) + 20, posYaffichage + 60);
         	  
-        	  infoShape.setPosition(posXaffichage + (10 + 60)*(i+1) -5, posYaffichage - 5);
+        	  infoShape.setPosition(posXaffichage + (10 + 60)*(i+1) -5, posYaffichage + 10);
         	  infoShape.setFillColor(enemie -> color);
         	  window.draw(infoShape);
         	            
@@ -1683,8 +1707,11 @@ int main() {
 
         }else if (idCurrentWindow == 2)
         {
+        	
+        	int posXaffichage = 400;
+        	          int posYaffichage = 100;
 
-          cout << playerCar.score<<endl;
+        sf::RectangleShape infoShape(sf::Vector2f(80, 80));
           for (int j = 0; j < Enemies.size(); j++) {
             Car * enemie = Enemies[j];
             if (enemie -> score == 0)
@@ -1692,8 +1719,81 @@ int main() {
               enemie -> score = score;
               score++;
             }
-            cout<< enemie -> score<<endl;
+            
+            infoShape.setPosition(posXaffichage + (20 + 80)*(enemie -> score -1), posYaffichage + 70);
+                      infoShape.setFillColor(enemie -> color);
+                      window.draw(infoShape);
           }
+          
+                    
+          sf::Text firstText = sf::Text();
+          sf::Text secondText = sf::Text();
+          sf::Text thirdText = sf::Text();
+          sf::Text fourText = sf::Text();
+          
+          
+        		  
+		firstText.setFont(font);
+		          secondText.setFont(font);
+		          thirdText.setFont(font);
+		          fourText.setFont(font);
+		          
+          
+          firstText.setString("1st");
+          secondText.setString("2nd");
+          thirdText.setString("3rd");
+          fourText.setString("4d");
+         
+          
+          firstText.setPosition(posXaffichage + (40 + 60)*(0), posYaffichage);
+          secondText.setPosition(posXaffichage + (40 + 60)*(1), posYaffichage);
+          thirdText.setPosition(posXaffichage + (40 + 60)*(2), posYaffichage);
+          fourText.setPosition(posXaffichage + (40 + 60)*(3), posYaffichage);
+          
+          firstText.setFillColor(sf::Color::Black);
+          secondText.setFillColor(sf::Color::Black);
+          thirdText.setFillColor(sf::Color::Black);
+          fourText.setFillColor(sf::Color::Black);
+          
+          window.draw(firstText);
+                    window.draw(secondText);
+                    window.draw(thirdText);
+                    window.draw(fourText);
+                    
+                    
+          
+          infoShape.setPosition(posXaffichage + (20 + 80)*(playerCar.score -1), posYaffichage + 70);
+          infoShape.setFillColor(playerCar.color);
+          window.draw(infoShape);
+          
+          sf::Text resultText = sf::Text();
+          resultText.setFont(font);
+          resultText.setFillColor(sf::Color::Black);
+          
+          
+          if (playerCar.score == 1) {
+        	  resultText.setString("Vous etes premier");
+        	  resultText.setPosition(WINDOW_WIDTH / 2 - resultText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 2 - resultText.getLocalBounds().height / 2);
+          } else {
+        	  resultText.setString("Vous avez perdu!!!");
+        	  resultText.setPosition(WINDOW_WIDTH / 2 - resultText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 2 - resultText.getLocalBounds().height / 2);
+          }
+          window.draw(resultText);
+          
+        }
+        
+        else if (idCurrentWindow == 3){
+        	
+        	sf::Text countdownText = sf::Text();
+        	countdownText.setFont(font);
+        	countdownText.setFillColor(sf::Color::Black);
+        	          
+        	         
+        	countdownText.setString(countdown);
+        	countdownText.setPosition(WINDOW_WIDTH / 2 - countdownText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 2 - countdownText.getLocalBounds().height / 2);
+        	
+        	window.draw(countdownText);
+        	
         }
       
       
