@@ -99,6 +99,7 @@ struct Car {
   float malusBonusSpeed;
   int botPositionToTarget;
   double lastActive;
+  sf::Color color;
   Position posInterBot;
   std::string botType;
 };
@@ -641,6 +642,7 @@ int main() {
     playerCar.malusBonusSpeed = 1.0;
     playerCar.lastActive = 0;
     playerCar.score = 0;
+    playerCar.color = sf::Color::Red;
     float timer = 0;
     int nbFlag;
     int countNitro = 0;
@@ -984,6 +986,7 @@ int main() {
     Enemie1.lastActive = 0;
     Enemie1.botType = "master";
     Enemie1.score = 0;
+    Enemie1.color = sf::Color::Blue;
 
     Car Enemie2;
 
@@ -1004,6 +1007,7 @@ int main() {
     Enemie2.lastActive = 0;
     Enemie2.botType = "medium";
     Enemie2.score = 0;
+    Enemie2.color = sf::Color::Yellow;
 
     Car Enemie3;
 
@@ -1024,6 +1028,7 @@ int main() {
     Enemie3.lastActive = 0;
     Enemie3.botType = "dummy";
     Enemie3.score = 0;
+    Enemie3.color = sf::Color::Black;
     
     std::vector < Car * > Enemies;
     Enemies.push_back( & Enemie1);
@@ -1548,7 +1553,7 @@ int main() {
             carShape.setPosition(enemie -> pos.x, enemie -> pos.y);
             carShape.setOrigin(CAR_LONGUEUR / 2, CAR_HAUTEUR / 2);
             carShape.setRotation(180 - (enemie -> direction / 16.0 * 360));
-            carShape.setFillColor(sf::Color::Yellow);
+            carShape.setFillColor(enemie -> color);
             window.draw(carShape);
           }
           for (int j = 0; j < level.muds.size(); ++j)
@@ -1574,11 +1579,8 @@ int main() {
           carShape.setPosition(playerCar.pos.x, playerCar.pos.y);
           carShape.setOrigin(CAR_LONGUEUR / 2, CAR_HAUTEUR / 2);
           carShape.setRotation(180 - (playerCar.direction / 16.0 * 360));
-          carShape.setFillColor(sf::Color::Blue);
-          if (colisionMud == true || colisionFlag == true)
-          {
-            carShape.setFillColor(sf::Color::Red);
-          }
+          carShape.setFillColor(playerCar.color);
+
 
           window.draw(carShape);
 
@@ -1681,9 +1683,15 @@ int main() {
 
         }else if (idCurrentWindow == 2)
         {
+
           cout << playerCar.score<<endl;
           for (int j = 0; j < Enemies.size(); j++) {
             Car * enemie = Enemies[j];
+            if (enemie -> score == 0)
+            {
+              enemie -> score = score;
+              score++;
+            }
             cout<< enemie -> score<<endl;
           }
         }
