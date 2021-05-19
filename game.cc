@@ -94,6 +94,7 @@ struct Car {
   int laps;
   int flag;
   int nbNitro;
+  int score;
   double lastNitroUsedTime;
   float malusBonusSpeed;
   int botPositionToTarget;
@@ -601,6 +602,7 @@ int main() {
     const float RANDOM_DIST_FOR_BOTS_MEDIUM = 10;
     
     const float RANDOM_DIST_FOR_BOTS_DUMY = 10;
+    const int NB_LAPS_FIN = 5;
 
     /*
      * Variables pour l'ecran titre
@@ -608,13 +610,7 @@ int main() {
 
     int textAlphaValue = 0;
 
-    /*
-     * Une RenderWindow est une fenêtre qui permet de récupérer des événements
-     * d'entrée (comme le clavier et la souris) et d'afficher des entités.
-     *
-     * La documentation se trouve ici:
-     * http://www.sfml-dev.org/documentation/2.1/classsf_1_1RenderWindow.php
-     */
+
     RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE);
 
     /*
@@ -631,16 +627,10 @@ int main() {
     background.setTexture(backgroundTexture);
 
     background.setScale(sf::Vector2f((WINDOW_WIDTH / backgroundTexture.getSize().x), (WINDOW_HEIGHT / backgroundTexture.getSize().y)));
-    /*
-    level.walls = [];
-    level.spawnPosNitro = [];
-    level.muds = [];
-    level.flags = [];
-    */
     Car playerCar;
     playerCar.state = 1;
-    playerCar.pos.x = 500; //la position initial de la voiture en x
-    playerCar.pos.y = 500; //la position initial de la voiture en y
+    playerCar.pos.x = 750; //la position initial de la voiture en x
+    playerCar.pos.y = 675; //la position initial de la voiture en y
     playerCar.speed.x = 0;
     playerCar.speed.y = 0;
     playerCar.direction = 0;
@@ -650,9 +640,11 @@ int main() {
     playerCar.lastNitroUsedTime = 0;
     playerCar.malusBonusSpeed = 1.0;
     playerCar.lastActive = 0;
+    playerCar.score = 0;
     float timer = 0;
     int nbFlag;
     int countNitro = 0;
+    int score = 1;
 
     printListWall(level.walls);
 
@@ -976,8 +968,8 @@ int main() {
     Car Enemie1;
 
     Enemie1.state = 1;
-    Enemie1.pos.x = 300; //la position initial de la voiture en x
-    Enemie1.pos.y = 500; //la position initial de la voiture en y
+    Enemie1.pos.x = 750; //la position initial de la voiture en x
+    Enemie1.pos.y = 675; //la position initial de la voiture en y
     Enemie1.speed.x = 0;
     Enemie1.speed.y = 0;
     Enemie1.direction = 0;
@@ -991,12 +983,13 @@ int main() {
     Enemie1.posInterBot.y = 0;
     Enemie1.lastActive = 0;
     Enemie1.botType = "master";
+    Enemie1.score = 0;
 
     Car Enemie2;
 
     Enemie2.state = 1;
-    Enemie2.pos.x = 400; //la position initial de la voiture en x
-    Enemie2.pos.y = 500; //la position initial de la voiture en y
+    Enemie2.pos.x = 750; //la position initial de la voiture en x
+    Enemie2.pos.y = 675; //la position initial de la voiture en y
     Enemie2.speed.x = 0;
     Enemie2.speed.y = 0;
     Enemie2.direction = 0;
@@ -1010,12 +1003,13 @@ int main() {
     Enemie2.posInterBot.y = 0;
     Enemie2.lastActive = 0;
     Enemie2.botType = "medium";
+    Enemie2.score = 0;
 
     Car Enemie3;
 
     Enemie3.state = 1;
-    Enemie3.pos.x = 600; //la position initial de la voiture en x
-    Enemie3.pos.y = 500; //la position initial de la voiture en y
+    Enemie3.pos.x = 750; //la position initial de la voiture en x
+    Enemie3.pos.y = 675; //la position initial de la voiture en y
     Enemie3.speed.x = 0;
     Enemie3.speed.y = 0;
     Enemie3.direction = 0;
@@ -1029,6 +1023,7 @@ int main() {
     Enemie3.posInterBot.y = 0;
     Enemie3.lastActive = 0;
     Enemie3.botType = "dummy";
+    Enemie3.score = 0;
     
     std::vector < Car * > Enemies;
     Enemies.push_back( & Enemie1);
@@ -1277,7 +1272,7 @@ int main() {
             }
           }
         }
-        cout<<playerCar.nbNitro<<endl;
+        //cout<<playerCar.nbNitro<<endl;
 
         //On calcule ensuite la nouvelle vitesse de la voiture
         Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * playerCar.malusBonusSpeed, ACCELERATION, up, down, playerCar.lastNitroUsedTime >= 0, dt);
@@ -1362,16 +1357,16 @@ int main() {
 
           if (isCollision( * enemie, botLine[enemie -> botPositionToTarget], CAR_LONGUEUR)) {
         	int randomDistForBot = 0;
-			if (enemie -> botType == "master"){
-				randomDistForBot = RANDOM_DIST_FOR_BOTS_MASTERMIND;
-			} else if (enemie -> botType == "medium"){
-				randomDistForBot = RANDOM_DIST_FOR_BOTS_MEDIUM;
-			} else if (enemie -> botType == "dumy"){
-				randomDistForBot = RANDOM_DIST_FOR_BOTS_DUMY;
-			} else {
-				randomDistForBot = RANDOM_DIST_FOR_BOTS;
-			}
-			enemie -> posInterBot = randomInCircle(centerPosition(botLine[enemie -> botPositionToTarget], botLine[fmod(enemie -> botPositionToTarget + 1, botLine.size())]), randomDistForBot);
+    			if (enemie -> botType == "master"){
+    				randomDistForBot = RANDOM_DIST_FOR_BOTS_MASTERMIND;
+    			} else if (enemie -> botType == "medium"){
+    				randomDistForBot = RANDOM_DIST_FOR_BOTS_MEDIUM;
+    			} else if (enemie -> botType == "dumy"){
+    				randomDistForBot = RANDOM_DIST_FOR_BOTS_DUMY;
+    			} else {
+    				randomDistForBot = RANDOM_DIST_FOR_BOTS;
+    			}
+    			enemie -> posInterBot = randomInCircle(centerPosition(botLine[enemie -> botPositionToTarget], botLine[fmod(enemie -> botPositionToTarget + 1, botLine.size())]), randomDistForBot);
 
             enemie -> botPositionToTarget = fmod(enemie -> botPositionToTarget + 1, botLine.size());
           }
@@ -1467,7 +1462,7 @@ int main() {
                           {
                             if (isCollision(* enemie, level.flags[i], CAR_HAUTEUR/2))
                             {
-                              countTour(playerCar,level.flags[i], nbFlag);
+                              countTour(* enemie,level.flags[i], nbFlag);
                             }
                           }
                   
@@ -1492,7 +1487,26 @@ int main() {
           enemie -> malusBonusSpeed = 1;
         }
         //fin du truc pour les ennemies
-
+        if (playerCar.laps == NB_LAPS_FIN)
+        {
+          playerCar.score = score;
+          score++;
+          idCurrentWindow =2; 
+        }       
+        for (int j = 0; j < Enemies.size(); j++) {
+          Car * enemie = Enemies[j];
+          if (enemie -> laps >= NB_LAPS_FIN && enemie -> score == 0)
+          {
+            enemie -> score = score;
+            score++;
+          }
+        }
+        if (score == 4)
+        {
+          idCurrentWindow = 2;
+          playerCar.score = score;
+        }
+        cout<<score<<endl;
       }
         /*
          * Affichage de l'état du jeu
@@ -1542,7 +1556,7 @@ int main() {
             mudShape.setSize(sf::Vector2f(level.muds[j].rayon*2, level.muds[j].rayon*2));
             mudShape.setPosition(level.muds[j].pos.x, level.muds[j].pos.y);
             mudShape.setOrigin(level.muds[j].rayon, level.muds[j].rayon);
-            mudShape.setFillColor(sf::Color::Blue);
+            mudShape.setFillColor(sf::Color::Green);
             window.draw(mudShape);
           }
           for (int j = 0; j < level.spawnPosNitro.size(); j++)
@@ -1587,6 +1601,19 @@ int main() {
           lines2[level.walls2.size()].color = sf::Color::Red;
           window.draw(lines2);
 
+          sf::Vertex  line[] = {sf::Vertex(sf::Vector2f(750,600)), sf::Vertex(sf::Vector2f(750,750))};
+          line[0].color = sf::Color::Red;
+          line[1].color = sf::Color::Red;
+          window.draw(line, 2, sf::Lines);
+          
+
+        }else if (idCurrentWindow == 2)
+        {
+          cout << playerCar.score<<endl;
+          for (int j = 0; j < Enemies.size(); j++) {
+            Car * enemie = Enemies[j];
+            cout<< enemie -> score<<endl;
+          }
         }
       
       
