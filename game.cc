@@ -1297,11 +1297,8 @@ int main() {
             //cout<<playerCar.nbNitro<<endl;
 
             //On calcule ensuite la nouvelle vitesse de la voiture
-<<<<<<< HEAD
-          Speed enemieNewSpeed = calculateSpeed( * enemie, (ACCELERATION * enemie -> malusBonusSpeed) * 1.70, ACCELERATION * 0.90, true, false, enemie -> lastNitroUsedTime >= 0, dt);
-=======
+
             Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * playerCar.malusBonusSpeed, ACCELERATION, up, down, playerCar.lastNitroUsedTime >= 0, dt);
->>>>>>> 8017d3ba98d55a2fe004bfc994bdb240e929b5f4
 
             //Timer Pour le spawn de nitro
             countNitro++;
