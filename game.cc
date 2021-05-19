@@ -1525,7 +1525,7 @@ int main() {
                             }
                           }
             //On calcule ensuite la nouvelle vitesse de la voiture
-          Speed enemieNewSpeed = calculateSpeed( * enemie, (ACCELERATION * enemie -> malusBonusSpeed) * 0.90, ACCELERATION * 0.90, true, false, enemie -> lastNitroUsedTime >= 0, dt);
+          Speed enemieNewSpeed = calculateSpeed( * enemie, (ACCELERATION * enemie -> malusBonusSpeed) * 1.70, ACCELERATION * 0.90, true, false, enemie -> lastNitroUsedTime >= 0, dt);
 
 
 
