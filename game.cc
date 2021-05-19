@@ -42,7 +42,7 @@ using namespace sf;
 struct Math {
     static float random() {
         static mt19937 engine(time(nullptr));
-        uniform_real_distribution < float > dist(0.0 f, 1.0 f);
+        uniform_real_distribution < float > dist(0.0f, 1.0f);
         return dist(engine);
     }
     static float arrondir(float val, float prec) {
@@ -1037,7 +1037,7 @@ int main() {
     Enemie2.posInterBot.x = 0;
     Enemie2.posInterBot.y = 0;
     Enemie2.lastActive = 0;
-    Enemie2.botType = "master";
+    Enemie2.botType = "medium";
     Enemie2.score = 0;
     Enemie2.color = sf::Color::Yellow;
 
@@ -1058,7 +1058,7 @@ int main() {
     Enemie3.posInterBot.x = 0;
     Enemie3.posInterBot.y = 0;
     Enemie3.lastActive = 0;
-    Enemie3.botType = "master";
+    Enemie3.botType = "dumy";
     Enemie3.score = 0;
     Enemie3.color = sf::Color::Magenta;
 
@@ -1370,11 +1370,9 @@ int main() {
                     enemie -> lastNitroUsedTime -= dt;
                 }
 
-                if (Math::random() < 0.001 && enemie -> lastNitroUsedTime <= 0 && enemie -> nbNitro > 0) {
-                    enemie -> lastNitroUsedTime = TIME_NITRO_USED;
-                    enemie -> nbNitro -= 1;
-                }
+                
 
+				
                 if (isCollision( * enemie, botLine[enemie -> botPositionToTarget], CAR_LONGUEUR)) {
                     int randomDistForBot = 0;
                     if (enemie -> botType == "master") {
@@ -1390,6 +1388,30 @@ int main() {
 
                     enemie -> botPositionToTarget = fmod(enemie -> botPositionToTarget + 1, botLine.size());
                 }
+                
+				float botSpeedType = 1.0;
+				double botChanceNitro = 0;
+				
+                if (enemie -> botType == "master") {
+                                        botSpeedType = 1.3;
+                                        botChanceNitro = 0.0005;
+                                    } else if (enemie -> botType == "medium") {
+                                        botSpeedType = 0.95;
+                                        botChanceNitro = 0.001;
+                                    } else if (enemie -> botType == "dumy") {
+                                        botSpeedType = 0.80;
+                                        botChanceNitro = 0.0009;
+                                    } else {
+                                        botSpeedType = 0.95;
+                                        botChanceNitro = 0.001;
+                                    }
+                
+                if (Math::random() < botChanceNitro && enemie -> lastNitroUsedTime <= 0 && enemie -> nbNitro > 0) {
+                                    enemie -> lastNitroUsedTime = TIME_NITRO_USED;
+                                    enemie -> nbNitro -= 1;
+                                }
+                
+                
 
                 if (enemie -> posInterBot.x > 0) {
                     if (isCollision( * enemie, enemie -> posInterBot, CAR_LONGUEUR)) {
@@ -1477,7 +1499,7 @@ int main() {
                     }
                 }
                 //On calcule ensuite la nouvelle vitesse de la voiture
-                Speed enemieNewSpeed = calculateSpeed( * enemie, (ACCELERATION * enemie -> malusBonusSpeed) * 0.90, ACCELERATION * 0.90, true, false, enemie -> lastNitroUsedTime >= 0, dt);
+                Speed enemieNewSpeed = calculateSpeed( * enemie, (ACCELERATION * enemie -> malusBonusSpeed) * botSpeedType, ACCELERATION * botSpeedType, true, false, enemie -> lastNitroUsedTime >= 0, dt);
 
                 enemie -> speed = enemieNewSpeed;
                 moveCar(enemie, dt);
