@@ -671,7 +671,7 @@ int main() {
     playerCar.laps = 0;
     playerCar.flag = 0;
     playerCar.nbNitro = 3;
-    playerCar.lastNitroUsedTime = 0;
+    playerCar.lastNitroUsedTime = TIME_NITRO_USED;
     playerCar.malusBonusSpeed = 1.0;
     playerCar.lastActive = 0;
     playerCar.score = 0;
