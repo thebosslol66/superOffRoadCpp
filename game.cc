@@ -1603,6 +1603,41 @@ int main() {
           
           int posXaffichage = 900;
           int posYaffichage = 100;
+          
+          
+          sf::RectangleShape infoShape(sf::Vector2f(70, 100));
+          infoShape.setPosition(posXaffichage -5, posYaffichage - 5);
+          infoShape.setFillColor(playerCar.color);
+          window.draw(infoShape);
+          
+		  sf::Text tourCountText = sf::Text();
+		         	  
+		         	  
+		         	  tourCountText.setFont(font);
+		         	  tourCountText.setCharacterSize(60);
+		         	  
+		         	  sf::Text nitroCountText = sf::Text();
+		         	  
+		         	  nitroCountText.setFont(font);
+		         	  nitroCountText.setCharacterSize(30);
+		         	  
+		         	  if (playerCar.laps < 10){
+		         	          		  tourCountText.setString("0"+ std::to_string(playerCar.laps));
+		         	  } else {
+		         	          		  tourCountText.setString(std::to_string(playerCar.laps));
+		         	          	  }
+		         	  nitroCountText.setString(std::to_string(playerCar.nbNitro));
+		         	  
+		         	  tourCountText.setFillColor(sf::Color::Black);
+		         	  nitroCountText.setFillColor(sf::Color::Black);
+
+		         	  tourCountText.setPosition(posXaffichage, posYaffichage);
+		         	  nitroCountText.setPosition(posXaffichage + 20, posYaffichage + 60);
+		         	  
+		         	  window.draw(tourCountText);
+		         	  window.draw(nitroCountText);
+          
+          
           for(int i = 0; i < Enemies.size(); i++){
         	  Car * enemie = Enemies[i];
         	  sf::Text tourCountText = sf::Text();
@@ -1629,6 +1664,11 @@ int main() {
         	  tourCountText.setPosition(posXaffichage + (10 + 60)*(i+1), posYaffichage);
         	  nitroCountText.setPosition(posXaffichage + (10 + 60)*(i+1) + 20, posYaffichage + 60);
         	  
+        	  infoShape.setPosition(posXaffichage + (10 + 60)*(i+1) -5, posYaffichage - 5);
+        	  infoShape.setFillColor(enemie -> color);
+        	  window.draw(infoShape);
+        	            
+        	            
         	  window.draw(tourCountText);
         	  window.draw(nitroCountText);
           }
