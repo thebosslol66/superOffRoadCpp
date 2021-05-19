@@ -610,7 +610,7 @@ int main() {
      */
 
     int textAlphaValue = 0;
-    std::string countdown ="0";
+    
 
 
     RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE);
@@ -1151,7 +1151,7 @@ int main() {
         textAlphaValue %= 510;
         
         if (enter) {
-          idCurrentWindow = 1;
+          idCurrentWindow = 3;
         }
         
       } else if (idCurrentWindow == 1) {
@@ -1521,22 +1521,13 @@ int main() {
       } else if (idCurrentWindow == 2) {
 
           if (enter) {
-            idCurrentWindow = 1;
+            idCurrentWindow = 3;
+            timer = 0;
           }
         }
       else if (idCurrentWindow == 3) {
-    	  std::string countdown = std::to_string(0);
     	  timer += dt;
-    			  if (timer < 2.0){
-    				  countdown = std::to_string(3);
-    			  }
-    			  else if(timer < 4.0){
-    				  countdown = std::to_string(2);
-    			  }
-    			  else if (timer < 6.0){
-    				  countdown = std::to_string(1);
-    			  }
-    			  else {
+    			  if (timer >= 6.0) {
     				  idCurrentWindow = 1;
     			  }
               }
@@ -1784,10 +1775,23 @@ int main() {
         
         else if (idCurrentWindow == 3){
         	
+        	std::string countdown;
+			  if (timer < 2.0){
+				  countdown = std::to_string(3);
+			  }
+			  else if(timer < 4.0){
+				  countdown = std::to_string(2);
+			  }
+			  else if (timer < 6.0){
+				  countdown = std::to_string(1);
+			  }
+			  
+			  
         	sf::Text countdownText = sf::Text();
         	countdownText.setFont(font);
         	countdownText.setFillColor(sf::Color::Black);
-        	          
+        	
+        	countdownText.setCharacterSize(90);
         	         
         	countdownText.setString(countdown);
         	countdownText.setPosition(WINDOW_WIDTH / 2 - countdownText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 2 - countdownText.getLocalBounds().height / 2);
