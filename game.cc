@@ -475,6 +475,38 @@ void recalculateSpeedDirection(Car * car) {
   car -> speed.x = cos(angleRad) * normeVitesse;
   car -> speed.y = sin(angleRad) * normeVitesse;
 }
+void reset(Car & car){
+  car.state = 1;
+  car.pos.x = 750; //la position initial de la voiture en x
+  car.pos.y = 675; //la position initial de la voiture en y
+  car.speed.x = 0;
+  car.speed.y = 0;
+  car.direction = 0;
+  car.laps = 0;
+  car.flag = 0;
+  car.nbNitro = 3;
+  car.lastNitroUsedTime = 0;
+  car.malusBonusSpeed = 1.0;
+  car.lastActive = 0;
+  car.score = 0;
+}
+void reset(Car * car){
+  car -> state = 1;
+  car -> pos.x = 750; //la position initial de la voiture en x
+  car -> pos.y = 675; //la position initial de la voiture en y
+  car -> speed.x = 0;
+  car -> speed.y = 0;
+  car -> direction = 0;
+  car -> laps = 0;
+  car -> flag = 0;
+  car -> nbNitro = 3;
+  car -> lastNitroUsedTime = 0;
+  car -> malusBonusSpeed = 1.0;
+  car -> lastActive = 0;
+  car -> score = 0;
+  car -> posInterBot.x = 0;
+  car -> posInterBot.y = 0;
+}
 
 // void makeLevel(Ground & level, std::string src) {
 //   Ground cache;
@@ -603,13 +635,14 @@ int main() {
     const float RANDOM_DIST_FOR_BOTS_MEDIUM = 10;
     
     const float RANDOM_DIST_FOR_BOTS_DUMY = 10;
-    const int NB_LAPS_FIN = 5;
-    float horloge;
+    const int NB_LAPS_FIN = 2;
+
     /*
      * Variables pour l'ecran titre
      */
 
     int textAlphaValue = 0;
+    std::string countdown ="0";
 
 
     RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE);
@@ -630,14 +663,14 @@ int main() {
     background.setScale(sf::Vector2f((WINDOW_WIDTH / backgroundTexture.getSize().x), (WINDOW_HEIGHT / backgroundTexture.getSize().y)));
     Car playerCar;
     playerCar.state = 1;
-    playerCar.pos.x = 750; //la position initial de la voiture en x
-    playerCar.pos.y = 675; //la position initial de la voiture en y
+    playerCar.pos.x = 770; //la position initial de la voiture en x
+    playerCar.pos.y = 655; //la position initial de la voiture en y
     playerCar.speed.x = 0;
     playerCar.speed.y = 0;
     playerCar.direction = 0;
     playerCar.laps = 0;
     playerCar.flag = 0;
-    playerCar.nbNitro = 10;
+    playerCar.nbNitro = 3;
     playerCar.lastNitroUsedTime = 0;
     playerCar.malusBonusSpeed = 1.0;
     playerCar.lastActive = 0;
@@ -970,14 +1003,14 @@ int main() {
     Car Enemie1;
 
     Enemie1.state = 1;
-    Enemie1.pos.x = 750; //la position initial de la voiture en x
-    Enemie1.pos.y = 675; //la position initial de la voiture en y
+    Enemie1.pos.x = 770; //la position initial de la voiture en x
+    Enemie1.pos.y = 680; //la position initial de la voiture en y
     Enemie1.speed.x = 0;
     Enemie1.speed.y = 0;
     Enemie1.direction = 0;
     Enemie1.laps = 0;
     Enemie1.flag = 0;
-    Enemie1.nbNitro = 1;
+    Enemie1.nbNitro = 3;
     Enemie1.lastNitroUsedTime = 0;
     Enemie1.malusBonusSpeed = 1.0;
     Enemie1.botPositionToTarget = 0;
@@ -991,42 +1024,42 @@ int main() {
     Car Enemie2;
 
     Enemie2.state = 1;
-    Enemie2.pos.x = 750; //la position initial de la voiture en x
-    Enemie2.pos.y = 675; //la position initial de la voiture en y
+    Enemie2.pos.x = 770; //la position initial de la voiture en x
+    Enemie2.pos.y = 705; //la position initial de la voiture en y
     Enemie2.speed.x = 0;
     Enemie2.speed.y = 0;
     Enemie2.direction = 0;
     Enemie2.laps = 0;
     Enemie2.flag = 0;
-    Enemie2.nbNitro = 1;
+    Enemie2.nbNitro = 3;
     Enemie2.lastNitroUsedTime = 0;
     Enemie2.malusBonusSpeed = 1.0;
     Enemie2.botPositionToTarget = 0;
     Enemie2.posInterBot.x = 0;
     Enemie2.posInterBot.y = 0;
     Enemie2.lastActive = 0;
-    Enemie2.botType = "medium";
+    Enemie2.botType = "master";
     Enemie2.score = 0;
     Enemie2.color = sf::Color::Yellow;
 
     Car Enemie3;
 
     Enemie3.state = 1;
-    Enemie3.pos.x = 750; //la position initial de la voiture en x
-    Enemie3.pos.y = 675; //la position initial de la voiture en y
+    Enemie3.pos.x = 770; //la position initial de la voiture en x
+    Enemie3.pos.y = 730; //la position initial de la voiture en y
     Enemie3.speed.x = 0;
     Enemie3.speed.y = 0;
     Enemie3.direction = 0;
     Enemie3.laps = 0;
     Enemie3.flag = 0;
-    Enemie3.nbNitro = 1;
+    Enemie3.nbNitro = 3;
     Enemie3.lastNitroUsedTime = 0;
     Enemie3.malusBonusSpeed = 1.0;
     Enemie3.botPositionToTarget = 0;
     Enemie3.posInterBot.x = 0;
     Enemie3.posInterBot.y = 0;
     Enemie3.lastActive = 0;
-    Enemie3.botType = "dummy";
+    Enemie3.botType = "master";
     Enemie3.score = 0;
     Enemie3.color = sf::Color::Magenta;
     
@@ -1148,6 +1181,11 @@ int main() {
       if (idCurrentWindow == 0) {
         textAlphaValue += 170 * dt;
         textAlphaValue %= 510;
+        
+        if (enter) {
+          idCurrentWindow = 1;
+        }
+        
       } else if (idCurrentWindow == 1) {
     	  timer = timer+dt;
     	  if (playerCar.lastNitroUsedTime >= 0){
@@ -1520,8 +1558,36 @@ int main() {
           idCurrentWindow = 2;
           playerCar.score = score;
         }
-        cout<<score<<endl;
-      }
+        //cout<<score<<endl;
+      } else if (idCurrentWindow == 2) {
+
+          if (enter) {
+            idCurrentWindow = 1;
+            timer = 0;
+            score = 0;
+            reset(playerCar);
+            for (int j = 0; j < Enemies.size(); j++) {
+              Car * enemie = Enemies[j];
+              reset(enemie);
+            }
+          }
+        }
+      else if (idCurrentWindow == 3) {
+    	  std::string countdown = std::to_string(0);
+    	  timer += dt;
+    			  if (timer < 2.0){
+    				  countdown = std::to_string(3);
+    			  }
+    			  else if(timer < 4.0){
+    				  countdown = std::to_string(2);
+    			  }
+    			  else if (timer < 6.0){
+    				  countdown = std::to_string(1);
+    			  }
+    			  else {
+    				  idCurrentWindow = 1;
+    			  }
+              }
         /*
          * Affichage de l'état du jeu
          */
@@ -1530,9 +1596,6 @@ int main() {
 
         if (idCurrentWindow == 0) {
 
-          if (enter) {
-            idCurrentWindow = 1;
-          }
 
           sf::Text enterText = sf::Text();
           enterText.setString("Insert COIN (or press enter)");
@@ -1618,7 +1681,7 @@ int main() {
           
           
           sf::RectangleShape infoShape(sf::Vector2f(70, 100));
-          infoShape.setPosition(posXaffichage -5, posYaffichage - 5);
+          infoShape.setPosition(posXaffichage -5, posYaffichage + 10);
           infoShape.setFillColor(playerCar.color);
           window.draw(infoShape);
           
@@ -1683,7 +1746,7 @@ int main() {
         	  tourCountText.setPosition(posXaffichage + (10 + 60)*(i+1), posYaffichage);
         	  nitroCountText.setPosition(posXaffichage + (10 + 60)*(i+1) + 20, posYaffichage + 60);
         	  
-        	  infoShape.setPosition(posXaffichage + (10 + 60)*(i+1) -5, posYaffichage - 5);
+        	  infoShape.setPosition(posXaffichage + (10 + 60)*(i+1) -5, posYaffichage + 10);
         	  infoShape.setFillColor(enemie -> color);
         	  window.draw(infoShape);
         	            
@@ -1700,8 +1763,94 @@ int main() {
 
         }else if (idCurrentWindow == 2)
         {
+        	
+        	int posXaffichage = 400;
+        	          int posYaffichage = 100;
 
-          cout << playerCar.score<<endl;
+
+        sf::RectangleShape infoShape(sf::Vector2f(80, 80));
+          for (int j = 0; j < Enemies.size(); j++) {
+            Car * enemie = Enemies[j];
+            if (enemie -> score == 0)
+            {
+              enemie -> score = score;
+              score++;
+            }
+            
+            infoShape.setPosition(posXaffichage + (20 + 80)*(enemie -> score -1), posYaffichage + 70);
+                      infoShape.setFillColor(enemie -> color);
+                      window.draw(infoShape);
+          }
+          
+                    
+          sf::Text firstText = sf::Text();
+          sf::Text secondText = sf::Text();
+          sf::Text thirdText = sf::Text();
+          sf::Text fourText = sf::Text();
+          
+          
+        		  
+		firstText.setFont(font);
+		          secondText.setFont(font);
+		          thirdText.setFont(font);
+		          fourText.setFont(font);
+		          
+          
+          firstText.setString("1st");
+          secondText.setString("2nd");
+          thirdText.setString("3rd");
+          fourText.setString("4d");
+         
+          
+          firstText.setPosition(posXaffichage + (40 + 60)*(0), posYaffichage);
+          secondText.setPosition(posXaffichage + (40 + 60)*(1), posYaffichage);
+          thirdText.setPosition(posXaffichage + (40 + 60)*(2), posYaffichage);
+          fourText.setPosition(posXaffichage + (40 + 60)*(3), posYaffichage);
+          
+          firstText.setFillColor(sf::Color::Black);
+          secondText.setFillColor(sf::Color::Black);
+          thirdText.setFillColor(sf::Color::Black);
+          fourText.setFillColor(sf::Color::Black);
+          
+          window.draw(firstText);
+                    window.draw(secondText);
+                    window.draw(thirdText);
+                    window.draw(fourText);
+                    
+                    
+          
+          infoShape.setPosition(posXaffichage + (20 + 80)*(playerCar.score -1), posYaffichage + 70);
+          infoShape.setFillColor(playerCar.color);
+          window.draw(infoShape);
+          
+          sf::Text resultText = sf::Text();
+          resultText.setFont(font);
+          resultText.setFillColor(sf::Color::Black);
+          
+          
+          if (playerCar.score == 1) {
+        	  resultText.setString("Vous etes premier");
+        	  resultText.setPosition(WINDOW_WIDTH / 2 - resultText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 2 - resultText.getLocalBounds().height / 2);
+          } else {
+        	  resultText.setString("Vous avez perdu!!!");
+        	  resultText.setPosition(WINDOW_WIDTH / 2 - resultText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 2 - resultText.getLocalBounds().height / 2);
+          }
+          window.draw(resultText);
+          
+        }
+        
+        else if (idCurrentWindow == 3){
+        	
+        	sf::Text countdownText = sf::Text();
+        	countdownText.setFont(font);
+        	countdownText.setFillColor(sf::Color::Black);
+        	          
+        	         
+        	countdownText.setString(countdown);
+        	countdownText.setPosition(WINDOW_WIDTH / 2 - countdownText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 2 - countdownText.getLocalBounds().height / 2);
+        	
+        	window.draw(countdownText);
+        	
         }
       
       
