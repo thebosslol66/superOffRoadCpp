@@ -1391,13 +1391,13 @@ int main() {
 				
                 if (enemie -> botType == "master") {
                                         botSpeedType = 1.3;
-                                        botChanceNitro = 0.0005;
+                                        botChanceNitro = 0.0009;
                                     } else if (enemie -> botType == "medium") {
                                         botSpeedType = 0.95;
-                                        botChanceNitro = 0.001;
+                                        botChanceNitro = 0.005;
                                     } else if (enemie -> botType == "dumy") {
                                         botSpeedType = 0.80;
-                                        botChanceNitro = 0.0009;
+                                        botChanceNitro = 0.001;
                                     } else {
                                         botSpeedType = 0.95;
                                         botChanceNitro = 0.001;
