@@ -594,7 +594,7 @@ int main() {
     const int CAR_LONGUEUR = 40;
     const int CAR_HAUTEUR = 20;
 
-    const float RANDOM_DIST_FOR_BOTS = 70;
+    const float RANDOM_DIST_FOR_BOTS = 50;
     
     const float RANDOM_DIST_FOR_BOTS_MASTERMIND = 10;
     
@@ -983,7 +983,7 @@ int main() {
     Enemie1.direction = 0;
     Enemie1.laps = 0;
     Enemie1.flag = 0;
-    Enemie1.nbNitro = 100000;
+    Enemie1.nbNitro = 1;
     Enemie1.lastNitroUsedTime = 0;
     Enemie1.malusBonusSpeed = 1.0;
     Enemie1.botPositionToTarget = 0;
@@ -1002,7 +1002,7 @@ int main() {
     Enemie2.direction = 0;
     Enemie2.laps = 0;
     Enemie2.flag = 0;
-    Enemie2.nbNitro = 100000;
+    Enemie2.nbNitro = 1;
     Enemie2.lastNitroUsedTime = 0;
     Enemie2.malusBonusSpeed = 1.0;
     Enemie2.botPositionToTarget = 0;
@@ -1021,7 +1021,7 @@ int main() {
     Enemie3.direction = 0;
     Enemie3.laps = 0;
     Enemie3.flag = 0;
-    Enemie3.nbNitro = 100000;
+    Enemie3.nbNitro = 1;
     Enemie3.lastNitroUsedTime = 0;
     Enemie3.malusBonusSpeed = 1.0;
     Enemie3.botPositionToTarget = 0;
@@ -1483,7 +1483,7 @@ int main() {
                             }
                           }
             //On calcule ensuite la nouvelle vitesse de la voiture
-          Speed enemieNewSpeed = calculateSpeed( * enemie, (ACCELERATION * enemie -> malusBonusSpeed) * 1.20, ACCELERATION * 1.20, true, false, enemie -> lastNitroUsedTime >= 0, dt);
+          Speed enemieNewSpeed = calculateSpeed( * enemie, (ACCELERATION * enemie -> malusBonusSpeed) * 0.90, ACCELERATION * 0.90, true, false, enemie -> lastNitroUsedTime >= 0, dt);
 
 
 
@@ -1586,6 +1586,38 @@ int main() {
           lines2[level.walls2.size()].position = sf::Vector2f(level.walls2[0].hitbox.corner1.x, level.walls2[0].hitbox.corner1.y);
           lines2[level.walls2.size()].color = sf::Color::Red;
           window.draw(lines2);
+          
+          int posXaffichage = 900;
+          int posYaffichage = 100;
+          for(int i = 0; i < Enemies.size(); i++){
+        	  Car * enemie = Enemies[i];
+        	  sf::Text tourCountText = sf::Text();
+        	  
+        	  
+        	  tourCountText.setFont(font);
+        	  tourCountText.setCharacterSize(60);
+        	  
+        	  sf::Text nitroCountText = sf::Text();
+        	  
+        	  nitroCountText.setFont(font);
+        	  nitroCountText.setCharacterSize(30);
+        	  
+        	  if (enemie -> laps < 10){
+        	          		  tourCountText.setString("0"+ std::to_string(enemie -> laps));
+        	  } else {
+        	          		  tourCountText.setString(std::to_string(enemie -> laps));
+        	          	  }
+        	  nitroCountText.setString(std::to_string(enemie -> nbNitro));
+        	  
+        	  tourCountText.setFillColor(sf::Color::Black);
+        	  nitroCountText.setFillColor(sf::Color::Black);
+
+        	  tourCountText.setPosition(posXaffichage + (10 + 60)*(i+1), posYaffichage);
+        	  nitroCountText.setPosition(posXaffichage + (10 + 60)*(i+1) + 20, posYaffichage + 60);
+        	  
+        	  window.draw(tourCountText);
+        	  window.draw(nitroCountText);
+          }
 
         }
       
