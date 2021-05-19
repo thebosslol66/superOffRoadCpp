@@ -1578,7 +1578,7 @@ int main() {
         }
       else if (idCurrentWindow == 3) {
     	  timer += dt;
-    			  if (timer >= 6.0) {
+    			  if (timer >= 3.0) {
     				  idCurrentWindow = 1;
     			  }
               }
@@ -1836,13 +1836,13 @@ int main() {
         else if (idCurrentWindow == 3){
         	
         	std::string countdown;
-			  if (timer < 2.0){
+			  if (timer < 1.0){
 				  countdown = std::to_string(3);
 			  }
-			  else if(timer < 4.0){
+			  else if(timer < 2.0){
 				  countdown = std::to_string(2);
 			  }
-			  else if (timer < 6.0){
+			  else if (timer < 3.0){
 				  countdown = std::to_string(1);
 			  }
 			  
@@ -1993,7 +1993,7 @@ int main() {
 			  
 			  
 			  sf::RectangleShape greyShape(sf::Vector2f(WINDOW_WIDTH, WINDOW_HEIGHT));
-			  greyShape.setFillColor(sf::Color(150,150,150,60));
+			  greyShape.setFillColor(sf::Color(0,0,0,100));
 			  window.draw(greyShape);
 			
         	sf::Text countdownText = sf::Text();
