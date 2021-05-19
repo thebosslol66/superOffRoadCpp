@@ -625,7 +625,7 @@ int main() {
     double lastActiveNitro;
     lastActiveNitro = 0;
 
-    double TIME_NITRO_USED = 5.0;
+    double TIME_NITRO_USED = 4.0;
 
     const int CAR_LONGUEUR = 40;
     const int CAR_HAUTEUR = 20;
@@ -637,7 +637,7 @@ int main() {
     const float RANDOM_DIST_FOR_BOTS_MEDIUM = 10;
 
     const float RANDOM_DIST_FOR_BOTS_DUMY = 10;
-    const int NB_LAPS_FIN = 2;
+    const int NB_LAPS_FIN = 5;
 
     /*
      * Variables pour l'ecran titre
