@@ -125,6 +125,12 @@ int vectorDotProduct(const Position & pt1,
     const Position & pt2) {
     return (pt1.x * pt2.x + pt1.y * pt2.y);
 }
+
+float vectorDotProduct(const sf::Vector2f & pt1,
+    const sf::Vector2f & pt2) {
+    return (pt1.x * pt2.x + pt1.y * pt2.y);
+}
+
 bool isCollisionPoint(Position posPoint, Position centreCercle, int rayon) {
     int distance = (posPoint.x - centreCercle.x) * (posPoint.x - centreCercle.x) + (posPoint.y - centreCercle.y) * (posPoint.y - centreCercle.y);
     if (distance > rayon * rayon) {
@@ -1366,7 +1372,27 @@ int main() {
                     enemie -> lastNitroUsedTime -= dt;
                 }
 
-                
+                float botSpeedType = 1.0;
+                				double botChanceNitro = 0;
+                float chanceToGetPowerUp = 0.0;
+                				
+                                if (enemie -> botType == "master") {
+                                                        botSpeedType = 1.3;
+                                                        botChanceNitro = 0.0009;
+                                                        chanceToGetPowerUp = 0.9;
+                                                    } else if (enemie -> botType == "medium") {
+                                                        botSpeedType = 0.95;
+                                                        botChanceNitro = 0.005;
+                                                        chanceToGetPowerUp = 0.6;
+                                                    } else if (enemie -> botType == "dumy") {
+                                                        botSpeedType = 0.80;
+                                                        botChanceNitro = 0.001;
+                                                        chanceToGetPowerUp = 0.2;
+                                                    } else {
+                                                        botSpeedType = 0.95;
+                                                        botChanceNitro = 0.001;
+                                                        chanceToGetPowerUp = 0.5;
+                                                    }
 
 				
                 if (isCollision( * enemie, botLine[enemie -> botPositionToTarget], CAR_LONGUEUR)) {
@@ -1380,27 +1406,39 @@ int main() {
                     } else {
                         randomDistForBot = RANDOM_DIST_FOR_BOTS;
                     }
-                    enemie -> posInterBot = randomInCircle(centerPosition(botLine[enemie -> botPositionToTarget], botLine[fmod(enemie -> botPositionToTarget + 1, botLine.size())]), randomDistForBot);
+                    
+                    sf::Vector2f vectorBetweenPosAndNewTarget = Vector2f(botLine[fmod(enemie -> botPositionToTarget + 1, botLine.size())].x - enemie -> pos.x, botLine[fmod(enemie -> botPositionToTarget + 1, botLine.size())].y - enemie -> pos.y);
+
+		
+		bool hasAlreadyATarget = false;
+		if (Math::random() < chanceToGetPowerUp){
+		for (int i = 0; i < level.spawnPosNitro.size(); i++) {
+                           if (level.spawnPosNitro[i].present) {
+                        	   sf::Vector2f vectorToNitro = sf::Vector2f(level.spawnPosNitro[i].pos.x - enemie -> pos.x, level.spawnPosNitro[i].pos.y - enemie -> pos.y);
+                        	                           		   
+                        	   
+                        	   if (vectorDotProduct(vectorBetweenPosAndNewTarget, vectorToNitro) > 0){
+                        		   if (calculateNorme(vectorBetweenPosAndNewTarget.x , vectorBetweenPosAndNewTarget.y) >= calculateNorme(vectorToNitro.x , vectorToNitro.y)){
+                        			   enemie -> posInterBot.x = level.spawnPosNitro[i].pos.x + level.spawnPosNitro[i].rayon;
+                        			   enemie -> posInterBot.y = level.spawnPosNitro[i].pos.y + level.spawnPosNitro[i].rayon;
+                        			   hasAlreadyATarget = true;
+                        		   }
+								   
+                        	   }
+                           } 
+                    }
+		}
+                    
+		if (!hasAlreadyATarget){
+			enemie -> posInterBot = randomInCircle(centerPosition(botLine[enemie -> botPositionToTarget], botLine[fmod(enemie -> botPositionToTarget + 1, botLine.size())]), randomDistForBot);
+			
+		}
+                    
 
                     enemie -> botPositionToTarget = fmod(enemie -> botPositionToTarget + 1, botLine.size());
                 }
                 
-				float botSpeedType = 1.0;
-				double botChanceNitro = 0;
 				
-                if (enemie -> botType == "master") {
-                                        botSpeedType = 1.3;
-                                        botChanceNitro = 0.0009;
-                                    } else if (enemie -> botType == "medium") {
-                                        botSpeedType = 0.95;
-                                        botChanceNitro = 0.005;
-                                    } else if (enemie -> botType == "dumy") {
-                                        botSpeedType = 0.80;
-                                        botChanceNitro = 0.001;
-                                    } else {
-                                        botSpeedType = 0.95;
-                                        botChanceNitro = 0.001;
-                                    }
                 
                 if (Math::random() < botChanceNitro && enemie -> lastNitroUsedTime <= 0 && enemie -> nbNitro > 0) {
                                     enemie -> lastNitroUsedTime = TIME_NITRO_USED;
@@ -1410,7 +1448,7 @@ int main() {
                 
 
                 if (enemie -> posInterBot.x > 0) {
-                    if (isCollision( * enemie, enemie -> posInterBot, CAR_LONGUEUR)) {
+                    if (isCollision( * enemie, enemie -> posInterBot, CAR_LONGUEUR*3/4)) {
                         enemie -> posInterBot.x = -1;
                     }
                 }
