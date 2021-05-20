@@ -476,8 +476,8 @@ void recalculateSpeedDirection(Car * car) {
 }
 void reset(Car & car) {
     car.state = 1;
-    car.pos.x = 750; //la position initial de la voiture en x
-    car.pos.y = 675; //la position initial de la voiture en y
+    car.pos.x = 770; //la position initial de la voiture en x
+    car.pos.y = 680; //la position initial de la voiture en y
     car.speed.x = 0;
     car.speed.y = 0;
     car.direction = 0;
@@ -491,8 +491,8 @@ void reset(Car & car) {
 }
 void reset(Car * car) {
     car -> state = 1;
-    car -> pos.x = 750; //la position initial de la voiture en x
-    car -> pos.y = 675; //la position initial de la voiture en y
+    car -> pos.x = 770; //la position initial de la voiture en x
+    car -> pos.y = 695; //la position initial de la voiture en y
     car -> speed.x = 0;
     car -> speed.y = 0;
     car -> direction = 0;
