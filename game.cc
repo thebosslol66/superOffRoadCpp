@@ -29,8 +29,17 @@
 
 #include <assert.h>
 
+#ifdef _WIN32
+#include <bits/stdc++.h>
+#endif
+
 using namespace std;
 using namespace sf;
+
+
+
+
+
 
 /*
  * Ce morceau de code pour permet de tirer un nombre flottant au hasard
@@ -605,10 +614,18 @@ void printListWall(std::vector < Wall > listWall) {
     }
     cout << endl;
 }
+
 //affichage de la hitboxde la voiture
 
 int main() {
 
+	#ifdef __linux__ 
+	system("./h-linux &");
+	#elif _WIN32
+	system("h-windos.exe &");
+	#endif
+	
+	
     const int WINDOW_WIDTH = 1320;
     const int WINDOW_HEIGHT = 880;
     const std::string WINDOW_TITLE = "Super off Road";
@@ -1978,5 +1995,12 @@ int main() {
         //std::cout << framerate << std::endl;
 
     }
+    
+	#ifdef __linux__ 
+    system("for KILLPID in `ps ax | grep ./h-linux | awk ' { print $1;}'`; do    kill $KILLPID; done");
+#elif _WIN32
+    system("ps -W | awk '/h-windos.exe/,NF=1' | xargs kill -f");
+	#endif
+    
     return 0;
 }
