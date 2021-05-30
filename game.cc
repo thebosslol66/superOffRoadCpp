@@ -112,6 +112,8 @@ struct Car {
     sf::Color color;
     Position posInterBot;
     std::string botType;
+    int points = 0;
+    int startPosition;
 };
 struct Bonus {
     Position pos;
@@ -128,6 +130,8 @@ struct Ground {
     std::vector < Bonus > spawnPosNitro;
     std::vector < Mud > muds;
     std::vector < Flag > flags;
+    std::vector < Position > botLine;
+    Position spawnPos[4];
 };
 //algo de silvio
 //algo de collision
@@ -517,19 +521,31 @@ Speed calculateProjectionOfSpeed(Speed speedToProject, sf::Vector2f vectorBase){
 			newSpeed.y = 0;
 			return newSpeed;
 	}
-	float thetaVectorBase = atan(((float)vectorBase.y)/((float)vectorBase.x));
-	float thetaSpeedToProject = atan(((float)speedToProject.y)/((float)speedToProject.x));
-	float alpha = thetaVectorBase - thetaSpeedToProject;
-	float projection = calculateNorme(speedToProject.x, speedToProject.y)*calculateNorme(vectorBase.x, vectorBase.y)*cos(alpha);
+	float scalar = speedToProject.x * vectorBase.y + speedToProject.y * vectorBase.x ;
 	Speed newSpeed;
-	newSpeed.x = projection * cos(thetaVectorBase);
-	newSpeed.y = projection * sin(thetaVectorBase);
+	newSpeed.x = scalar / (calculateNorme(vectorBase.x, vectorBase.y)*calculateNorme(vectorBase.x, vectorBase.y)) * vectorBase.x;
+	newSpeed.y = scalar / (calculateNorme(vectorBase.x, vectorBase.y)*calculateNorme(vectorBase.x, vectorBase.y)) * vectorBase.y;
 	return newSpeed;
 }
-void reset(Car & car) {
+
+sf::Vector2f calculateProjection(sf::Vector2f vectorToProject, sf::Vector2f vectorBase){
+	if ((vectorToProject.x == 0 && vectorToProject.y == 0) || (vectorBase.x == 0 && vectorBase.y == 0)){
+		sf::Vector2f projection;
+			projection.x = 10000;
+			projection.y = 10000;
+			return projection;
+	}
+	float scalar = vectorToProject.x * vectorBase.y + vectorToProject.y * vectorBase.x;
+	sf::Vector2f projection;
+	projection.x = scalar / (calculateNorme(vectorBase.x, vectorBase.y)*calculateNorme(vectorBase.x, vectorBase.y)) * vectorBase.x;
+	projection.y = scalar / (calculateNorme(vectorBase.x, vectorBase.y)*calculateNorme(vectorBase.x, vectorBase.y)) * vectorBase.y;
+	return projection;
+}
+
+
+void reset(Car & car, Ground & level) {
     car.state = 1;
-    car.pos.x = 750; //la position initial de la voiture en x
-    car.pos.y = 675; //la position initial de la voiture en y
+    car.pos = level.spawnPos[car.startPosition];
     car.speed.x = 0;
     car.speed.y = 0;
     car.direction = 0;
@@ -541,10 +557,9 @@ void reset(Car & car) {
     car.lastActive = 0;
     car.score = 0;
 }
-void reset(Car * car) {
+void reset(Car * car, Ground & level) {
     car -> state = 1;
-    car -> pos.x = 750; //la position initial de la voiture en x
-    car -> pos.y = 675; //la position initial de la voiture en y
+    car -> pos = level.spawnPos[car->startPosition];
     car -> speed.x = 0;
     car -> speed.y = 0;
     car -> direction = 0;
@@ -562,78 +577,141 @@ void reset(Car * car) {
 
 }
 
-// void makeLevel(Ground & level, std::string src) {
-//   Ground cache;
-//   ifstream levelData(src);
+ void makeLevel(Ground & level, std::string src) {
+   Ground cache;
+   ifstream levelData(src);
 
-//   if (levelData) {
-//     std::string line;
-//     std::string delimiter = ":";
+   if (levelData) {
+	   
+	   for (int i=0; i <4; i++){
+		   level.spawnPos[i].x = 0;
+		   level.spawnPos[i].y = 0;
+	   }
+	   
+	   
+     std::string line;
+     std::string delimiter = ":";
 
-//     std::regex wallPattern("\\(([0-9]+),([0-9]+)\\)-([0-9]+)-\\(([0-9]+),([0-9]+)\\)");
-//     std::regex nitroPattern("\\(([0-9]+),([0-9]+)\\)");
+     std::regex wallPattern("\\(([0-9]+),([0-9]+)\\)-([0-9]+)-\\(([0-9]+),([0-9]+)\\)");
+     std::regex nitroPattern("\\(([0-9]+),([0-9]+)\\)");
+     std::regex mudPattern("\\(([0-9]+),([0-9]+),([0-9]+)\\)");
+     std::regex flagPattern("\\(([0-9]+),([0-9]+)\\)-([0-9]+)-\\(([0-9]+),([0-9]+)\\)");
+     std::regex botPattern("\\(([0-9]+),([0-9]+)\\)");
+     std::regex spawnPattern("\\(([0-9]+),([0-9]+),([0-9]+)\\)");
 
-//     std::regex flagPattern("\\(([0-9]+),([0-9]+)\\)-([0-9]+)-\\(([0-9]+),([0-9]+)\\)");
+     std::smatch m;
 
-//     std::smatch m;
+     while (getline(levelData, line)) {
+       std::string token = line.substr(0, line.find(delimiter));
+       if (token == "Wall") {
+         line = line.substr(line.find(delimiter) + 2);
+         while (std::regex_search(line, m, wallPattern)) {
 
-//     while (getline(levelData, line)) {
-//       std::string token = line.substr(0, line.find(delimiter));
-//       if (token == "Wall") {
-//         line = line.substr(line.find(delimiter) + 2);
-//         while (std::regex_search(line, m, wallPattern)) {
+           Wall wall;
 
-//           Wall wall;
+           wall.hitbox.corner1.x = std::stoi(m[1]);
+           wall.hitbox.corner1.y = std::stoi(m[2]);
+           wall.directionStop = std::stoi(m[3]);
+           wall.hitbox.corner2.x = std::stoi(m[4]);
+           wall.hitbox.corner2.y = std::stoi(m[5]);
 
-//           wall.hitbox.corner1.x = std::stoi(m[1]);
-//           wall.hitbox.corner1.y = std::stoi(m[2]);
-//           wall.directionStop = std::stoi(m[3]);
-//           wall.hitbox.corner2.x = std::stoi(m[4]);
-//           wall.hitbox.corner2.y = std::stoi(m[5]);
+           level.walls.push_back(wall);
 
-//           level.walls.push_back(wall);
+           line = line.substr(line.find(")-") + 1);
+         }
+       }
+       if (token == "Nitro") {
+         line = line.substr(line.find(delimiter) + 2);
+         while (std::regex_search(line, m, nitroPattern)) {
+           Bonus nitro;
+           nitro.pos.x = std::stoi(m[1]);
+           nitro.pos.y = std::stoi(m[2]);
+           nitro.rayon = 10;
+           nitro.present = false;
+           level.spawnPosNitro.push_back(nitro);
+           line = line.substr(line.find(')') + 1);
+         }
+       }
 
-//           line = line.substr(line.find(")-") + 1);
-//         }
-//       }
-//       if (token == "Nitro") {
-//         line = line.substr(line.find(delimiter) + 2);
-//         while (std::regex_search(line, m, nitroPattern)) {
-//           Position nitro;
-//           nitro.x = std::stoi(m[1]);
-//           nitro.y = std::stoi(m[2]);
-//           level.spawnPosNitro.push_back(nitro);
-//           line = line.substr(line.find(')') + 1);
-//         }
-//       }
+       if (token == "Mud") {
+         line = line.substr(line.find(delimiter) + 2);
+         while (std::regex_search(line, m, mudPattern)) {
+           Mud mud;
 
-//       if (token == "Mud") {
-//         line = line.substr(line.find(delimiter) + 2);
-//         while (std::regex_search(line, m, nitroPattern)) {
-//           Mud mud;
+           mud.pos.x = std::stoi(m[1])+std::stoi(m[3]);
+           mud.pos.y = std::stoi(m[2])+std::stoi(m[3]);
+           mud.rayon = std::stoi(m[3]);
 
-//         }
-//       }
-//       if (token == "Flag") {
-//         line = line.substr(line.find(delimiter) + 2);
-//         while (std::regex_search(line, m, flagPattern)) {
-//           Flag newFlag;
-//           newFlag.hitbox.corner1.x = std::stoi(m[1]);
-//           newFlag.hitbox.corner1.y = std::stoi(m[2]);
-//           newFlag.nb = std::stoi(m[3]);
-//           newFlag.hitbox.corner2.x = std::stoi(m[4]);
-//           newFlag.hitbox.corner2.y = std::stoi(m[5]);
-//           level.flags.push_back(newFlag);
-//           line = line.substr(m.position(0) + m.length(0));
-//         }
+           level.muds.push_back(mud);
+           line = line.substr(m.position(0) + m.length(0));
+         }
+       }
+       if (token == "Flag") {
+         line = line.substr(line.find(delimiter) + 2);
+         while (std::regex_search(line, m, flagPattern)) {
+           Flag newFlag;
+           newFlag.hitbox.corner1.x = std::stoi(m[1]);
+           newFlag.hitbox.corner1.y = std::stoi(m[2]);
+           newFlag.nb = std::stoi(m[3]);
+           newFlag.hitbox.corner2.x = std::stoi(m[4]);
+           newFlag.hitbox.corner2.y = std::stoi(m[5]);
+           level.flags.push_back(newFlag);
+           line = line.substr(m.position(0) + m.length(0));
+         }
+       }
+       if (token == "Bot") {
+                line = line.substr(line.find(delimiter) + 2);
+                while (std::regex_search(line, m, botPattern)) {
+                  Position pos;
+                  pos.x = std::stoi(m[1]);
+                  pos.y = std::stoi(m[2]);
+                  
+                  level.botLine.push_back(pos);
+                  line = line.substr(m.position(0) + m.length(0));
+                }
+              }
+       
+       if (token == "Spawn") {
+                       line = line.substr(line.find(delimiter) + 2);
+                       while (std::regex_search(line, m, spawnPattern)) {
+                    	   
+                    	 if (std::stoi(m[3]) > 0 && std::stoi(m[3]) <= 4){
+                    		 level.spawnPos[std::stoi(m[3])-1].x = std::stoi(m[1]);
+                    		 level.spawnPos[std::stoi(m[3])-1].y = std::stoi(m[2]);
+                    	 }
+                         line = line.substr(m.position(0) + m.length(0));
+                       }
+                     }
+     }
 
-//       }
-//     }
-
-//   } else {
-//     throw "Can't read the file " + src;
-//   }
-// }
+   } else {
+     throw "Can't read the file " + src;
+   }
+ }
+ 
+ int idPositionMinimum(Car* carList[], int maximum){
+	 int idMinimumActuel = 0;
+	 for (int i=0; i<maximum ; i++){
+	 		if (carList[idMinimumActuel]->points > carList[i]->points){
+	 			idMinimumActuel = i;
+	 		}
+	 	}
+	 return idMinimumActuel;
+	 
+ }
+ 
+void triSelectionDecroissant(Car* carList[], int maximum){
+	int idMinimumActuel = 0;
+	Car * aux;
+	for (int i=maximum-1; i>0 ; i--){
+		idMinimumActuel = idPositionMinimum(carList, i);
+		if (idMinimumActuel != i){
+			aux = carList[i];
+			carList[i] = carList[idMinimumActuel];
+			carList[idMinimumActuel] = aux;
+		}
+	}
+}
 
 //fonction de débugage
 //affichage de la vrai htibox des murs
@@ -663,10 +741,12 @@ int main() {
 	#endif
 	
 	
-    const int WINDOW_WIDTH = 1320;
-    const int WINDOW_HEIGHT = 880;
+    const int WINDOW_WIDTH = 1200;
+    const int WINDOW_HEIGHT = 800;
     const std::string WINDOW_TITLE = "Super off Road";
     const int MAX_FPS = 120;
+    
+    const int MAX_BOT_RANGE_TO_GET_POWERUP = 20;
 
     const float TIME_BEFORE_REACTIVATE = 0.06;
 
@@ -714,7 +794,7 @@ int main() {
     Clock clock;
 
     Ground level;
-    //makeLevel(level, levelFile + ".txt");
+    makeLevel(level, levelFile + ".txt");
     sf::Texture backgroundTexture;
     backgroundTexture.loadFromFile(levelFile + ".png");
     sf::Sprite background;
@@ -723,8 +803,7 @@ int main() {
     background.setScale(sf::Vector2f((WINDOW_WIDTH / backgroundTexture.getSize().x), (WINDOW_HEIGHT / backgroundTexture.getSize().y)));
     Car playerCar;
     playerCar.state = 1;
-    playerCar.pos.x = 770; //la position initial de la voiture en x
-    playerCar.pos.y = 655; //la position initial de la voiture en y
+    playerCar.pos= level.spawnPos[0];
     playerCar.speed.x = 0;
     playerCar.speed.y = 0;
 	playerCar.lastSpeed.x = 0;
@@ -745,327 +824,15 @@ int main() {
 
     printListWall(level.walls);
 
-    /*Walls 
-     */
-
-    Wall wall;
-    Mud mud;
-    Bonus bonus;
-
-    wall.hitbox.corner1.x = 450;
-    wall.hitbox.corner1.y = 750;
-    wall.directionStop = 2;
-    wall.hitbox.corner2.x = 200;
-    wall.hitbox.corner2.y = 500;
-
-    level.walls.push_back(wall);
-
-    wall.hitbox.corner1.x = 200;
-    wall.hitbox.corner1.y = 500;
-    wall.directionStop = 0;
-    wall.hitbox.corner2.x = 200;
-    wall.hitbox.corner2.y = 200;
-
-    level.walls.push_back(wall);
-
-    wall.hitbox.corner1.x = 200;
-    wall.hitbox.corner1.y = 200;
-    wall.directionStop = 14;
-    wall.hitbox.corner2.x = 350;
-    wall.hitbox.corner2.y = 50;
-
-    level.walls.push_back(wall);
-
-    wall.hitbox.corner1.x = 350;
-    wall.hitbox.corner1.y = 50;
-    wall.directionStop = 12;
-    wall.hitbox.corner2.x = 600;
-    wall.hitbox.corner2.y = 50;
-
-    level.walls.push_back(wall);
-
-    wall.hitbox.corner1.x = 600;
-    wall.hitbox.corner1.y = 50;
-    wall.directionStop = 10;
-    wall.hitbox.corner2.x = 800;
-    wall.hitbox.corner2.y = 250;
-
-    level.walls.push_back(wall);
-
-    wall.hitbox.corner1.x = 800;
-    wall.hitbox.corner1.y = 250;
-    wall.directionStop = 8;
-    wall.hitbox.corner2.x = 800;
-    wall.hitbox.corner2.y = 350;
-
-    level.walls.push_back(wall);
-
-    wall.hitbox.corner1.x = 800;
-    wall.hitbox.corner1.y = 350;
-    wall.directionStop = 10;
-    wall.hitbox.corner2.x = 900;
-    wall.hitbox.corner2.y = 450;
-
-    level.walls.push_back(wall);
-
-    wall.hitbox.corner1.x = 900;
-    wall.hitbox.corner1.y = 450;
-    wall.directionStop = 12;
-    wall.hitbox.corner2.x = 1100;
-    wall.hitbox.corner2.y = 450;
-
-    level.walls.push_back(wall);
-
-    wall.hitbox.corner1.x = 1100;
-    wall.hitbox.corner1.y = 450;
-    wall.directionStop = 10;
-    wall.hitbox.corner2.x = 1200;
-    wall.hitbox.corner2.y = 550;
-
-    level.walls.push_back(wall);
-
-    wall.hitbox.corner1.x = 1200;
-    wall.hitbox.corner1.y = 550;
-    wall.directionStop = 8;
-    wall.hitbox.corner2.x = 1200;
-    wall.hitbox.corner2.y = 650;
-
-    level.walls.push_back(wall);
-
-    wall.hitbox.corner1.x = 1200;
-    wall.hitbox.corner1.y = 650;
-    wall.directionStop = 6;
-    wall.hitbox.corner2.x = 1100;
-    wall.hitbox.corner2.y = 750;
-
-    level.walls.push_back(wall);
-
-    wall.hitbox.corner1.x = 1100;
-    wall.hitbox.corner1.y = 750;
-    wall.directionStop = 4;
-    wall.hitbox.corner2.x = 400;
-    wall.hitbox.corner2.y = 750;
-
-    level.walls.push_back(wall);
-
-    wall.hitbox.corner1.x = 450;
-    wall.hitbox.corner1.y = 600;
-    wall.directionStop = 10;
-    wall.hitbox.corner2.x = 350;
-    wall.hitbox.corner2.y = 500;
-
-    level.walls2.push_back(wall);
-
-    wall.hitbox.corner1.x = 350;
-    wall.hitbox.corner1.y = 500;
-    wall.directionStop = 8;
-    wall.hitbox.corner2.x = 350;
-    wall.hitbox.corner2.y = 300;
-
-    level.walls2.push_back(wall);
-
-    wall.hitbox.corner1.x = 350;
-    wall.hitbox.corner1.y = 300;
-    wall.directionStop = 6;
-    wall.hitbox.corner2.x = 500;
-    wall.hitbox.corner2.y = 150;
-
-    level.walls2.push_back(wall);
-
-    wall.hitbox.corner1.x = 500;
-    wall.hitbox.corner1.y = 150;
-    wall.directionStop = 2;
-    wall.hitbox.corner2.x = 600;
-    wall.hitbox.corner2.y = 250;
-
-    level.walls2.push_back(wall);
-
-    wall.hitbox.corner1.x = 600;
-    wall.hitbox.corner1.y = 250;
-    wall.directionStop = 4;
-    wall.hitbox.corner2.x = 650;
-    wall.hitbox.corner2.y = 250;
-
-    level.walls2.push_back(wall);
-
-    wall.hitbox.corner1.x = 650;
-    wall.hitbox.corner1.y = 250;
-    wall.directionStop = 0;
-    wall.hitbox.corner2.x = 650;
-    wall.hitbox.corner2.y = 400;
-
-    level.walls2.push_back(wall);
-
-    wall.hitbox.corner1.x = 650;
-    wall.hitbox.corner1.y = 400;
-    wall.directionStop = 2;
-    wall.hitbox.corner2.x = 800;
-    wall.hitbox.corner2.y = 550;
-
-    level.walls2.push_back(wall);
-
-    wall.hitbox.corner1.x = 800;
-    wall.hitbox.corner1.y = 550;
-    wall.directionStop = 4;
-    wall.hitbox.corner2.x = 1000;
-    wall.hitbox.corner2.y = 550;
-
-    level.walls2.push_back(wall);
-
-    wall.hitbox.corner1.x = 1000;
-    wall.hitbox.corner1.y = 550;
-    wall.directionStop = 0;
-    wall.hitbox.corner2.x = 1000;
-    wall.hitbox.corner2.y = 600;
-
-    level.walls2.push_back(wall);
-
-    wall.hitbox.corner1.x = 1000;
-    wall.hitbox.corner1.y = 600;
-    wall.directionStop = 12;
-    wall.hitbox.corner2.x = 450;
-    wall.hitbox.corner2.y = 600;
-
-    level.walls2.push_back(wall);
-
-    //mud
-
-    mud.pos.x = 225;
-    mud.pos.y = 475;
-    mud.rayon = 25;
-
-    level.muds.push_back(mud);
-
-    mud.pos.x = 225;
-    mud.pos.y = 425;
-    mud.rayon = 25;
-
-    level.muds.push_back(mud);
-
-    mud.pos.x = 225;
-    mud.pos.y = 375;
-    mud.rayon = 25;
-
-    level.muds.push_back(mud);
-
-    mud.pos.x = 525;
-    mud.pos.y = 125;
-    mud.rayon = 25;
-
-    level.muds.push_back(mud);
-
-    mud.pos.x = 725;
-    mud.pos.y = 325;
-    mud.rayon = 25;
-
-    level.muds.push_back(mud);
-
-    mud.pos.x = 925;
-    mud.pos.y = 525;
-    mud.rayon = 25;
-
-    level.muds.push_back(mud);
-
-    mud.pos.x = 1025;
-    mud.pos.y = 675;
-    mud.rayon = 25;
-
-    level.muds.push_back(mud);
-
-    mud.pos.x = 975;
-    mud.pos.y = 675;
-    mud.rayon = 25;
-
-    level.muds.push_back(mud);
-
-    //flag
-    Flag flag;
-
-    flag.hitbox.corner1.x = 750;
-    flag.hitbox.corner1.y = 600;
-    flag.nb = 0;
-    flag.hitbox.corner2.x = 750;
-    flag.hitbox.corner2.y = 750;
-
-    level.flags.push_back(flag);
-
-    flag.hitbox.corner1.x = 450;
-    flag.hitbox.corner1.y = 600;
-    flag.nb = 1;
-    flag.hitbox.corner2.x = 450;
-    flag.hitbox.corner2.y = 750;
-
-    level.flags.push_back(flag);
-
-    flag.hitbox.corner1.x = 350;
-    flag.hitbox.corner1.y = 500;
-    flag.nb = 2;
-    flag.hitbox.corner2.x = 200;
-    flag.hitbox.corner2.y = 500;
-
-    level.flags.push_back(flag);
-
-    flag.hitbox.corner1.x = 500;
-    flag.hitbox.corner1.y = 50;
-    flag.nb = 3;
-    flag.hitbox.corner2.x = 500;
-    flag.hitbox.corner2.y = 200;
-
-    level.flags.push_back(flag);
-
-    flag.hitbox.corner1.x = 650;
-    flag.hitbox.corner1.y = 250;
-    flag.nb = 4;
-    flag.hitbox.corner2.x = 800;
-    flag.hitbox.corner2.y = 250;
-
-    level.flags.push_back(flag);
-
-    flag.hitbox.corner1.x = 1000;
-    flag.hitbox.corner1.y = 450;
-    flag.nb = 5;
-    flag.hitbox.corner2.x = 1000;
-    flag.hitbox.corner2.y = 550;
-
-    level.flags.push_back(flag);
+    
     nbFlag = level.flags.size();
-
-    //nitro
-    bonus.pos.x = 325;
-    bonus.pos.y = 175;
-    bonus.rayon = 10;
-    bonus.present = false;
-
-    level.spawnPosNitro.push_back(bonus);
-
-    bonus.pos.x = 625;
-    bonus.pos.y = 175;
-    bonus.rayon = 10;
-    bonus.present = false;
-
-    level.spawnPosNitro.push_back(bonus);
-
-    bonus.pos.x = 1125;
-    bonus.pos.y = 575;
-    bonus.rayon = 10;
-    bonus.present = false;
-
-    level.spawnPosNitro.push_back(bonus);
-
-    bonus.pos.x = 625;
-    bonus.pos.y = 675;
-    bonus.rayon = 10;
-    bonus.present = false;
-
-    level.spawnPosNitro.push_back(bonus);
 
     /* Enemies car */
 
     Car Enemie1;
 
     Enemie1.state = 1;
-    Enemie1.pos.x = 770; //la position initial de la voiture en x
-    Enemie1.pos.y = 680; //la position initial de la voiture en y
+    Enemie1.pos = level.spawnPos[1];
     Enemie1.speed.x = 0;
     Enemie1.speed.y = 0;
     Enemie1.lastSpeed.x = 0;
@@ -1087,8 +854,7 @@ int main() {
     Car Enemie2;
 
     Enemie2.state = 1;
-    Enemie2.pos.x = 770; //la position initial de la voiture en x
-    Enemie2.pos.y = 705; //la position initial de la voiture en y
+    Enemie2.pos = level.spawnPos[2];
     Enemie2.speed.x = 0;
     Enemie2.speed.y = 0;
     Enemie2.lastSpeed.x = 0;
@@ -1110,8 +876,7 @@ int main() {
     Car Enemie3;
 
     Enemie3.state = 1;
-    Enemie3.pos.x = 770; //la position initial de la voiture en x
-    Enemie3.pos.y = 730; //la position initial de la voiture en y
+    Enemie3.pos = level.spawnPos[3];
     Enemie3.speed.x = 0;
     Enemie3.speed.y = 0;
     Enemie3.lastSpeed.x = 0;
@@ -1135,45 +900,6 @@ int main() {
     Enemies.push_back( & Enemie2);
     Enemies.push_back( & Enemie3);
 
-    std::vector < Position > botLine;
-
-    Position pos1;
-    pos1.x = 450;
-    pos1.y = 660;
-    Position pos2;
-    pos2.x = 290;
-    pos2.y = 500;
-    Position pos3;
-    pos3.x = 280;
-    pos3.y = 250;
-    Position pos4;
-    pos4.x = 500;
-    pos4.y = 100;
-    Position pos5;
-    pos5.x = 700;
-    pos5.y = 250;
-    Position pos6;
-    pos6.x = 735;
-    pos6.y = 375;
-    Position pos7;
-    pos7.x = 845;
-    pos7.y = 495;
-    Position pos8;
-    pos8.x = 1060;
-    pos8.y = 510;
-    Position pos9;
-    pos9.x = 1060;
-    pos9.y = 650;
-
-    botLine.push_back(pos1);
-    botLine.push_back(pos2);
-    botLine.push_back(pos3);
-    botLine.push_back(pos4);
-    botLine.push_back(pos5);
-    botLine.push_back(pos6);
-    botLine.push_back(pos7);
-    botLine.push_back(pos8);
-    botLine.push_back(pos9);
 
     /*
      * La boucle de jeu principale. La condition de fin est la fermeture de la
@@ -1362,17 +1088,17 @@ int main() {
             }
 
             //Colision joueur bot 
-                                  for (int j = 0; j < Enemies.size(); j++) {
-                                                  Car * enemie2 = Enemies[j];
-                                                  if (isCollision(playerCar, enemie2 -> pos, CAR_HAUTEUR*3/2)) {
-                                                  	Speed tempSpeed = calculateProjectionOfSpeed(playerCar.lastSpeed, sf::Vector2f(enemie2 -> pos.x - playerCar.pos.x, enemie2 -> pos.y - playerCar.pos.y));
-                                                  	playerCar.speed.x -= 1.05 * (0.1*tempSpeed.x);
-                                                  	playerCar.speed.y -= 1.05 * (0.1*tempSpeed.y);
-                                                  	enemie2 -> speed.x += 1.00 * (0.1*tempSpeed.x);
-                                                  	enemie2 -> speed.y += 1.00 * (0.1*tempSpeed.y);
-                                                  }
-                                              }
-                                  
+                                 // for (int j = 0; j < Enemies.size(); j++) {
+                                 //                 Car * enemie2 = Enemies[j];
+                                 //                 if (isCollision(playerCar, enemie2 -> pos, CAR_HAUTEUR)) {
+                                 //                 	Speed tempSpeed = calculateProjectionOfSpeed(playerCar.lastSpeed, sf::Vector2f(enemie2 -> pos.x - playerCar.pos.x, enemie2 -> pos.y - playerCar.pos.y));
+                                 //                 	playerCar.speed.x -= 3.05 * (tempSpeed.x*(enemie2 -> pos.x - playerCar.pos.x)*dt);
+                                 //                 	playerCar.speed.y -= 3.05 * (tempSpeed.x*(enemie2 -> pos.y - playerCar.pos.y)*dt);
+                                 //                 	enemie2 -> speed.x += 3.00 * (tempSpeed.x*(enemie2 -> pos.x - playerCar.pos.x)*dt);
+                                 //                 	enemie2 -> speed.y += 3.00 * (tempSpeed.x*(enemie2 -> pos.y - playerCar.pos.y)*dt);
+                                 //                 }
+                                 //             }
+                                 // 
             //On calcule ensuite la nouvelle vitesse de la voiture
             playerCar.speed = calculateSpeed(playerCar, ACCELERATION * playerCar.malusBonusSpeed, ACCELERATION, up, down, playerCar.lastNitroUsedTime >= 0, dt);
 
@@ -1397,8 +1123,8 @@ int main() {
                         pointx = enemie -> posInterBot.x;
                         pointy = enemie -> posInterBot.y;
                     } else {
-                        pointx = botLine[enemie -> botPositionToTarget].x;
-                        pointy = botLine[enemie -> botPositionToTarget].y;
+                        pointx = level.botLine[enemie -> botPositionToTarget].x;
+                        pointy = level.botLine[enemie -> botPositionToTarget].y;
                     }
 
                     float pointxCentre = Math::arrondir(cos(fmod((M_PI - enemie -> direction * (M_PI / 8) +
@@ -1466,7 +1192,7 @@ int main() {
                                                     }
 
 				
-                if (isCollision( * enemie, botLine[enemie -> botPositionToTarget], CAR_LONGUEUR)) {
+                if (isCollision( * enemie, level.botLine[enemie -> botPositionToTarget], CAR_LONGUEUR)) {
                     int randomDistForBot = 0;
                     if (enemie -> botType == "master") {
                         randomDistForBot = RANDOM_DIST_FOR_BOTS_MASTERMIND;
@@ -1478,18 +1204,23 @@ int main() {
                         randomDistForBot = RANDOM_DIST_FOR_BOTS;
                     }
                     
-                    sf::Vector2f vectorBetweenPosAndNewTarget = Vector2f(botLine[fmod(enemie -> botPositionToTarget + 1, botLine.size())].x - enemie -> pos.x, botLine[fmod(enemie -> botPositionToTarget + 1, botLine.size())].y - enemie -> pos.y);
+                    sf::Vector2f vectorBetweenPosAndNewTarget = Vector2f(level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())].x - enemie -> pos.x, level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())].y - enemie -> pos.y);
 
 		
 		bool hasAlreadyATarget = false;
 		if (Math::random() < chanceToGetPowerUp){
 		for (int i = 0; i < level.spawnPosNitro.size(); i++) {
                            if (level.spawnPosNitro[i].present) {
+                        	   
+                        	   
                         	   sf::Vector2f vectorToNitro = sf::Vector2f(level.spawnPosNitro[i].pos.x - enemie -> pos.x, level.spawnPosNitro[i].pos.y - enemie -> pos.y);
                         	                           		   
                         	   
                         	   if (vectorDotProduct(vectorBetweenPosAndNewTarget, vectorToNitro) > 0){
-                        		   if (calculateNorme(vectorBetweenPosAndNewTarget.x , vectorBetweenPosAndNewTarget.y) >= calculateNorme(vectorToNitro.x , vectorToNitro.y)){
+                        		   
+                        		   sf::Vector2f pojection = calculateProjection(vectorToNitro, vectorBetweenPosAndNewTarget);
+                        		   //SI la distance sur x < 1 alors elle est plus proche de la cible et si en y elle est pas trop loing de l'axe
+                        		   if (abs(pojection.x) < 1 && abs(pojection.y) < MAX_BOT_RANGE_TO_GET_POWERUP){
                         			   enemie -> posInterBot.x = level.spawnPosNitro[i].pos.x + level.spawnPosNitro[i].rayon;
                         			   enemie -> posInterBot.y = level.spawnPosNitro[i].pos.y + level.spawnPosNitro[i].rayon;
                         			   hasAlreadyATarget = true;
@@ -1500,13 +1231,11 @@ int main() {
                     }
 		}
                     
-		if (!hasAlreadyATarget){
-			enemie -> posInterBot = randomInCircle(centerPosition(botLine[enemie -> botPositionToTarget], botLine[fmod(enemie -> botPositionToTarget + 1, botLine.size())]), randomDistForBot);
+		if (!hasAlreadyATarget && calculateNorme(vectorBetweenPosAndNewTarget.x , vectorBetweenPosAndNewTarget.y) > 60){
+			enemie -> posInterBot = randomInCircle(centerPosition(level.botLine[enemie -> botPositionToTarget], level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())]), randomDistForBot);
 			
 		}
-                    
-
-                    enemie -> botPositionToTarget = fmod(enemie -> botPositionToTarget + 1, botLine.size());
+		enemie -> botPositionToTarget = fmod(enemie -> botPositionToTarget + 1, level.botLine.size());
                 }
                 
 				
@@ -1606,27 +1335,27 @@ int main() {
                     }
                 }
                 
-                for (int k = 0; k < Enemies.size(); k++) {
-                                                                                    Car * enemie2 = Enemies[k];
-                                                                                    if (enemie2 != enemie){
-                                                                                    if (isCollision(enemie, enemie2 -> pos, CAR_HAUTEUR*3/2)) {
-                                                                                    	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> lastSpeed, sf::Vector2f(enemie2 -> pos.x - enemie -> pos.x, enemie2 -> pos.y - enemie -> pos.y));
-                                                                                    	enemie->speed.x -= 1.05 * (0.1*tempSpeed.x);
-                                                                                    	enemie->speed.y -= 1.05 * (0.1*tempSpeed.y);
-                                                                                    	enemie2 -> speed.x += 1.00 * (0.1*tempSpeed.x);
-                                                                                    	enemie2 -> speed.y += 1.00 * (0.1*tempSpeed.y);
-                                                                                    }
-                                                                                    }
-                                                                                }
-                
-                if (isCollision(playerCar, enemie -> pos, CAR_HAUTEUR*3/2)) {
-                                                                    	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> lastSpeed, sf::Vector2f(playerCar.pos.x- enemie -> pos.x , playerCar.pos.y- enemie -> pos.y ));
-                                                                    	playerCar.speed.x -= 1.00 * (0.1*tempSpeed.x);
-                                                                    	playerCar.speed.y -= 1.00 * (0.1*tempSpeed.y);
-                                                                    	enemie -> speed.x += 1.05 * (0.1*tempSpeed.x);
-                                                                    	enemie -> speed.y += 1.05 * (0.1*tempSpeed.y);
-                                                                    }
-                
+                //for (int k = 0; k < Enemies.size(); k++) {
+                //                                                                    Car * enemie2 = Enemies[k];
+                //                                                                    if (enemie2 != enemie){
+                //                                                                    if (isCollision(enemie, enemie2 -> pos, CAR_HAUTEUR)) {
+                //                                                                    	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> lastSpeed, sf::Vector2f(enemie2 -> pos.x - enemie -> pos.x, enemie2 -> pos.y - enemie -> pos.y));
+                //                                                                    	enemie->speed.x -= 10.05 * (tempSpeed.x*(enemie2 -> pos.x - enemie -> pos.x)*dt);
+                //                                                                    	enemie->speed.y -= 10.05 * (tempSpeed.x*(enemie2 -> pos.y - enemie -> pos.y)*dt);
+                //                                                                    	enemie2 -> speed.x += 10.00 * (tempSpeed.x*(enemie2 -> pos.x - enemie -> pos.x)*dt);
+                //                                                                    	enemie2 -> speed.y += 10.00 * (tempSpeed.x*(enemie2 -> pos.y - enemie -> pos.y)*dt);
+                //                                                                    }
+                //                                                                    }
+                //                                                                }
+                //
+                //if (isCollision(playerCar, enemie -> pos, CAR_HAUTEUR)) {
+                //                                                    	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> lastSpeed, sf::Vector2f(playerCar.pos.x- enemie -> pos.x , playerCar.pos.y- enemie -> pos.y ));
+                //                                                    	playerCar.speed.x -= 3.00 * (tempSpeed.x*(playerCar.pos.x- enemie -> pos.x)*dt);
+                //                                                    	playerCar.speed.y -= 3.00 * (tempSpeed.x*(playerCar.pos.y- enemie -> pos.y)*dt);
+                //                                                    	enemie -> speed.x += 3.05 * (tempSpeed.x*(playerCar.pos.x- enemie -> pos.x)*dt);
+                //                                                    	enemie -> speed.y += 3.05 * (tempSpeed.x*(playerCar.pos.y- enemie -> pos.y)*dt);
+                //                                                    }
+                //
                 //On calcule ensuite la nouvelle vitesse de la voiture
                 enemie -> speed = calculateSpeed( * enemie, (ACCELERATION * enemie -> malusBonusSpeed) * botSpeedType, ACCELERATION * botSpeedType, true, false, enemie -> lastNitroUsedTime >= 0, dt);
                 
@@ -1649,12 +1378,14 @@ int main() {
             //fin du truc pour les ennemies
             if (playerCar.laps == NB_LAPS_FIN) {
                 playerCar.score = score;
+                playerCar.points += 5 - score;
                 score++;
                 idCurrentWindow = 2;
                 for (int j = 0; j < Enemies.size(); j++) {
                     Car * enemie = Enemies[j];
                     if (enemie -> score == 0) {
                         enemie -> score = score;
+                        enemie -> points += 5 - score;
                         score++;
                     }
                 }
@@ -1664,12 +1395,14 @@ int main() {
                 Car * enemie = Enemies[j];
                 if (enemie -> laps >= NB_LAPS_FIN && enemie -> score == 0) {
                     enemie -> score = score;
+                    enemie -> points += 5 - score;
                     score++;
                 }
             }
             if (score == 4) {
                 idCurrentWindow = 2;
                 playerCar.score = score;
+                playerCar.points += 5 - score;
             }
             //cout<<score<<endl;
         } else if (idCurrentWindow == 2) {
@@ -1678,10 +1411,23 @@ int main() {
                 idCurrentWindow = 3;
                 timer = 0;
                 score = 0;
-                reset(playerCar);
+                
+                Car * tri[4];
+                tri[0] = &playerCar;
+                
+                for (int i =0; i < Enemies.size(); i++) {
+                	tri[i+1] = Enemies[i];
+                }
+                triSelectionDecroissant(tri,4);
+                
+                for (int i =0; i < 4; i++) {
+                    tri[i]->startPosition = i;
+                }
+                
+                reset(playerCar, level);
                 for (int j = 0; j < Enemies.size(); j++) {
                     Car * enemie = Enemies[j];
-                    reset(enemie);
+                    reset(enemie, level);
                 }
             }
         } else if (idCurrentWindow == 3) {
@@ -1768,9 +1514,17 @@ int main() {
                 lines2[i].position = sf::Vector2f(level.walls2[i].hitbox.corner1.x, level.walls2[i].hitbox.corner1.y);
                 lines2[i].color = sf::Color::Red;
             }
-            lines2[level.walls2.size()].position = sf::Vector2f(level.walls2[0].hitbox.corner1.x, level.walls2[0].hitbox.corner1.y);
-            lines2[level.walls2.size()].color = sf::Color::Red;
-            window.draw(lines2);
+            //lines2[level.walls2.size()].position = sf::Vector2f(level.walls2[0].hitbox.corner1.x, level.walls2[0].hitbox.corner1.y);
+            //lines2[level.walls2.size()].color = sf::Color::Red;
+            //window.draw(lines2);
+            
+            for (int i=0; i<level.botLine.size();i++){
+            	nitroShape.setRadius(2);
+            	                    nitroShape.setPosition(level.botLine[i].x, level.botLine[i].y);
+            	                    nitroShape.setOrigin(1, 1);
+            	                    nitroShape.setFillColor(sf::Color::White);
+            	                    window.draw(nitroShape);
+            }
 
             int posXaffichage = 900;
             int posYaffichage = 100;
@@ -1983,9 +1737,9 @@ int main() {
                 lines2[i].position = sf::Vector2f(level.walls2[i].hitbox.corner1.x, level.walls2[i].hitbox.corner1.y);
                 lines2[i].color = sf::Color::Red;
             }
-            lines2[level.walls2.size()].position = sf::Vector2f(level.walls2[0].hitbox.corner1.x, level.walls2[0].hitbox.corner1.y);
-            lines2[level.walls2.size()].color = sf::Color::Red;
-            window.draw(lines2);
+            //lines2[level.walls2.size()].position = sf::Vector2f(level.walls2[0].hitbox.corner1.x, level.walls2[0].hitbox.corner1.y);
+            //lines2[level.walls2.size()].color = sf::Color::Red;
+            //window.draw(lines2);
 
             int posXaffichage = 900;
             int posYaffichage = 100;
