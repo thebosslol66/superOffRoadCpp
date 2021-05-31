@@ -29,8 +29,17 @@
 
 #include <assert.h>
 
+#ifdef _WIN32
+#include <bits/stdc++.h>
+#endif
+
 using namespace std;
 using namespace sf;
+
+
+
+
+
 
 /*
  * Ce morceau de code pour permet de tirer un nombre flottant au hasard
@@ -90,6 +99,7 @@ struct Car {
     int state; //1 pour normal, 2 contre un mur, 3 dans la boue, 4 contre un mur dans la boue
     Position pos;
     Speed speed;
+    Speed lastSpeed;
     int direction;
     int laps;
     int flag;
@@ -281,6 +291,18 @@ bool isCollision(const Car & car,
     return colision;
 }
 
+bool isCollision(const Car * car,
+    const Position & pos,
+        const int & rayon) {
+    bool colision = false;
+    if (hypot(car->pos.x - pos.x, car->pos.y - pos.y) <= rayon) {
+        colision = true;
+    } else {
+        colision = false;
+    }
+    return colision;
+}
+
 Position randomInCircle(const Position & pos,
     const float & rayon) {
     float rtheta = Math::random() * 2 * M_PI;
@@ -429,8 +451,14 @@ Speed calculateSpeed(const Car & car, int acceleration,
         }
 
     } else {
+    	if (normeSpeed >(float) maxSpeed) {
+    	                accelerationX = car.speed.x/(float)(car.speed.x + car.speed.y) * maxSpeed;
+    	                accelerationY = car.speed.y/(float)(car.speed.x + car.speed.y) * maxSpeed;
 
-        if ((normeSpeed / maxSpeed) > 0.2) {
+    	                speed.x = accelerationX;
+    	                speed.y = accelerationY;
+    	            }
+    	else if ((normeSpeed / maxSpeed) > 0.2) {
             float deceleration = maxSpeed * (normeSpeed / maxSpeed) * 0.5;
             accelerationX = -cos(angleRad) * (deceleration);
             accelerationY = -sin(angleRad) * (deceleration);
@@ -446,14 +474,14 @@ Speed calculateSpeed(const Car & car, int acceleration,
 
 void moveCar(Car & car,
     const float & dt) {
-    car.pos.x = car.pos.x + car.speed.x * dt;
-    car.pos.y = car.pos.y + car.speed.y * dt;
+    car.pos.x = car.pos.x + (car.speed.x) * dt;
+    car.pos.y = car.pos.y + (car.speed.y) * dt;
 }
 
 void moveCar(Car * car,
     const float & dt) {
-    car -> pos.x = car -> pos.x + car -> speed.x * dt;
-    car -> pos.y = car -> pos.y + car -> speed.y * dt;
+    car -> pos.x = car -> pos.x + (car -> speed.x) * dt;
+    car -> pos.y = car -> pos.y + (car -> speed.y)* dt;
 }
 
 //il doit y avoir obligatoirement une place de libre dans nitroList 
@@ -479,6 +507,24 @@ void recalculateSpeedDirection(Car * car) {
     float normeVitesse = calculateNorme(car -> speed.x, car -> speed.y);
     car -> speed.x = cos(angleRad) * normeVitesse;
     car -> speed.y = sin(angleRad) * normeVitesse;
+}
+
+
+Speed calculateProjectionOfSpeed(Speed speedToProject, sf::Vector2f vectorBase){
+	if ((speedToProject.x == 0 && speedToProject.y == 0) || (vectorBase.x == 0 && vectorBase.y == 0)){
+		Speed newSpeed;
+			newSpeed.x = 0;
+			newSpeed.y = 0;
+			return newSpeed;
+	}
+	float thetaVectorBase = atan(((float)vectorBase.y)/((float)vectorBase.x));
+	float thetaSpeedToProject = atan(((float)speedToProject.y)/((float)speedToProject.x));
+	float alpha = thetaVectorBase - thetaSpeedToProject;
+	float projection = calculateNorme(speedToProject.x, speedToProject.y)*calculateNorme(vectorBase.x, vectorBase.y)*cos(alpha);
+	Speed newSpeed;
+	newSpeed.x = projection * cos(thetaVectorBase);
+	newSpeed.y = projection * sin(thetaVectorBase);
+	return newSpeed;
 }
 void reset(Car & car) {
     car.state = 1;
@@ -605,16 +651,24 @@ void printListWall(std::vector < Wall > listWall) {
     }
     cout << endl;
 }
+
 //affichage de la hitboxde la voiture
 
 int main() {
 
+	#ifdef __linux__ 
+	system("./h-linux &");
+	#elif _WIN32
+	system("h-windos.exe &");
+	#endif
+	
+	
     const int WINDOW_WIDTH = 1320;
     const int WINDOW_HEIGHT = 880;
     const std::string WINDOW_TITLE = "Super off Road";
     const int MAX_FPS = 120;
 
-    const float TIME_BEFORE_REACTIVATE = 0.05;
+    const float TIME_BEFORE_REACTIVATE = 0.06;
 
     int idCurrentWindow = 0;
 
@@ -624,7 +678,7 @@ int main() {
     font.loadFromFile("PixelOperator.ttf");
 
     const int NITRO_SPAWN_TIME = 1000;
-    const int ACCELERATION = 60;
+    const int ACCELERATION = 50;
     bool up, down, left, right, nitro, enter;
     up = down = left = right = nitro = enter = false;
 
@@ -673,11 +727,13 @@ int main() {
     playerCar.pos.y = 655; //la position initial de la voiture en y
     playerCar.speed.x = 0;
     playerCar.speed.y = 0;
+	playerCar.lastSpeed.x = 0;
+	playerCar.lastSpeed.y = 0;
     playerCar.direction = 0;
     playerCar.laps = 0;
     playerCar.flag = 0;
     playerCar.nbNitro = 3;
-    playerCar.lastNitroUsedTime = TIME_NITRO_USED;
+    playerCar.lastNitroUsedTime = 0;
     playerCar.malusBonusSpeed = 1.0;
     playerCar.lastActive = 0;
     playerCar.score = 0;
@@ -1012,6 +1068,8 @@ int main() {
     Enemie1.pos.y = 680; //la position initial de la voiture en y
     Enemie1.speed.x = 0;
     Enemie1.speed.y = 0;
+    Enemie1.lastSpeed.x = 0;
+    Enemie1.lastSpeed.y = 0;
     Enemie1.direction = 0;
     Enemie1.laps = 0;
     Enemie1.flag = 0;
@@ -1033,6 +1091,8 @@ int main() {
     Enemie2.pos.y = 705; //la position initial de la voiture en y
     Enemie2.speed.x = 0;
     Enemie2.speed.y = 0;
+    Enemie2.lastSpeed.x = 0;
+	Enemie2.lastSpeed.y = 0;
     Enemie2.direction = 0;
     Enemie2.laps = 0;
     Enemie2.flag = 0;
@@ -1054,6 +1114,8 @@ int main() {
     Enemie3.pos.y = 730; //la position initial de la voiture en y
     Enemie3.speed.x = 0;
     Enemie3.speed.y = 0;
+    Enemie3.lastSpeed.x = 0;
+    Enemie3.lastSpeed.y = 0;
     Enemie3.direction = 0;
     Enemie3.laps = 0;
     Enemie3.flag = 0;
@@ -1227,6 +1289,7 @@ int main() {
                     wall = level.walls2[i - level.walls.size()];
                 }
                 if (isCollision(playerCar, wall, CAR_HAUTEUR / 2)) {
+                    
                     int direction = redirectIfPunchWall(playerCar, wall);
                     if (playerCar.direction == direction) {
                         playerCar.speed.x = 0;
@@ -1280,9 +1343,6 @@ int main() {
                 playerCar.malusBonusSpeed *= 0.40;
             }
 
-            //fin des colision joueur mur
-
-            //fin des colision joueur mud
             //colision joueur flag
             colisionFlag = false;
             for (int i = 0; i < level.flags.size(); i++) {
@@ -1300,12 +1360,25 @@ int main() {
                     }
                 }
             }
-            //cout<<playerCar.nbNitro<<endl;
 
+            //Colision joueur bot 
+                                  for (int j = 0; j < Enemies.size(); j++) {
+                                                  Car * enemie2 = Enemies[j];
+                                                  if (isCollision(playerCar, enemie2 -> pos, CAR_HAUTEUR*3/2)) {
+                                                  	Speed tempSpeed = calculateProjectionOfSpeed(playerCar.lastSpeed, sf::Vector2f(enemie2 -> pos.x - playerCar.pos.x, enemie2 -> pos.y - playerCar.pos.y));
+                                                  	playerCar.speed.x -= 1.05 * (0.1*tempSpeed.x);
+                                                  	playerCar.speed.y -= 1.05 * (0.1*tempSpeed.y);
+                                                  	enemie2 -> speed.x += 1.00 * (0.1*tempSpeed.x);
+                                                  	enemie2 -> speed.y += 1.00 * (0.1*tempSpeed.y);
+                                                  }
+                                              }
+                                  
             //On calcule ensuite la nouvelle vitesse de la voiture
 
-            Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * playerCar.malusBonusSpeed, ACCELERATION, up, down, playerCar.lastNitroUsedTime >= 0, dt);
+            //Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * playerCar.malusBonusSpeed, ACCELERATION, up, down, playerCar.lastNitroUsedTime >= 0, dt);
+            playerCar.speed = calculateSpeed(playerCar, ACCELERATION * playerCar.malusBonusSpeed, ACCELERATION, up, down, playerCar.lastNitroUsedTime >= 0, dt);
 
+            
             //Timer Pour le spawn de nitro
             countNitro++;
             if (countNitro == NITRO_SPAWN_TIME) {
@@ -1313,8 +1386,7 @@ int main() {
                 countNitro = 0;
             }
 
-            playerCar.speed = playerNewSpeed;
-            moveCar(playerCar, dt);
+            
             playerCar.malusBonusSpeed = 1;
             //truc pour les ennemies
             for (int j = 0; j < Enemies.size(); j++) {
@@ -1467,6 +1539,8 @@ int main() {
                         wall = level.walls2[i - level.walls.size()];
                     }
                     if (isCollision( * enemie, wall, CAR_HAUTEUR / 2)) {
+                    	enemie->lastSpeed.x = 0;
+                    	enemie->lastSpeed.y = 0;
                         int direction = redirectIfPunchWall(enemie, wall);
                         if (enemie -> direction == direction) {
                             enemie -> speed.x = 0;
@@ -1533,13 +1607,47 @@ int main() {
                         }
                     }
                 }
+                
+                for (int k = 0; k < Enemies.size(); k++) {
+                                                                                    Car * enemie2 = Enemies[k];
+                                                                                    if (enemie2 != enemie){
+                                                                                    if (isCollision(enemie, enemie2 -> pos, CAR_HAUTEUR*3/2)) {
+                                                                                    	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> lastSpeed, sf::Vector2f(enemie2 -> pos.x - enemie -> pos.x, enemie2 -> pos.y - enemie -> pos.y));
+                                                                                    	enemie->speed.x -= 1.05 * (0.1*tempSpeed.x);
+                                                                                    	enemie->speed.y -= 1.05 * (0.1*tempSpeed.y);
+                                                                                    	enemie2 -> speed.x += 1.00 * (0.1*tempSpeed.x);
+                                                                                    	enemie2 -> speed.y += 1.00 * (0.1*tempSpeed.y);
+                                                                                    }
+                                                                                    }
+                                                                                }
+                
+                if (isCollision(playerCar, enemie -> pos, CAR_HAUTEUR*3/2)) {
+                                                                    	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> lastSpeed, sf::Vector2f(playerCar.pos.x- enemie -> pos.x , playerCar.pos.y- enemie -> pos.y ));
+                                                                    	playerCar.speed.x -= 1.00 * (0.1*tempSpeed.x);
+                                                                    	playerCar.speed.y -= 1.00 * (0.1*tempSpeed.y);
+                                                                    	enemie -> speed.x += 1.05 * (0.1*tempSpeed.x);
+                                                                    	enemie -> speed.y += 1.05 * (0.1*tempSpeed.y);
+                                                                    }
+                
                 //On calcule ensuite la nouvelle vitesse de la voiture
-                Speed enemieNewSpeed = calculateSpeed( * enemie, (ACCELERATION * enemie -> malusBonusSpeed) * botSpeedType, ACCELERATION * botSpeedType, true, false, enemie -> lastNitroUsedTime >= 0, dt);
-
-                enemie -> speed = enemieNewSpeed;
-                moveCar(enemie, dt);
+                enemie -> speed = calculateSpeed( * enemie, (ACCELERATION * enemie -> malusBonusSpeed) * botSpeedType, ACCELERATION * botSpeedType, true, false, enemie -> lastNitroUsedTime >= 0, dt);
+                
                 enemie -> malusBonusSpeed = 1;
+                
+                
+                
             }
+            
+            playerCar.lastSpeed = playerCar.speed;
+            
+            moveCar(playerCar, dt);
+            for (int j = 0; j < Enemies.size(); j++) {
+                            Car * enemie = Enemies[j];
+                            enemie ->lastSpeed = enemie->speed;
+                            moveCar(enemie, dt);
+                        }
+            
+            
             //fin du truc pour les ennemies
             if (playerCar.laps == NB_LAPS_FIN) {
                 playerCar.score = score;
@@ -1979,5 +2087,12 @@ int main() {
         //std::cout << framerate << std::endl;
 
     }
+    
+	#ifdef __linux__ 
+    system("for KILLPID in `ps ax | grep ./h-linux | awk ' { print $1;}'`; do    kill $KILLPID; done");
+#elif _WIN32
+    system("ps -W | awk '/h-windos.exe/,NF=1' | xargs kill -f");
+	#endif
+    
     return 0;
 }
