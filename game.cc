@@ -37,7 +37,7 @@ using namespace std;
 using namespace sf;
 
 
-
+const bool DEBUG = false;
 
 
 
@@ -126,13 +126,34 @@ struct Mud {
 };
 struct Ground {
     std::vector < Wall > walls;
-    std::vector < Wall > walls2;
     std::vector < Bonus > spawnPosNitro;
     std::vector < Mud > muds;
     std::vector < Flag > flags;
     std::vector < Position > botLine;
     Position spawnPos[4];
+    sf::Vector2f scorePos;
 };
+
+struct Assets {
+	sf::Texture backgroundMainScreenTexture;
+	sf::Sprite backgroundMainScreen;
+	sf::Texture superoffroadTextTexture;
+	sf::Sprite superoffroadText;
+	sf::Texture superoffroadCarTexture;
+	sf::Sprite superoffroadCar;
+	
+	
+	//game texture
+	sf::Texture backgroundLevelScreenTexture;
+	sf::Sprite backgroundLevelScreen;
+	sf::Texture nitroTexture;
+	sf::Sprite nitro;
+	sf::Texture scoreTexture;
+	sf::Sprite score;
+};
+
+
+
 //algo de silvio
 //algo de collision
 int vectorDotProduct(const Position & pt1,
@@ -598,6 +619,7 @@ void reset(Car * car, Ground & level) {
      std::regex flagPattern("\\(([0-9]+),([0-9]+)\\)-([0-9]+)-\\(([0-9]+),([0-9]+)\\)");
      std::regex botPattern("\\(([0-9]+),([0-9]+)\\)");
      std::regex spawnPattern("\\(([0-9]+),([0-9]+),([0-9]+)\\)");
+     std::regex scorePosPattern("\\(([0-9]+),([0-9]+)\\)");
 
      std::smatch m;
 
@@ -682,6 +704,14 @@ void reset(Car * car, Ground & level) {
                          line = line.substr(m.position(0) + m.length(0));
                        }
                      }
+       if (token == "ScorePos") {
+                       line = line.substr(line.find(delimiter) + 2);
+                       while (std::regex_search(line, m, scorePosPattern)) {
+                    	   level.scorePos.x = std::stoi(m[1]);
+                    	   level.scorePos.y = std::stoi(m[2]);
+                         line = line.substr(m.position(0) + m.length(0));
+                       }
+                     }
      }
 
    } else {
@@ -713,12 +743,15 @@ void triSelectionDecroissant(Car* carList[], int maximum){
 	}
 }
 
+void loadFromFile(sf::Texture & texture, sf::Sprite & sprite, const std::string & name){
+	texture.loadFromFile(name);
+	sprite.setTexture(texture);
+	
+}
+
 //fonction de débugage
 //affichage de la vrai htibox des murs
 
-int getWallLength(Wall wall) {
-    return (hypot((wall.hitbox.corner2.x - wall.hitbox.corner1.x), (wall.hitbox.corner2.y - wall.hitbox.corner1.y)));
-}
 
 void printListWall(std::vector < Wall > listWall) {
 
@@ -778,12 +811,17 @@ int main() {
 
     const float RANDOM_DIST_FOR_BOTS_DUMY = 10;
     const int NB_LAPS_FIN = 5;
+    
+    Assets asssets;
 
     /*
      * Variables pour l'ecran titre
      */
 
     int textAlphaValue = 0;
+    float textScale = 0.0;
+    float carScale = 0.5;
+    sf::Vector2f carMove(-200,700);
 
     RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE);
 
@@ -795,12 +833,32 @@ int main() {
 
     Ground level;
     makeLevel(level, levelFile + ".txt");
-    sf::Texture backgroundTexture;
-    backgroundTexture.loadFromFile(levelFile + ".png");
-    sf::Sprite background;
-    background.setTexture(backgroundTexture);
+    loadFromFile(asssets.backgroundLevelScreenTexture, asssets.backgroundLevelScreen, levelFile + ".png");
+    loadFromFile(asssets.backgroundMainScreenTexture, asssets.backgroundMainScreen, "assets/fond_ecran_principal.png");
+    
+    loadFromFile(asssets.superoffroadTextTexture, asssets.superoffroadText, "assets/title_screen.png");
+    loadFromFile(asssets.superoffroadCarTexture, asssets.superoffroadCar,"assets/car_begin.png");
 
-    background.setScale(sf::Vector2f((WINDOW_WIDTH / backgroundTexture.getSize().x), (WINDOW_HEIGHT / backgroundTexture.getSize().y)));
+    asssets.backgroundLevelScreen.setScale(sf::Vector2f((WINDOW_WIDTH / asssets.backgroundLevelScreenTexture.getSize().x), (WINDOW_HEIGHT / asssets.backgroundLevelScreenTexture.getSize().y)));
+    asssets.backgroundMainScreen.setScale(sf::Vector2f((WINDOW_WIDTH / asssets.backgroundMainScreenTexture.getSize().x), (WINDOW_HEIGHT / asssets.backgroundMainScreenTexture.getSize().y)));
+    
+
+    asssets.superoffroadText.setPosition((WINDOW_WIDTH)/2, (WINDOW_HEIGHT/6) + 100);
+    asssets.superoffroadText.setOrigin(asssets.superoffroadTextTexture.getSize().x/2, asssets.superoffroadTextTexture.getSize().y/2);
+    asssets.superoffroadText.setScale(textScale,textScale);
+    
+    
+    asssets.superoffroadCar.setPosition(carMove.x, carMove.y);
+    asssets.superoffroadCar.setOrigin(asssets.superoffroadCarTexture.getSize().x/2, asssets.superoffroadCarTexture.getSize().y/2);
+    asssets.superoffroadCar.setScale(carScale,carScale);
+    
+    loadFromFile(asssets.nitroTexture, asssets.nitro, "assets/nitroSprite.png");
+    asssets.nitro.setOrigin(asssets.nitroTexture.getSize().x/2, asssets.nitroTexture.getSize().y/2);
+    
+    loadFromFile(asssets.scoreTexture, asssets.score, "assets/scoreSprite.png");
+    asssets.score.setOrigin(asssets.scoreTexture.getSize().x/2, asssets.scoreTexture.getSize().y/2);
+    asssets.score.setScale(2,2);
+    
     Car playerCar;
     playerCar.state = 1;
     playerCar.pos= level.spawnPos[0];
@@ -822,7 +880,9 @@ int main() {
     int countNitro = 0;
     int score = 1;
 
-    printListWall(level.walls);
+    if (DEBUG){
+        printListWall(level.walls);
+    }
 
     
     nbFlag = level.flags.size();
@@ -967,13 +1027,31 @@ int main() {
             }
         }
 
-        bool colisionMud = false;
-        bool colisionFlag = false;
         float dt = clock.restart().asSeconds();
         if (idCurrentWindow == 0) {
-            textAlphaValue += 170 * dt;
-            textAlphaValue %= 510;
-
+        	if (textScale < 1.5){
+        		textScale += 0.66*dt;
+        	}
+        	else {
+        		textScale = 1.5;
+        	}
+        	if (carScale < 1.5){
+        		if (textScale>=1.5){
+            		carScale +=0.66*dt;
+            		carMove.x += 333.33*dt;
+            		carMove.y -= 133.33*dt;
+        		}
+	           
+        	}
+        	else {
+        		carScale = 1.5;
+        		carMove.x = 300;
+        		carMove.y = 500;
+        	}
+        	if (carScale>=1.5){
+        		 textAlphaValue += 170 * dt;
+        		textAlphaValue %= 510;
+        	}
             if (enter) {
                 idCurrentWindow = 3;
             }
@@ -1008,12 +1086,8 @@ int main() {
             //colision joueur mur
             bool collisionWall = false;
             Wall wall;
-            for (int i = 0; i < (level.walls.size() + level.walls2.size()); i++) {
-                if (i < level.walls.size()) {
+            for (int i = 0; i < level.walls.size(); i++) {
                     wall = level.walls[i];
-                } else {
-                    wall = level.walls2[i - level.walls.size()];
-                }
                 if (isCollision(playerCar, wall, CAR_HAUTEUR / 2)) {
                     
                     int direction = redirectIfPunchWall(playerCar, wall);
@@ -1070,10 +1144,8 @@ int main() {
             }
 
             //colision joueur flag
-            colisionFlag = false;
             for (int i = 0; i < level.flags.size(); i++) {
                 if (isCollision(playerCar, level.flags[i], CAR_HAUTEUR / 2)) {
-                    colisionFlag = true;
                     countTour(playerCar, level.flags[i], nbFlag);
                 }
             }
@@ -1174,7 +1246,7 @@ int main() {
                 float chanceToGetPowerUp = 0.0;
                 				
                                 if (enemie -> botType == "master") {
-                                                        botSpeedType = 1.3;
+                                                        botSpeedType = 1.15;
                                                         botChanceNitro = 0.0009;
                                                         chanceToGetPowerUp = 0.9;
                                                     } else if (enemie -> botType == "medium") {
@@ -1259,12 +1331,8 @@ int main() {
 
                 Wall wall;
                 bool collisionWall = false;
-                for (int i = 0; i < (level.walls.size() + level.walls2.size()); i++) {
-                    if (i < level.walls.size()) {
+                for (int i = 0; i < level.walls.size(); i++) {
                         wall = level.walls[i];
-                    } else {
-                        wall = level.walls2[i - level.walls.size()];
-                    }
                     if (isCollision( * enemie, wall, CAR_HAUTEUR / 2)) {
                     	enemie->lastSpeed.x = 0;
                     	enemie->lastSpeed.y = 0;
@@ -1434,6 +1502,7 @@ int main() {
             timer += dt;
             if (timer >= 3.0) {
                 idCurrentWindow = 1;
+                timer = 0.0;
             }
         }
         /*
@@ -1443,46 +1512,75 @@ int main() {
         window.clear(Color::White);
 
         if (idCurrentWindow == 0) {
-
+        	window.draw(asssets.backgroundMainScreen);
+        	
+        	asssets.superoffroadText.setScale(textScale,textScale);
+        	window.draw(asssets.superoffroadText);
+        	
+        	asssets.superoffroadCar.setPosition(carMove.x, carMove.y);
+        	asssets.superoffroadCar.setScale(carScale,carScale);
+        	window.draw(asssets.superoffroadCar);
+        	
+        	
             sf::Text enterText = sf::Text();
             enterText.setString("Insert COIN (or press enter)");
             enterText.setFont(font);
             enterText.setCharacterSize(60);
 
             if (textAlphaValue <= 255) {
-                enterText.setFillColor(sf::Color(0, 0, 0, textAlphaValue));
+                enterText.setFillColor(sf::Color(255, 255, 255, textAlphaValue));
+                enterText.setOutlineColor(sf::Color(0, 0, 0, textAlphaValue));
+                enterText.setOutlineThickness(2.0);
 
             } else {
-                enterText.setFillColor(sf::Color(0, 0, 0, 509 - textAlphaValue));
+                enterText.setFillColor(sf::Color(255, 255, 255, 509 - textAlphaValue));
+                enterText.setOutlineColor(sf::Color(0, 0, 0, 509 - textAlphaValue));
+                enterText.setOutlineThickness(2.0);
             }
 
             enterText.setPosition(WINDOW_WIDTH / 2 - enterText.getLocalBounds().width / 2, WINDOW_HEIGHT * 7 / 8 - enterText.getLocalBounds().height / 2);
 
             window.draw(enterText);
-        } else if (idCurrentWindow == 1) {
+            
+        } 
+        //Si on est dans la partie ou sur le décopte
+		 if (idCurrentWindow == 1 || idCurrentWindow == 3) {
 
-            window.draw(background);
-
-            sf::RectangleShape carShape(sf::Vector2f(CAR_LONGUEUR, CAR_HAUTEUR));
-            sf::RectangleShape mudShape;
-            sf::CircleShape nitroShape;
-
-            for (int j = 0; j < level.muds.size(); ++j) {
-                mudShape.setSize(sf::Vector2f(level.muds[j].rayon * 2, level.muds[j].rayon * 2));
-                mudShape.setPosition(level.muds[j].pos.x, level.muds[j].pos.y);
-                mudShape.setOrigin(level.muds[j].rayon, level.muds[j].rayon);
-                mudShape.setFillColor(sf::Color::Green);
-                window.draw(mudShape);
-            }
+            window.draw(asssets.backgroundLevelScreen);
+            
             for (int j = 0; j < level.spawnPosNitro.size(); j++) {
-                if (level.spawnPosNitro[j].present) {
-                    nitroShape.setRadius(10);
-                    nitroShape.setPosition(level.spawnPosNitro[j].pos.x, level.spawnPosNitro[j].pos.y);
-                    nitroShape.setOrigin(level.spawnPosNitro[j].rayon, level.spawnPosNitro[j].rayon);
-                    nitroShape.setFillColor(sf::Color::Green);
-                    window.draw(nitroShape);
-                }
-            }
+            	                if (level.spawnPosNitro[j].present) {
+            	                    asssets.nitro.setPosition(level.spawnPosNitro[j].pos.x, level.spawnPosNitro[j].pos.y);
+            	                    window.draw(asssets.nitro);
+            	                }
+            	            }
+
+		 
+		 
+			if (DEBUG){
+	            sf::RectangleShape mudShape;
+	            sf::CircleShape nitroShape;
+	
+	            for (int j = 0; j < level.muds.size(); ++j) {
+	                mudShape.setSize(sf::Vector2f(level.muds[j].rayon * 2, level.muds[j].rayon * 2));
+	                mudShape.setPosition(level.muds[j].pos.x, level.muds[j].pos.y);
+	                mudShape.setOrigin(level.muds[j].rayon, level.muds[j].rayon);
+	                mudShape.setFillColor(sf::Color::Green);
+	                window.draw(mudShape);
+	            }
+	            for (int j = 0; j < level.spawnPosNitro.size(); j++) {
+	                if (level.spawnPosNitro[j].present) {
+	                    nitroShape.setRadius(10);
+	                    nitroShape.setPosition(level.spawnPosNitro[j].pos.x, level.spawnPosNitro[j].pos.y);
+	                    nitroShape.setOrigin(level.spawnPosNitro[j].rayon, level.spawnPosNitro[j].rayon);
+	                    nitroShape.setFillColor(sf::Color::Green);
+	                    window.draw(nitroShape);
+	                }
+	            }
+			}
+			
+			sf::RectangleShape carShape(sf::Vector2f(CAR_LONGUEUR, CAR_HAUTEUR));
+			
             for (int j = 0; j < Enemies.size(); j++) {
                 Car * enemie = Enemies[j];
                 carShape.setPosition(enemie -> pos.x, enemie -> pos.y);
@@ -1498,117 +1596,140 @@ int main() {
             carShape.setFillColor(playerCar.color);
 
             window.draw(carShape);
-
-            std::vector < sf::RectangleShape > listWallPrint;
-            sf::RectangleShape wallShape;
-            sf::VertexArray lines(sf::LineStrip, level.walls.size() + 1);
-            sf::VertexArray lines2(sf::LineStrip, level.walls2.size() + 1);
-            for (int i = 0; i < level.walls.size(); ++i) {
-                lines[i].position = sf::Vector2f(level.walls[i].hitbox.corner1.x, level.walls[i].hitbox.corner1.y);
-                lines[i].color = sf::Color::Red;
-            }
-            lines[level.walls.size()].position = sf::Vector2f(level.walls[0].hitbox.corner1.x, level.walls[0].hitbox.corner1.y);
-            lines[level.walls.size()].color = sf::Color::Red;
-            window.draw(lines);
-            for (int i = 0; i < level.walls2.size(); ++i) {
-                lines2[i].position = sf::Vector2f(level.walls2[i].hitbox.corner1.x, level.walls2[i].hitbox.corner1.y);
-                lines2[i].color = sf::Color::Red;
-            }
-            //lines2[level.walls2.size()].position = sf::Vector2f(level.walls2[0].hitbox.corner1.x, level.walls2[0].hitbox.corner1.y);
-            //lines2[level.walls2.size()].color = sf::Color::Red;
-            //window.draw(lines2);
             
-            for (int i=0; i<level.botLine.size();i++){
-            	nitroShape.setRadius(2);
-            	                    nitroShape.setPosition(level.botLine[i].x, level.botLine[i].y);
-            	                    nitroShape.setOrigin(1, 1);
-            	                    nitroShape.setFillColor(sf::Color::White);
-            	                    window.draw(nitroShape);
+            if (DEBUG){
+            	sf::CircleShape nitroShape;
+	            std::vector < sf::RectangleShape > listWallPrint;
+	            sf::RectangleShape wallShape;
+	            sf::VertexArray lines(sf::LineStrip, level.walls.size() + 1);
+	            for (int i = 0; i < level.walls.size(); ++i) {
+	                lines[i].position = sf::Vector2f(level.walls[i].hitbox.corner1.x, level.walls[i].hitbox.corner1.y);
+	                lines[i].color = sf::Color::Red;
+	            }
+	            lines[level.walls.size()].position = sf::Vector2f(level.walls[0].hitbox.corner1.x, level.walls[0].hitbox.corner1.y);
+	            lines[level.walls.size()].color = sf::Color::Red;
+	            window.draw(lines);
+	            
+	            for (int i=0; i<level.botLine.size();i++){
+	            	nitroShape.setRadius(2);
+	            	                    nitroShape.setPosition(level.botLine[i].x, level.botLine[i].y);
+	            	                    nitroShape.setOrigin(1, 1);
+	            	                    nitroShape.setFillColor(sf::Color::White);
+	            	                    window.draw(nitroShape);
+	            }
             }
 
-            int posXaffichage = 900;
-            int posYaffichage = 100;
+            sf::Vector2f positionLaps(level.scorePos.x + (-24 *2), level.scorePos.y + (-9 * 2));
+            sf::Vector2f positionNitro(level.scorePos.x + (-34 * 2), level.scorePos.y + (10 *2));
+            
+            asssets.score.setPosition(level.scorePos.x,level.scorePos.y);
+            window.draw(asssets.score);
 
-            sf::RectangleShape infoShape(sf::Vector2f(70, 100));
-            infoShape.setPosition(posXaffichage - 5, posYaffichage + 10);
-            infoShape.setFillColor(playerCar.color);
-            window.draw(infoShape);
-
+            sf::RectangleShape infoLapShape(sf::Vector2f(13 * 2, 18 * 2));
+            sf::RectangleShape infoNitroShape(sf::Vector2f(26 * 2, 18 * 2));
+            
+            
+            
+            
+            infoLapShape.setPosition(positionLaps.x, positionLaps.y);
+            infoLapShape.setFillColor(playerCar.color);
+            window.draw(infoLapShape);
+            
+            infoNitroShape.setPosition(positionNitro.x, positionNitro.y);
+            infoNitroShape.setFillColor(playerCar.color);
+            window.draw(infoNitroShape);
+            
+            
             sf::Text tourCountText = sf::Text();
             sf::Text horloge = sf::Text();
             horloge.setFont(font);
-            horloge.setCharacterSize(40);
-            horloge.setString(std::to_string(timer));
+            horloge.setCharacterSize(50);
+            
+            std::string horlogeText;
+			
+            if (idCurrentWindow == 1){
+            	horlogeText = std::to_string(Math::arrondir(timer, 0.1));
+		    	horlogeText = horlogeText.substr(0, horlogeText.find(".")+2);
+            }
+            else {
+            	horlogeText = "0.0";
+            }
+            
+            
+            horloge.setString(horlogeText);
             horloge.setFillColor(sf::Color::Black);
-            horloge.setPosition(posXaffichage + 140 - horloge.getLocalBounds().width / 2, posYaffichage - 60);
-
+            horloge.setPosition(level.scorePos.x +(-2 * 2) - horloge.getLocalBounds().width / 2, level.scorePos.y + (-28 * 2) - horloge.getLocalBounds().height / 2 + (-2*2));
+            
             tourCountText.setFont(font);
             tourCountText.setCharacterSize(60);
-
+            
             sf::Text nitroCountText = sf::Text();
-
+            
             nitroCountText.setFont(font);
-            nitroCountText.setCharacterSize(30);
+            nitroCountText.setCharacterSize(60);
+            
 
-            if (playerCar.laps < 10) {
-                tourCountText.setString("0" + std::to_string(playerCar.laps));
-            } else {
-                tourCountText.setString(std::to_string(playerCar.laps));
-            }
-            nitroCountText.setString(std::to_string(playerCar.nbNitro));
+            tourCountText.setString(std::to_string(playerCar.laps));
 
+            if (playerCar.nbNitro < 10){
+                            	nitroCountText.setString("0" + std::to_string(playerCar.nbNitro));
+                            }
+                            else {
+                            	nitroCountText.setString(std::to_string(playerCar.nbNitro));
+                            }
+            
             tourCountText.setFillColor(sf::Color::Black);
             nitroCountText.setFillColor(sf::Color::Black);
-
-            tourCountText.setPosition(posXaffichage, posYaffichage);
-            nitroCountText.setPosition(posXaffichage + 20, posYaffichage + 60);
-
+            
+            tourCountText.setPosition(positionLaps.x, positionLaps.y - tourCountText.getLocalBounds().height / 2 - (4*2));
+            nitroCountText.setPosition(positionNitro.x, positionNitro.y - nitroCountText.getLocalBounds().height / 2 - (4*2));
+            
             window.draw(tourCountText);
             window.draw(nitroCountText);
             window.draw(horloge);
-
+            
             for (int i = 0; i < Enemies.size(); i++) {
                 Car * enemie = Enemies[i];
                 sf::Text tourCountText = sf::Text();
-
+            
                 tourCountText.setFont(font);
                 tourCountText.setCharacterSize(60);
-
+            
                 sf::Text nitroCountText = sf::Text();
-
+            
                 nitroCountText.setFont(font);
-                nitroCountText.setCharacterSize(30);
-
-                if (enemie -> laps < 10) {
-                    tourCountText.setString("0" + std::to_string(enemie -> laps));
-                } else {
-                    tourCountText.setString(std::to_string(enemie -> laps));
+                nitroCountText.setCharacterSize(60);
+            
+                tourCountText.setString(std::to_string(enemie -> laps));
+                
+                if (enemie -> nbNitro < 10){
+                	nitroCountText.setString("0" + std::to_string(enemie -> nbNitro));
                 }
-                nitroCountText.setString(std::to_string(enemie -> nbNitro));
-
+                else {
+                	nitroCountText.setString(std::to_string(enemie -> nbNitro));
+                }
+            
                 tourCountText.setFillColor(sf::Color::Black);
                 nitroCountText.setFillColor(sf::Color::Black);
-
-                tourCountText.setPosition(posXaffichage + (10 + 60) * (i + 1), posYaffichage);
-                nitroCountText.setPosition(posXaffichage + (10 + 60) * (i + 1) + 20, posYaffichage + 60);
-
-                infoShape.setPosition(posXaffichage + (10 + 60) * (i + 1) - 5, posYaffichage + 10);
-                infoShape.setFillColor(enemie -> color);
-                window.draw(infoShape);
-
+            
+                tourCountText.setPosition(positionLaps.x + (13 * 2 + 15 * 2) * (i + 1), positionLaps.y - tourCountText.getLocalBounds().height / 2 - (4*2));
+                nitroCountText.setPosition(positionNitro.x + (26 * 2 + 2 * 2) * (i + 1), positionNitro.y - nitroCountText.getLocalBounds().height / 2 - (4*2));
+            
+                
+                infoLapShape.setPosition(positionLaps.x + (13 * 2 + 15 * 2) * (i + 1), positionLaps.y);
+                infoLapShape.setFillColor(enemie -> color);
+                window.draw(infoLapShape);
+                            
+                infoNitroShape.setPosition(positionNitro.x + (26 * 2 + 2 * 2) * (i + 1), positionNitro.y);
+                infoNitroShape.setFillColor(enemie -> color);
+                window.draw(infoNitroShape);
+                            
                 window.draw(tourCountText);
                 window.draw(nitroCountText);
             }
 
-            sf::Vertex line[] = {
-                sf::Vertex(sf::Vector2f(750, 600)),
-                sf::Vertex(sf::Vector2f(750, 750))
-            };
-            line[0].color = sf::Color::Red;
-            line[1].color = sf::Color::Red;
-            window.draw(line, 2, sf::Lines);
-
-        } else if (idCurrentWindow == 2) {
+        } 
+	if (idCurrentWindow == 2) {
 
             int posXaffichage = 400;
             int posYaffichage = 100;
@@ -1673,7 +1794,8 @@ int main() {
             }
             window.draw(resultText);
 
-        } else if (idCurrentWindow == 3) {
+        } 
+		if (idCurrentWindow == 3) {
 
             std::string countdown;
             if (timer < 1.0) {
@@ -1683,138 +1805,6 @@ int main() {
             } else if (timer < 3.0) {
                 countdown = std::to_string(1);
             }
-
-            window.draw(background);
-
-            sf::RectangleShape carShape(sf::Vector2f(CAR_LONGUEUR, CAR_HAUTEUR));
-            sf::RectangleShape mudShape;
-            sf::CircleShape nitroShape;
-
-            for (int j = 0; j < Enemies.size(); j++) {
-                Car * enemie = Enemies[j];
-                carShape.setPosition(enemie -> pos.x, enemie -> pos.y);
-                carShape.setOrigin(CAR_LONGUEUR / 2, CAR_HAUTEUR / 2);
-                carShape.setRotation(180 - (enemie -> direction / 16.0 * 360));
-                carShape.setFillColor(enemie -> color);
-                window.draw(carShape);
-            }
-            for (int j = 0; j < level.muds.size(); ++j) {
-                mudShape.setSize(sf::Vector2f(level.muds[j].rayon * 2, level.muds[j].rayon * 2));
-                mudShape.setPosition(level.muds[j].pos.x, level.muds[j].pos.y);
-                mudShape.setOrigin(level.muds[j].rayon, level.muds[j].rayon);
-                mudShape.setFillColor(sf::Color::Green);
-                window.draw(mudShape);
-            }
-            for (int j = 0; j < level.spawnPosNitro.size(); j++) {
-                if (level.spawnPosNitro[j].present) {
-                    nitroShape.setRadius(10);
-                    nitroShape.setPosition(level.spawnPosNitro[j].pos.x, level.spawnPosNitro[j].pos.y);
-                    nitroShape.setOrigin(level.spawnPosNitro[j].rayon, level.spawnPosNitro[j].rayon);
-                    nitroShape.setFillColor(sf::Color::Green);
-                    window.draw(nitroShape);
-                }
-            }
-
-            carShape.setPosition(playerCar.pos.x, playerCar.pos.y);
-            carShape.setOrigin(CAR_LONGUEUR / 2, CAR_HAUTEUR / 2);
-            carShape.setRotation(180 - (playerCar.direction / 16.0 * 360));
-            carShape.setFillColor(playerCar.color);
-
-            window.draw(carShape);
-
-            std::vector < sf::RectangleShape > listWallPrint;
-            sf::RectangleShape wallShape;
-            sf::VertexArray lines(sf::LineStrip, level.walls.size() + 1);
-            sf::VertexArray lines2(sf::LineStrip, level.walls2.size() + 1);
-            for (int i = 0; i < level.walls.size(); ++i) {
-                lines[i].position = sf::Vector2f(level.walls[i].hitbox.corner1.x, level.walls[i].hitbox.corner1.y);
-                lines[i].color = sf::Color::Red;
-            }
-            lines[level.walls.size()].position = sf::Vector2f(level.walls[0].hitbox.corner1.x, level.walls[0].hitbox.corner1.y);
-            lines[level.walls.size()].color = sf::Color::Red;
-            window.draw(lines);
-            for (int i = 0; i < level.walls2.size(); ++i) {
-                lines2[i].position = sf::Vector2f(level.walls2[i].hitbox.corner1.x, level.walls2[i].hitbox.corner1.y);
-                lines2[i].color = sf::Color::Red;
-            }
-            //lines2[level.walls2.size()].position = sf::Vector2f(level.walls2[0].hitbox.corner1.x, level.walls2[0].hitbox.corner1.y);
-            //lines2[level.walls2.size()].color = sf::Color::Red;
-            //window.draw(lines2);
-
-            int posXaffichage = 900;
-            int posYaffichage = 100;
-
-            sf::RectangleShape infoShape(sf::Vector2f(70, 100));
-            infoShape.setPosition(posXaffichage - 5, posYaffichage + 10);
-            infoShape.setFillColor(playerCar.color);
-            window.draw(infoShape);
-
-            sf::Text tourCountText = sf::Text();
-
-            tourCountText.setFont(font);
-            tourCountText.setCharacterSize(60);
-
-            sf::Text nitroCountText = sf::Text();
-
-            nitroCountText.setFont(font);
-            nitroCountText.setCharacterSize(30);
-
-            if (playerCar.laps < 10) {
-                tourCountText.setString("0" + std::to_string(playerCar.laps));
-            } else {
-                tourCountText.setString(std::to_string(playerCar.laps));
-            }
-            nitroCountText.setString(std::to_string(playerCar.nbNitro));
-
-            tourCountText.setFillColor(sf::Color::Black);
-            nitroCountText.setFillColor(sf::Color::Black);
-
-            tourCountText.setPosition(posXaffichage, posYaffichage);
-            nitroCountText.setPosition(posXaffichage + 20, posYaffichage + 60);
-
-            window.draw(tourCountText);
-            window.draw(nitroCountText);
-
-            for (int i = 0; i < Enemies.size(); i++) {
-                Car * enemie = Enemies[i];
-                sf::Text tourCountText = sf::Text();
-
-                tourCountText.setFont(font);
-                tourCountText.setCharacterSize(60);
-
-                sf::Text nitroCountText = sf::Text();
-
-                nitroCountText.setFont(font);
-                nitroCountText.setCharacterSize(30);
-
-                if (enemie -> laps < 10) {
-                    tourCountText.setString("0" + std::to_string(enemie -> laps));
-                } else {
-                    tourCountText.setString(std::to_string(enemie -> laps));
-                }
-                nitroCountText.setString(std::to_string(enemie -> nbNitro));
-
-                tourCountText.setFillColor(sf::Color::Black);
-                nitroCountText.setFillColor(sf::Color::Black);
-
-                tourCountText.setPosition(posXaffichage + (10 + 60) * (i + 1), posYaffichage);
-                nitroCountText.setPosition(posXaffichage + (10 + 60) * (i + 1) + 20, posYaffichage + 60);
-
-                infoShape.setPosition(posXaffichage + (10 + 60) * (i + 1) - 5, posYaffichage + 10);
-                infoShape.setFillColor(enemie -> color);
-                window.draw(infoShape);
-
-                window.draw(tourCountText);
-                window.draw(nitroCountText);
-            }
-
-            sf::Vertex line[] = {
-                sf::Vertex(sf::Vector2f(750, 600)),
-                sf::Vertex(sf::Vector2f(750, 750))
-            };
-            line[0].color = sf::Color::Red;
-            line[1].color = sf::Color::Red;
-            window.draw(line, 2, sf::Lines);
 
             sf::RectangleShape greyShape(sf::Vector2f(WINDOW_WIDTH, WINDOW_HEIGHT));
             greyShape.setFillColor(sf::Color(0, 0, 0, 100));
