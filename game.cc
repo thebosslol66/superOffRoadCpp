@@ -96,25 +96,28 @@ struct Wall {
     int directionStop;
 };
 struct Car {
-    int state; //1 pour normal, 2 contre un mur, 3 dans la boue, 4 contre un mur dans la boue
+    int state = 1; //1 pour normal, 2 contre un mur, 3 dans la boue, 4 contre un mur dans la boue
     Position pos;
     Speed speed;
     Speed lastSpeed;
-    int direction;
-    int laps;
-    int flag;
-    int nbNitro;
-    int score;
-    double lastNitroUsedTime;
-    float malusBonusSpeed;
-    int botPositionToTarget;
-    double lastActive;
+    int direction =0;
+    int laps = 0;
+    int flag = 0;
+    int nbNitro = 3;
+    int score = 0;
+    double lastNitroUsedTime = 0;
+    float malusBonusSpeed = 1.0;
+    int botPositionToTarget = 0;
+    double lastActive = 0.0;
     sf::Color color;
     Position posInterBot;
     std::string botType;
     int points = 0;
     int startPosition;
+    float timeBlocked = 0;
 };
+
+
 struct Bonus {
     Position pos;
     int rayon;
@@ -547,7 +550,7 @@ void moveCar(Car * car,
 void generateNitro(std::vector < Bonus > & nitroList) {
     int random = static_cast < int > (Math::random() * nitroList.size());
     if (!nitroList[random].present) {
-        nitroList[random].present = true;
+    	nitroList[random].present = true;
     }
 
 }
@@ -590,10 +593,13 @@ sf::Vector2f calculateProjection(sf::Vector2f vectorToProject, sf::Vector2f vect
 			projection.y = 10000;
 			return projection;
 	}
-	float scalar = vectorToProject.x * vectorBase.y + vectorToProject.y * vectorBase.x;
+	float alpha = atan(vectorToProject.y/vectorToProject.x);
+	float beta = atan(vectorBase.y/vectorBase.x);
+	float theta = beta-alpha;
+	float produitScalaire = calculateNorme(vectorToProject.x, vectorToProject.y) * calculateNorme(vectorBase.x, vectorBase.y) * cos(theta);
 	sf::Vector2f projection;
-	projection.x = scalar / (calculateNorme(vectorBase.x, vectorBase.y)*calculateNorme(vectorBase.x, vectorBase.y)) * vectorBase.x;
-	projection.y = scalar / (calculateNorme(vectorBase.x, vectorBase.y)*calculateNorme(vectorBase.x, vectorBase.y)) * vectorBase.y;
+	projection.x = produitScalaire / (calculateNorme(vectorBase.x, vectorBase.y)*calculateNorme(vectorBase.x, vectorBase.y)) * vectorBase.x;
+	projection.y = produitScalaire / (calculateNorme(vectorBase.x, vectorBase.y)*calculateNorme(vectorBase.x, vectorBase.y)) * vectorBase.y;
 	return projection;
 }
 
@@ -837,7 +843,7 @@ int main() {
     const std::string WINDOW_TITLE = "Super off Road";
     const int MAX_FPS = 120;
     
-    const int MAX_BOT_RANGE_TO_GET_POWERUP = 20;
+    const int MAX_BOT_RANGE_TO_GET_POWERUP = 80;
 
     const float TIME_BEFORE_REACTIVATE = 0.06;
 
@@ -863,11 +869,11 @@ int main() {
 
     const float RANDOM_DIST_FOR_BOTS = 50;
 
-    const float RANDOM_DIST_FOR_BOTS_MASTERMIND = 10;
+    const float RANDOM_DIST_FOR_BOTS_MASTERMIND = 17;
 
-    const float RANDOM_DIST_FOR_BOTS_MEDIUM = 10;
+    const float RANDOM_DIST_FOR_BOTS_MEDIUM = 25;
 
-    const float RANDOM_DIST_FOR_BOTS_DUMY = 10;
+    const float RANDOM_DIST_FOR_BOTS_DUMY = 35;
     const int NB_LAPS_FIN = 3;
     
     Assets asssets;
@@ -944,31 +950,23 @@ int main() {
     asssets.position3Perso.setPosition(330,287);
     asssets.position3Perso.setOrigin(asssets.superoffroadCarTexture.getSize().x/2, asssets.superoffroadCarTexture.getSize().y/2);
     loadFromFile(asssets.position3HabitsTexture, asssets.position3Habits, "assets/position3Habits.png");
-    asssets.position3Habits.setPosition(595,396);
+    asssets.position3Habits.setPosition(594,397);
     asssets.position3Habits.setOrigin(asssets.position3HabitsTexture.getSize().x/2, asssets.position3HabitsTexture.getSize().y/2);
     
 	
     
     Car playerCar;
-    playerCar.state = 1;
-    playerCar.pos= level.spawnPos[0];
-    playerCar.speed.x = 0;
-    playerCar.speed.y = 0;
-	playerCar.lastSpeed.x = 0;
-	playerCar.lastSpeed.y = 0;
-    playerCar.direction = 0;
-    playerCar.laps = 0;
-    playerCar.flag = 0;
-    playerCar.nbNitro = 3;
-    playerCar.lastNitroUsedTime = 0;
-    playerCar.malusBonusSpeed = 1.0;
-    playerCar.lastActive = 0;
-    playerCar.score = 0;
-    playerCar.color = sf::Color::Red;
-    float timer = 0;
-    int nbFlag;
-    int countNitro = 0;
-    int score = 1;
+        playerCar.pos= level.spawnPos[0];
+        playerCar.speed.x = 0;
+        playerCar.speed.y = 0;
+    	playerCar.lastSpeed.x = 0;
+    	playerCar.lastSpeed.y = 0;
+        playerCar.direction = 0;
+        playerCar.color = sf::Color::Red;
+        float timer = 0;
+        int nbFlag;
+        int countNitro = 0;
+        int score = 1;
 
     if (DEBUG){
         printListWall(level.walls);
@@ -981,68 +979,38 @@ int main() {
 
     Car Enemie1;
 
-    Enemie1.state = 1;
     Enemie1.pos = level.spawnPos[1];
     Enemie1.speed.x = 0;
     Enemie1.speed.y = 0;
     Enemie1.lastSpeed.x = 0;
     Enemie1.lastSpeed.y = 0;
-    Enemie1.direction = 0;
-    Enemie1.laps = 0;
-    Enemie1.flag = 0;
-    Enemie1.nbNitro = 3;
-    Enemie1.lastNitroUsedTime = 0;
-    Enemie1.malusBonusSpeed = 1.0;
-    Enemie1.botPositionToTarget = 0;
-    Enemie1.posInterBot.x = 0;
-    Enemie1.posInterBot.y = 0;
-    Enemie1.lastActive = 0;
+    Enemie1.posInterBot.x = -1;
+    Enemie1.posInterBot.y = -1;
     Enemie1.botType = "master";
-    Enemie1.score = 0;
     Enemie1.color = sf::Color::Blue;
 
     Car Enemie2;
 
-    Enemie2.state = 1;
     Enemie2.pos = level.spawnPos[2];
     Enemie2.speed.x = 0;
     Enemie2.speed.y = 0;
     Enemie2.lastSpeed.x = 0;
 	Enemie2.lastSpeed.y = 0;
-    Enemie2.direction = 0;
-    Enemie2.laps = 0;
-    Enemie2.flag = 0;
-    Enemie2.nbNitro = 3;
-    Enemie2.lastNitroUsedTime = 0;
-    Enemie2.malusBonusSpeed = 1.0;
-    Enemie2.botPositionToTarget = 0;
-    Enemie2.posInterBot.x = 0;
-    Enemie2.posInterBot.y = 0;
-    Enemie2.lastActive = 0;
+	Enemie2.posInterBot.x = -1;
+    Enemie2.posInterBot.y = -1;
     Enemie2.botType = "medium";
-    Enemie2.score = 0;
     Enemie2.color = sf::Color::Yellow;
 
     Car Enemie3;
 
-    Enemie3.state = 1;
     Enemie3.pos = level.spawnPos[3];
     Enemie3.speed.x = 0;
     Enemie3.speed.y = 0;
     Enemie3.lastSpeed.x = 0;
     Enemie3.lastSpeed.y = 0;
-    Enemie3.direction = 0;
-    Enemie3.laps = 0;
-    Enemie3.flag = 0;
-    Enemie3.nbNitro = 3;
-    Enemie3.lastNitroUsedTime = 0;
-    Enemie3.malusBonusSpeed = 1.0;
-    Enemie3.botPositionToTarget = 0;
-    Enemie3.posInterBot.x = 0;
-    Enemie3.posInterBot.y = 0;
-    Enemie3.lastActive = 0;
+    Enemie3.posInterBot.x = -1;
+    Enemie3.posInterBot.y = -1;
     Enemie3.botType = "dumy";
-    Enemie3.score = 0;
     Enemie3.color = sf::Color::Magenta;
 
     std::vector < Car * > Enemies;
@@ -1277,6 +1245,22 @@ int main() {
             //truc pour les ennemies
             for (int j = 0; j < Enemies.size(); j++) {
                 Car * enemie = Enemies[j];
+                
+                if (enemie->timeBlocked > 2){
+                	float lowerDistance=100000;
+                	int idCheckpoint=0;
+                	float dist;
+                	for (int k=0;k<level.botLine.size();k++){
+                		dist = calculateNorme(level.botLine[k].x - enemie -> pos.x, level.botLine[k].y - enemie -> pos.y);
+                		if (dist < lowerDistance){
+                			idCheckpoint=k;
+                			lowerDistance=dist;
+                			enemie -> posInterBot.x = -1;
+                		}
+                	}
+                	enemie -> botPositionToTarget = idCheckpoint;
+                	
+                }
 
                 if (enemie -> lastActive <= 0) {
                     float pointx;
@@ -1336,7 +1320,7 @@ int main() {
                 float chanceToGetPowerUp = 0.0;
                 				
                                 if (enemie -> botType == "master") {
-                                                        botSpeedType = 1.10;
+                                                        botSpeedType = 1.20;
                                                         botChanceNitro = 0.0009;
                                                         chanceToGetPowerUp = 0.9;
                                                     } else if (enemie -> botType == "medium") {
@@ -1378,11 +1362,14 @@ int main() {
                         	   sf::Vector2f vectorToNitro = sf::Vector2f(level.spawnPosNitro[i].pos.x - enemie -> pos.x, level.spawnPosNitro[i].pos.y - enemie -> pos.y);
                         	                           		   
                         	   
-                        	   if (vectorDotProduct(vectorBetweenPosAndNewTarget, vectorToNitro) > 0){
+                        	   if (vectorDotProduct(vectorBetweenPosAndNewTarget, vectorToNitro) > 0 && calculateNorme(vectorToNitro.x,vectorToNitro.y) < calculateNorme(vectorBetweenPosAndNewTarget.x, vectorBetweenPosAndNewTarget.y)){
                         		   
-                        		   sf::Vector2f pojection = calculateProjection(vectorToNitro, vectorBetweenPosAndNewTarget);
+                        		   sf::Vector2f pojection1 = calculateProjection(vectorToNitro, vectorBetweenPosAndNewTarget);
+                        		   sf::Vector2f pojection2 = calculateProjection(vectorToNitro, sf::Vector2f(vectorBetweenPosAndNewTarget.y/vectorBetweenPosAndNewTarget.x, 1));
+                        		   
                         		   //SI la distance sur x < 1 alors elle est plus proche de la cible et si en y elle est pas trop loing de l'axe
-                        		   if (abs(pojection.x) < 1 && abs(pojection.y) < MAX_BOT_RANGE_TO_GET_POWERUP){
+                        		   if (abs(calculateNorme(pojection1.x, pojection1.y)/calculateNorme(vectorBetweenPosAndNewTarget.x, vectorBetweenPosAndNewTarget.y)) < 1 && 
+                        				   calculateNorme(pojection2.x, pojection2.y) < MAX_BOT_RANGE_TO_GET_POWERUP){
                         			   enemie -> posInterBot.x = level.spawnPosNitro[i].pos.x + level.spawnPosNitro[i].rayon;
                         			   enemie -> posInterBot.y = level.spawnPosNitro[i].pos.y + level.spawnPosNitro[i].rayon;
                         			   hasAlreadyATarget = true;
@@ -1399,6 +1386,14 @@ int main() {
 		}
 		enemie -> botPositionToTarget = fmod(enemie -> botPositionToTarget + 1, level.botLine.size());
                 }
+                
+        //if an ennemie is blocked too long
+        if(enemie-> speed.x == 0 && enemie -> speed.y == 0){
+        	enemie->timeBlocked += dt;
+        }
+        else if (enemie->timeBlocked > 0){
+        	enemie->timeBlocked = 0;
+        }
                 
 				
                 
@@ -1575,7 +1570,8 @@ int main() {
             
             //cout<<score<<endl;
         } else if (idCurrentWindow == 2) {
-
+        	textAlphaValue += 170 * dt;
+        	        		textAlphaValue %= 510;
             if (enter) {
                 idCurrentWindow = 3;
                 timer = 0;
@@ -1593,9 +1589,12 @@ int main() {
                                                 }
                                                 
                                                 reset(playerCar, level);
-                                                for (int j = 0; j < Enemies.size(); j++) {
-                                                    Car * enemie = Enemies[j];
+                                                for (int i = 0; i < Enemies.size(); i++) {
+                                                    Car * enemie = Enemies[i];
                                                     reset(enemie, level);
+                                                }
+                                                for (int i=0; i < level.spawnPosNitro.size(); i++){
+                                                	level.spawnPosNitro[i].present = false;
                                                 }
             }
         } else if (idCurrentWindow == 3) {
@@ -1712,7 +1711,7 @@ int main() {
 	            
 	            for (int i=0; i<level.botLine.size();i++){
 	            	nitroShape.setRadius(2);
-	            	                    nitroShape.setPosition(level.botLine[i].x, level.botLine[i].y);
+	            	                    nitroShape.setPosition(level.botLine[i].x+1, level.botLine[i].y+1);
 	            	                    nitroShape.setOrigin(1, 1);
 	            	                    nitroShape.setFillColor(sf::Color::White);
 	            	                    window.draw(nitroShape);
@@ -1845,68 +1844,39 @@ int main() {
 		window.draw(asssets.position2Habits);
 		window.draw(asssets.position3Habits);
 		
-           // int posXaffichage = 400;
-           // int posYaffichage = 100;
-           //
-           // sf::RectangleShape infoShape(sf::Vector2f(80, 80));
-           // for (int j = 0; j < Enemies.size(); j++) {
-           //     Car * enemie = Enemies[j];
-           //     if (enemie -> score == 0) {
-           //         enemie -> score = score;
-           //         score++;
-           //     }
-           //
-           //     infoShape.setPosition(posXaffichage + (20 + 80) * (enemie -> score - 1), posYaffichage + 70);
-           //     infoShape.setFillColor(enemie -> color);
-           //     window.draw(infoShape);
-           // }
-           //
-           // sf::Text firstText = sf::Text();
-           // sf::Text secondText = sf::Text();
-           // sf::Text thirdText = sf::Text();
-           // sf::Text fourText = sf::Text();
-           //
-           // firstText.setFont(font);
-           // secondText.setFont(font);
-           // thirdText.setFont(font);
-           // fourText.setFont(font);
-           //
-           // firstText.setString("1st");
-           // secondText.setString("2nd");
-           // thirdText.setString("3rd");
-           // fourText.setString("4d");
-           //
-           // firstText.setPosition(posXaffichage + (40 + 60) * (0), posYaffichage);
-           // secondText.setPosition(posXaffichage + (40 + 60) * (1), posYaffichage);
-           // thirdText.setPosition(posXaffichage + (40 + 60) * (2), posYaffichage);
-           // fourText.setPosition(posXaffichage + (40 + 60) * (3), posYaffichage);
-           //
-           // firstText.setFillColor(sf::Color::Black);
-           // secondText.setFillColor(sf::Color::Black);
-           // thirdText.setFillColor(sf::Color::Black);
-           // fourText.setFillColor(sf::Color::Black);
-           //
-           // window.draw(firstText);
-           // window.draw(secondText);
-           // window.draw(thirdText);
-           // window.draw(fourText);
-           //
-           // infoShape.setPosition(posXaffichage + (20 + 80) * (playerCar.score - 1), posYaffichage + 70);
-           // infoShape.setFillColor(playerCar.color);
-           // window.draw(infoShape);
-           //
-           // sf::Text resultText = sf::Text();
-           // resultText.setFont(font);
-           // resultText.setFillColor(sf::Color::Black);
-           //
-           // if (playerCar.score == 1) {
-           //     resultText.setString("Vous etes premier");
-           //     resultText.setPosition(WINDOW_WIDTH / 2 - resultText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 2 - resultText.getLocalBounds().height / 2);
-           // } else {
-           //     resultText.setString("Vous avez perdu!!!");
-           //     resultText.setPosition(WINDOW_WIDTH / 2 - resultText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 2 - resultText.getLocalBounds().height / 2);
-           // }
-           // window.draw(resultText);
+		sf::Text horloge = sf::Text();
+		            horloge.setFont(font);
+		            horloge.setCharacterSize(40);
+		            
+		            std::string horlogeText;
+		            horlogeText = std::to_string(Math::arrondir(timer, 0.1));
+				    horlogeText = horlogeText.substr(0, horlogeText.find(".")+2);
+		            
+		            
+		            horloge.setString(horlogeText);
+		            horloge.setFillColor(sf::Color::Black);
+		            horloge.setPosition(720 - horloge.getLocalBounds().width / 2,  30 - horloge.getLocalBounds().height / 2);
+		            window.draw(horloge);
+		            
+		            sf::Text enterText = sf::Text();
+		                                    enterText.setString("Press enter to continue");
+		                                    enterText.setFont(font);
+		                                    enterText.setCharacterSize(60);
+
+		                                    if (textAlphaValue <= 255) {
+		                                        enterText.setFillColor(sf::Color(255, 255, 255, textAlphaValue));
+		                                        enterText.setOutlineColor(sf::Color(0, 0, 0, textAlphaValue));
+		                                        enterText.setOutlineThickness(2.0);
+
+		                                    } else {
+		                                        enterText.setFillColor(sf::Color(255, 255, 255, 509 - textAlphaValue));
+		                                        enterText.setOutlineColor(sf::Color(0, 0, 0, 509 - textAlphaValue));
+		                                        enterText.setOutlineThickness(2.0);
+		                                    }
+
+		                                    enterText.setPosition(WINDOW_WIDTH / 2 - enterText.getLocalBounds().width / 2, WINDOW_HEIGHT * 7 / 8 - enterText.getLocalBounds().height / 2);
+
+		                                    window.draw(enterText);
 
         } 
 		if (idCurrentWindow == 3) {
@@ -1934,6 +1904,8 @@ int main() {
             countdownText.setPosition(WINDOW_WIDTH / 2 - countdownText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 2 - countdownText.getLocalBounds().height / 2);
 
             window.draw(countdownText);
+            
+            
 
         }
 
