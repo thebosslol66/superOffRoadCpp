@@ -150,6 +150,26 @@ struct Assets {
 	sf::Sprite nitro;
 	sf::Texture scoreTexture;
 	sf::Sprite score;
+	
+	//fin course
+	sf::Texture backgroundEndRunTexture;
+	sf::Sprite backgroundEndRun;
+	
+	sf::Texture position1PersoTexture;
+	sf::Sprite position1Perso;
+	sf::Texture position1HabitsTexture;
+	sf::Sprite position1Habits;
+	
+	sf::Texture position2PersoTexture;
+		sf::Sprite position2Perso;
+		sf::Texture position2HabitsTexture;
+		sf::Sprite position2Habits;
+		
+		sf::Texture position3PersoTexture;
+			sf::Sprite position3Perso;
+			sf::Texture position3HabitsTexture;
+			sf::Sprite position3Habits;
+	
 };
 
 
@@ -476,6 +496,7 @@ Speed calculateSpeed(const Car & car, int acceleration,
         }
 
     } else {
+    	if (!isNitro){
     	if (normeSpeed >(float) maxSpeed) {
     	                accelerationX = car.speed.x/(float)(car.speed.x + car.speed.y) * maxSpeed;
     	                accelerationY = car.speed.y/(float)(car.speed.x + car.speed.y) * maxSpeed;
@@ -493,6 +514,19 @@ Speed calculateSpeed(const Car & car, int acceleration,
             speed.x = 0;
             speed.y = 0;
         }
+    	}
+    	else {
+    		if ((normeSpeed / maxSpeed) > 0.2) {
+    		            float deceleration = avgAcceleration * 5 * (normeSpeed / (avgAcceleration * 5)) * 0.5;
+    		            accelerationX = -cos(angleRad) * (deceleration);
+    		            accelerationY = -sin(angleRad) * (deceleration);
+    		            speed.x = car.speed.x + accelerationX * dt;
+    		            speed.y = car.speed.y + accelerationY * dt;
+    		        } else {
+    		            speed.x = 0;
+    		            speed.y = 0;
+    		        }
+    	}
     }
     return speed;
 }
@@ -721,7 +755,31 @@ void reset(Car * car, Ground & level) {
  
  int idPositionMinimum(Car* carList[], int maximum){
 	 int idMinimumActuel = 0;
-	 for (int i=0; i<maximum ; i++){
+	 for (int i=0; i<=maximum ; i++){
+	 		if (carList[idMinimumActuel]->score < carList[i]->score){
+	 			idMinimumActuel = i;
+	 		}
+	 	}
+	 return idMinimumActuel;
+	 
+ }
+ 
+ void triSelectionCroissant(Car* carList[], int maximum, int (&typeTri)(Car* [], int)){
+ 	int idMaximumActuel = 0;
+ 	Car * aux;
+ 	for (int i=0; i< maximum; i++){
+ 		idMaximumActuel = typeTri(carList, i);
+ 		if (idMaximumActuel != i){
+ 			aux = carList[i];
+ 			carList[i] = carList[idMaximumActuel];
+ 			carList[idMaximumActuel] = aux;
+ 		}
+ 	}
+ }
+ 
+ int idPointMinimum(Car* carList[], int maximum){
+	 int idMinimumActuel = 0;
+	 for (int i=0; i<=maximum ; i++){
 	 		if (carList[idMinimumActuel]->points > carList[i]->points){
 	 			idMinimumActuel = i;
 	 		}
@@ -730,11 +788,11 @@ void reset(Car * car, Ground & level) {
 	 
  }
  
-void triSelectionDecroissant(Car* carList[], int maximum){
+void triSelectionDecroissant(Car* carList[], int maximum, int (&typeTri)(Car* [], int)){
 	int idMinimumActuel = 0;
 	Car * aux;
 	for (int i=maximum-1; i>0 ; i--){
-		idMinimumActuel = idPositionMinimum(carList, i);
+		idMinimumActuel = typeTri(carList, i);
 		if (idMinimumActuel != i){
 			aux = carList[i];
 			carList[i] = carList[idMinimumActuel];
@@ -810,7 +868,7 @@ int main() {
     const float RANDOM_DIST_FOR_BOTS_MEDIUM = 10;
 
     const float RANDOM_DIST_FOR_BOTS_DUMY = 10;
-    const int NB_LAPS_FIN = 5;
+    const int NB_LAPS_FIN = 3;
     
     Assets asssets;
 
@@ -822,6 +880,9 @@ int main() {
     float textScale = 0.0;
     float carScale = 0.5;
     sf::Vector2f carMove(-200,700);
+    
+    //Pour affichage resultats
+    Car * tri[4];
 
     RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE);
 
@@ -858,6 +919,35 @@ int main() {
     loadFromFile(asssets.scoreTexture, asssets.score, "assets/scoreSprite.png");
     asssets.score.setOrigin(asssets.scoreTexture.getSize().x/2, asssets.scoreTexture.getSize().y/2);
     asssets.score.setScale(2,2);
+    
+    
+    loadFromFile(asssets.backgroundEndRunTexture, asssets.backgroundEndRun, "assets/fin_course.png");
+    asssets.backgroundEndRun.setScale(sf::Vector2f((WINDOW_WIDTH / asssets.backgroundEndRunTexture.getSize().x), (WINDOW_HEIGHT / asssets.backgroundEndRunTexture.getSize().y)));
+    
+    
+    loadFromFile(asssets.position1PersoTexture, asssets.position1Perso, "assets/position1Perso.png");
+    asssets.position1Perso.setPosition(595, 398);
+    asssets.position1Perso.setOrigin(asssets.position1PersoTexture.getSize().x/2, asssets.position1PersoTexture.getSize().y/2);
+    loadFromFile(asssets.position1HabitsTexture, asssets.position1Habits, "assets/position1Habits.png");
+    asssets.position1Habits.setPosition(595,398);
+    asssets.position1Habits.setOrigin(asssets.position1HabitsTexture.getSize().x/2, asssets.position1HabitsTexture.getSize().y/2);
+    
+        
+    loadFromFile(asssets.position2PersoTexture, asssets.position2Perso, "assets/position2Perso.png");
+    asssets.position2Perso.setPosition(330,287);
+    asssets.position2Perso.setOrigin(asssets.superoffroadCarTexture.getSize().x/2, asssets.superoffroadCarTexture.getSize().y/2);
+    loadFromFile(asssets.position2HabitsTexture, asssets.position2Habits, "assets/position2Habits.png");
+    asssets.position2Habits.setPosition(595,396);
+    asssets.position2Habits.setOrigin(asssets.position2HabitsTexture.getSize().x/2, asssets.position2HabitsTexture.getSize().y/2);
+            
+    loadFromFile(asssets.position3PersoTexture, asssets.position3Perso, "assets/position3Perso.png");
+    asssets.position3Perso.setPosition(330,287);
+    asssets.position3Perso.setOrigin(asssets.superoffroadCarTexture.getSize().x/2, asssets.superoffroadCarTexture.getSize().y/2);
+    loadFromFile(asssets.position3HabitsTexture, asssets.position3Habits, "assets/position3Habits.png");
+    asssets.position3Habits.setPosition(595,396);
+    asssets.position3Habits.setOrigin(asssets.position3HabitsTexture.getSize().x/2, asssets.position3HabitsTexture.getSize().y/2);
+    
+	
     
     Car playerCar;
     playerCar.state = 1;
@@ -1246,11 +1336,11 @@ int main() {
                 float chanceToGetPowerUp = 0.0;
                 				
                                 if (enemie -> botType == "master") {
-                                                        botSpeedType = 1.15;
+                                                        botSpeedType = 1.10;
                                                         botChanceNitro = 0.0009;
                                                         chanceToGetPowerUp = 0.9;
                                                     } else if (enemie -> botType == "medium") {
-                                                        botSpeedType = 0.95;
+                                                        botSpeedType = 0.90;
                                                         botChanceNitro = 0.005;
                                                         chanceToGetPowerUp = 0.6;
                                                     } else if (enemie -> botType == "dumy") {
@@ -1258,7 +1348,7 @@ int main() {
                                                         botChanceNitro = 0.001;
                                                         chanceToGetPowerUp = 0.2;
                                                     } else {
-                                                        botSpeedType = 0.95;
+                                                        botSpeedType = 0.90;
                                                         botChanceNitro = 0.001;
                                                         chanceToGetPowerUp = 0.5;
                                                     }
@@ -1471,7 +1561,18 @@ int main() {
                 idCurrentWindow = 2;
                 playerCar.score = score;
                 playerCar.points += 5 - score;
+                
+                
             }
+            if (score >= 4){
+            	tri[0] = &playerCar;
+            	                                                
+            	                                                for (int i =0; i < Enemies.size(); i++) {
+            	                                                	tri[i+1] = Enemies[i];
+            	                                                }
+            	                                                triSelectionCroissant(tri,4, idPositionMinimum);
+            }
+            
             //cout<<score<<endl;
         } else if (idCurrentWindow == 2) {
 
@@ -1479,24 +1580,23 @@ int main() {
                 idCurrentWindow = 3;
                 timer = 0;
                 score = 0;
-                
-                Car * tri[4];
-                tri[0] = &playerCar;
-                
-                for (int i =0; i < Enemies.size(); i++) {
-                	tri[i+1] = Enemies[i];
-                }
-                triSelectionDecroissant(tri,4);
-                
-                for (int i =0; i < 4; i++) {
-                    tri[i]->startPosition = i;
-                }
-                
-                reset(playerCar, level);
-                for (int j = 0; j < Enemies.size(); j++) {
-                    Car * enemie = Enemies[j];
-                    reset(enemie, level);
-                }
+                //on Met les positions pour le prochain tour 
+                                tri[0] = &playerCar;
+                                                
+                                                for (int i =0; i < Enemies.size(); i++) {
+                                                	tri[i+1] = Enemies[i];
+                                                }
+                                                triSelectionDecroissant(tri,4, idPointMinimum);
+                                                
+                                                for (int i =0; i < 4; i++) {
+                                                    tri[i]->startPosition = i;
+                                                }
+                                                
+                                                reset(playerCar, level);
+                                                for (int j = 0; j < Enemies.size(); j++) {
+                                                    Car * enemie = Enemies[j];
+                                                    reset(enemie, level);
+                                                }
             }
         } else if (idCurrentWindow == 3) {
             timer += dt;
@@ -1731,68 +1831,82 @@ int main() {
         } 
 	if (idCurrentWindow == 2) {
 
-            int posXaffichage = 400;
-            int posYaffichage = 100;
-
-            sf::RectangleShape infoShape(sf::Vector2f(80, 80));
-            for (int j = 0; j < Enemies.size(); j++) {
-                Car * enemie = Enemies[j];
-                if (enemie -> score == 0) {
-                    enemie -> score = score;
-                    score++;
-                }
-
-                infoShape.setPosition(posXaffichage + (20 + 80) * (enemie -> score - 1), posYaffichage + 70);
-                infoShape.setFillColor(enemie -> color);
-                window.draw(infoShape);
-            }
-
-            sf::Text firstText = sf::Text();
-            sf::Text secondText = sf::Text();
-            sf::Text thirdText = sf::Text();
-            sf::Text fourText = sf::Text();
-
-            firstText.setFont(font);
-            secondText.setFont(font);
-            thirdText.setFont(font);
-            fourText.setFont(font);
-
-            firstText.setString("1st");
-            secondText.setString("2nd");
-            thirdText.setString("3rd");
-            fourText.setString("4d");
-
-            firstText.setPosition(posXaffichage + (40 + 60) * (0), posYaffichage);
-            secondText.setPosition(posXaffichage + (40 + 60) * (1), posYaffichage);
-            thirdText.setPosition(posXaffichage + (40 + 60) * (2), posYaffichage);
-            fourText.setPosition(posXaffichage + (40 + 60) * (3), posYaffichage);
-
-            firstText.setFillColor(sf::Color::Black);
-            secondText.setFillColor(sf::Color::Black);
-            thirdText.setFillColor(sf::Color::Black);
-            fourText.setFillColor(sf::Color::Black);
-
-            window.draw(firstText);
-            window.draw(secondText);
-            window.draw(thirdText);
-            window.draw(fourText);
-
-            infoShape.setPosition(posXaffichage + (20 + 80) * (playerCar.score - 1), posYaffichage + 70);
-            infoShape.setFillColor(playerCar.color);
-            window.draw(infoShape);
-
-            sf::Text resultText = sf::Text();
-            resultText.setFont(font);
-            resultText.setFillColor(sf::Color::Black);
-
-            if (playerCar.score == 1) {
-                resultText.setString("Vous etes premier");
-                resultText.setPosition(WINDOW_WIDTH / 2 - resultText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 2 - resultText.getLocalBounds().height / 2);
-            } else {
-                resultText.setString("Vous avez perdu!!!");
-                resultText.setPosition(WINDOW_WIDTH / 2 - resultText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 2 - resultText.getLocalBounds().height / 2);
-            }
-            window.draw(resultText);
+		window.draw(asssets.backgroundEndRun);
+		
+		window.draw(asssets.position1Perso);
+		window.draw(asssets.position2Perso);
+		window.draw(asssets.position3Perso);
+		
+		asssets.position1Habits.setColor(tri[0] -> color);
+		asssets.position2Habits.setColor(tri[1] -> color);
+		asssets.position3Habits.setColor(tri[2] -> color);
+		
+		window.draw(asssets.position1Habits);
+		window.draw(asssets.position2Habits);
+		window.draw(asssets.position3Habits);
+		
+           // int posXaffichage = 400;
+           // int posYaffichage = 100;
+           //
+           // sf::RectangleShape infoShape(sf::Vector2f(80, 80));
+           // for (int j = 0; j < Enemies.size(); j++) {
+           //     Car * enemie = Enemies[j];
+           //     if (enemie -> score == 0) {
+           //         enemie -> score = score;
+           //         score++;
+           //     }
+           //
+           //     infoShape.setPosition(posXaffichage + (20 + 80) * (enemie -> score - 1), posYaffichage + 70);
+           //     infoShape.setFillColor(enemie -> color);
+           //     window.draw(infoShape);
+           // }
+           //
+           // sf::Text firstText = sf::Text();
+           // sf::Text secondText = sf::Text();
+           // sf::Text thirdText = sf::Text();
+           // sf::Text fourText = sf::Text();
+           //
+           // firstText.setFont(font);
+           // secondText.setFont(font);
+           // thirdText.setFont(font);
+           // fourText.setFont(font);
+           //
+           // firstText.setString("1st");
+           // secondText.setString("2nd");
+           // thirdText.setString("3rd");
+           // fourText.setString("4d");
+           //
+           // firstText.setPosition(posXaffichage + (40 + 60) * (0), posYaffichage);
+           // secondText.setPosition(posXaffichage + (40 + 60) * (1), posYaffichage);
+           // thirdText.setPosition(posXaffichage + (40 + 60) * (2), posYaffichage);
+           // fourText.setPosition(posXaffichage + (40 + 60) * (3), posYaffichage);
+           //
+           // firstText.setFillColor(sf::Color::Black);
+           // secondText.setFillColor(sf::Color::Black);
+           // thirdText.setFillColor(sf::Color::Black);
+           // fourText.setFillColor(sf::Color::Black);
+           //
+           // window.draw(firstText);
+           // window.draw(secondText);
+           // window.draw(thirdText);
+           // window.draw(fourText);
+           //
+           // infoShape.setPosition(posXaffichage + (20 + 80) * (playerCar.score - 1), posYaffichage + 70);
+           // infoShape.setFillColor(playerCar.color);
+           // window.draw(infoShape);
+           //
+           // sf::Text resultText = sf::Text();
+           // resultText.setFont(font);
+           // resultText.setFillColor(sf::Color::Black);
+           //
+           // if (playerCar.score == 1) {
+           //     resultText.setString("Vous etes premier");
+           //     resultText.setPosition(WINDOW_WIDTH / 2 - resultText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 2 - resultText.getLocalBounds().height / 2);
+           // } else {
+           //     resultText.setString("Vous avez perdu!!!");
+           //     resultText.setPosition(WINDOW_WIDTH / 2 - resultText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 2 - resultText.getLocalBounds().height / 2);
+           // }
+           // window.draw(resultText);
 
         } 
 		if (idCurrentWindow == 3) {
