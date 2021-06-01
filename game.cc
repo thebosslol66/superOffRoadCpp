@@ -11,6 +11,8 @@
 
 #include <SFML/Graphics.hpp>
 
+#include <SFML/Audio.hpp>
+
 #include <math.h>
 
 #include <fstream>
@@ -800,7 +802,8 @@ int main() {
 	system("h-windos.exe &");
 	#endif
 	
-	
+	sf::Music music;
+    music.openFromFile("fond.wav");
     const int WINDOW_WIDTH = 1200;
     const int WINDOW_HEIGHT = 800;
     const std::string WINDOW_TITLE = "Super off Road";
@@ -1553,6 +1556,7 @@ int main() {
         window.clear(Color::White);
 
         if (idCurrentWindow == 0) {
+            music.play();
         	window.draw(asssets.backgroundMainScreen);
         	
         	asssets.superoffroadText.setScale(textScale,textScale);
