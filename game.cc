@@ -100,6 +100,7 @@ struct Car {
     Position pos;
     Speed speed;
     Speed lastSpeed;
+    Speed speedColision;
     int direction;
     int laps;
     int flag;
@@ -316,17 +317,21 @@ bool isCollision(const Car & car,
     return colision;
 }
 
-bool isCollision(const Car * car,
-    const Position & pos,
+
+
+bool isCollision(const Car & car,
+    const Car * car2,
         const int & rayon) {
     bool colision = false;
-    if (hypot(car->pos.x - pos.x, car->pos.y - pos.y) <= rayon) {
+    if (hypot(car.pos.x - car2 -> pos.x, car.pos.y - car2 -> pos.y) <= rayon*2) {
         colision = true;
     } else {
         colision = false;
     }
     return colision;
 }
+
+
 
 Position randomInCircle(const Position & pos,
     const float & rayon) {
@@ -499,14 +504,30 @@ Speed calculateSpeed(const Car & car, int acceleration,
 
 void moveCar(Car & car,
     const float & dt) {
-    car.pos.x = car.pos.x + (car.speed.x) * dt;
-    car.pos.y = car.pos.y + (car.speed.y) * dt;
+	if (car.speedColision.x != 0)
+	{
+		car.speedColision.x *= 0.99;
+	}
+	if (car.speedColision.y != 0)
+	{
+		car.speedColision.y *= 0.99;
+	}
+    car.pos.x = car.pos.x + (car.speed.x + car.speedColision.x) * dt;
+    car.pos.y = car.pos.y + (car.speed.y + car.speedColision.y) * dt;
 }
 
 void moveCar(Car * car,
     const float & dt) {
-    car -> pos.x = car -> pos.x + (car -> speed.x) * dt;
-    car -> pos.y = car -> pos.y + (car -> speed.y)* dt;
+	if (car -> speedColision.x != 0)
+	{
+		car -> speedColision.x *= 0.99;
+	}
+	if (car -> speedColision.y != 0)
+	{
+		car -> speedColision.y *= 0.99;
+	}
+    car -> pos.x = car -> pos.x + (car -> speed.x + car -> speedColision.x ) * dt;
+    car -> pos.y = car -> pos.y + (car -> speed.y + car -> speedColision.y )* dt;
 }
 
 //il doit y avoir obligatoirement une place de libre dans nitroList 
@@ -578,6 +599,8 @@ void reset(Car & car, Ground & level) {
     car.malusBonusSpeed = 1.0;
     car.lastActive = 0;
     car.score = 0;
+    car.speedColision.x = 0;
+    car.speedColision.y = 0;
 }
 void reset(Car * car, Ground & level) {
     car -> state = 1;
@@ -597,6 +620,8 @@ void reset(Car * car, Ground & level) {
     car -> posInterBot.y = 0;
     car -> lastActive = 0;
     car -> botPositionToTarget = 0;
+    car -> speedColision.x = 0;
+    car -> speedColision.y = 0;
 
 }
 
@@ -868,6 +893,8 @@ int main() {
     playerCar.speed.y = 0;
 	playerCar.lastSpeed.x = 0;
 	playerCar.lastSpeed.y = 0;
+	playerCar.speedColision.x = 0;
+	playerCar.speedColision.y = 0;
     playerCar.direction = 0;
     playerCar.laps = 0;
     playerCar.flag = 0;
@@ -899,6 +926,8 @@ int main() {
     Enemie1.speed.y = 0;
     Enemie1.lastSpeed.x = 0;
     Enemie1.lastSpeed.y = 0;
+    Enemie1.speedColision.x = 0;
+    Enemie1.speedColision.y = 0;
     Enemie1.direction = 0;
     Enemie1.laps = 0;
     Enemie1.flag = 0;
@@ -921,6 +950,8 @@ int main() {
     Enemie2.speed.y = 0;
     Enemie2.lastSpeed.x = 0;
 	Enemie2.lastSpeed.y = 0;
+	Enemie2.speedColision.x = 0;
+    Enemie2.speedColision.y = 0;
     Enemie2.direction = 0;
     Enemie2.laps = 0;
     Enemie2.flag = 0;
@@ -943,6 +974,8 @@ int main() {
     Enemie3.speed.y = 0;
     Enemie3.lastSpeed.x = 0;
     Enemie3.lastSpeed.y = 0;
+    Enemie3.speedColision.x = 0;
+    Enemie3.speedColision.y = 0;
     Enemie3.direction = 0;
     Enemie3.laps = 0;
     Enemie3.flag = 0;
@@ -1107,6 +1140,8 @@ int main() {
                             playerCar.state = 4;
                         }
                     }
+                    playerCar.speedColision.x = 0;
+                    playerCar.speedColision.y = 0;
                 }
                 if (isCollision(playerCar, wall, CAR_HAUTEUR + 5)) {
                     collisionWall = true;
@@ -1162,17 +1197,17 @@ int main() {
             }
 
             //Colision joueur bot 
-                                 // for (int j = 0; j < Enemies.size(); j++) {
-                                 //                 Car * enemie2 = Enemies[j];
-                                 //                 if (isCollision(playerCar, enemie2 -> pos, CAR_HAUTEUR)) {
-                                 //                 	Speed tempSpeed = calculateProjectionOfSpeed(playerCar.lastSpeed, sf::Vector2f(enemie2 -> pos.x - playerCar.pos.x, enemie2 -> pos.y - playerCar.pos.y));
-                                 //                 	playerCar.speed.x -= 3.05 * (tempSpeed.x*(enemie2 -> pos.x - playerCar.pos.x)*dt);
-                                 //                 	playerCar.speed.y -= 3.05 * (tempSpeed.x*(enemie2 -> pos.y - playerCar.pos.y)*dt);
-                                 //                 	enemie2 -> speed.x += 3.00 * (tempSpeed.x*(enemie2 -> pos.x - playerCar.pos.x)*dt);
-                                 //                 	enemie2 -> speed.y += 3.00 * (tempSpeed.x*(enemie2 -> pos.y - playerCar.pos.y)*dt);
-                                 //                 }
-                                 //             }
-                                 // 
+                                 for (int j = 0; j < Enemies.size(); j++) {
+                                                 Car * enemie2 = Enemies[j];
+                                                 if (isCollision(playerCar, enemie2 -> pos, CAR_HAUTEUR)) {
+                                                 	Speed tempSpeed = calculateProjectionOfSpeed(playerCar.lastSpeed, sf::Vector2f(enemie2 -> pos.x - playerCar.pos.x, enemie2 -> pos.y - playerCar.pos.y));
+                                                 	playerCar.speedColision.x -= 4.05 * (tempSpeed.x*(enemie2 -> pos.x - playerCar.pos.x)*dt);
+                                                 	playerCar.speedColision.y -= 4.05 * (tempSpeed.x*(enemie2 -> pos.y - playerCar.pos.y)*dt);
+                                                 	enemie2 -> speedColision.x += 4.00 * (tempSpeed.x*(enemie2 -> pos.x - playerCar.pos.x)*dt);
+                                                 	enemie2 -> speedColision.y += 4.00 * (tempSpeed.x*(enemie2 -> pos.y - playerCar.pos.y)*dt);
+                                                 }
+                                             }
+                                 
             //On calcule ensuite la nouvelle vitesse de la voiture
 
             //Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * playerCar.malusBonusSpeed, ACCELERATION, up, down, playerCar.lastNitroUsedTime >= 0, dt);
@@ -1355,6 +1390,8 @@ int main() {
                                 enemie -> state = 4;
                             }
                         }
+                        enemie -> speedColision.x = 0;
+                        enemie -> speedColision.y = 0;
                     }
                     if (isCollision( * enemie, wall, CAR_LONGUEUR)) {
                         collisionWall = true;
