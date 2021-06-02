@@ -40,7 +40,7 @@
 using namespace std;
 using namespace sf;
 
-const bool DEBUG = false;
+const bool DEBUG = true;
 
 /*
  * Ce morceau de code pour permet de tirer un nombre flottant au hasard
@@ -664,7 +664,11 @@ void reset(Car * car, Ground & level) {
 
 void makeLevel(Ground & level, std::string src) {
   ifstream levelData(src);
-
+  level.walls.clear();
+  level.muds.clear();
+  level.spawnPosNitro.clear();
+  level.flags.clear();
+  level.botLine.clear();
   if (levelData) {
 
     for (int i = 0; i < 4; i++) {
@@ -891,7 +895,7 @@ int main() {
 
   int idCurrentWindow = 0;
 
-  std::string levelFile("level1");
+  std::string levelFile("level");
 
   sf::Font font;
   font.loadFromFile("PixelOperator.ttf");
@@ -929,6 +933,7 @@ int main() {
   const int NB_LAPS_FIN = 4;
 
   int idLevel = 1;
+
 
   std::string levelDifficult[8][3];
   levelDifficult[0][0] = "dumy";
@@ -1004,8 +1009,9 @@ int main() {
   //*************************************IMPORTATION DES DONNER DU TERRAIN********************//
   
   Ground level;
-  makeLevel(level, levelFile + ".txt");
-  loadFromFile(assets.backgroundLevelScreenTexture, assets.backgroundLevelScreen, levelFile + ".png");
+  Ground levelEmpty;
+  makeLevel(level, levelFile+ to_string(idLevel) + ".txt");
+  loadFromFile(assets.backgroundLevelScreenTexture, assets.backgroundLevelScreen, levelFile+to_string(idLevel) + ".png");
   loadFromFile(assets.backgroundMainScreenTexture, assets.backgroundMainScreen, "assets/fond_ecran_principal.png");
 
   loadFromFile(assets.superoffroadTextTexture, assets.superoffroadText, "assets/title_screen.png");
@@ -1211,6 +1217,10 @@ int main() {
     enterLastState = enter;
 
     if (idCurrentWindow == 0) {
+            cout<<idLevel<<endl;
+            makeLevel(level, levelFile+ to_string(idLevel) + ".txt");
+            loadFromFile(assets.backgroundLevelScreenTexture, assets.backgroundLevelScreen, levelFile+to_string(idLevel) + ".png"); 
+ 
       if (textScale < 1.5) {
         textScale += 0.66 * dt;
       } else {
@@ -1238,6 +1248,7 @@ int main() {
       }
 
     } else if (idCurrentWindow == 1) {
+
       timer = timer + dt;
       if (playerCar.lastNitroUsedTime >= 0) {
         playerCar.lastNitroUsedTime -= dt;
@@ -1351,10 +1362,10 @@ int main() {
       for (int j = 0; j < Enemies.size(); j++) {
           Car * enemie2 = Enemies[j];
           if (isCollision(playerCar, enemie2 -> pos, CAR_HAUTEUR*1.1)) {
-              playerCar.speedColision.x = calculateProjectionUnit(playerCar.pos, enemie2 -> pos).x*(playerCar.speed.x + enemie2 -> speed.x)*1.5;
-              playerCar.speedColision.y = calculateProjectionUnit(playerCar.pos, enemie2 -> pos).y*(playerCar.speed.y + enemie2 -> speed.y)*1.5;
-              enemie2 -> speedColision.x = calculateProjectionUnit(enemie2 -> pos, playerCar.pos).x*(enemie2 -> speed.x + playerCar.speed.x)*1.5;
-              enemie2 -> speedColision.y = calculateProjectionUnit(enemie2 -> pos, playerCar.pos).y*(enemie2 -> speed.y + playerCar.speed.y)*1.5;
+              playerCar.speedColision.x = calculateProjectionUnit(playerCar.pos, enemie2 -> pos).x*(playerCar.speed.x + enemie2 -> speed.x)*1;
+              playerCar.speedColision.y = calculateProjectionUnit(playerCar.pos, enemie2 -> pos).y*(playerCar.speed.y + enemie2 -> speed.y)*1;
+              enemie2 -> speedColision.x = calculateProjectionUnit(enemie2 -> pos, playerCar.pos).x*(enemie2 -> speed.x + playerCar.speed.x)*1;
+              enemie2 -> speedColision.y = calculateProjectionUnit(enemie2 -> pos, playerCar.pos).y*(enemie2 -> speed.y + playerCar.speed.y)*1;
           }
       }
 
@@ -1708,6 +1719,11 @@ int main() {
       if (enter1Pressure) {
 
         idLevel++;
+
+        //Regeneration du terrain
+        cout<<idLevel<<endl;
+        makeLevel(level, levelFile+ to_string(idLevel) + ".txt");
+        loadFromFile(assets.backgroundLevelScreenTexture, assets.backgroundLevelScreen, levelFile+to_string(idLevel) + ".png"); 
 
         //mise a jour des positions de départ
         textAlphaValue = 0;
