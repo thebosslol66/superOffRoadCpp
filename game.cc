@@ -32,16 +32,15 @@
 #include <assert.h>
 
 #ifdef _WIN32
+
 #include <bits/stdc++.h>
+
 #endif
 
 using namespace std;
 using namespace sf;
 
-
-const bool DEBUG = false;
-
-
+const bool DEBUG = true;
 
 /*
  * Ce morceau de code pour permet de tirer un nombre flottant au hasard
@@ -138,24 +137,21 @@ struct Ground {
 };
 
 struct Assets {
-	sf::Texture backgroundMainScreenTexture;
-	sf::Sprite backgroundMainScreen;
-	sf::Texture superoffroadTextTexture;
-	sf::Sprite superoffroadText;
-	sf::Texture superoffroadCarTexture;
-	sf::Sprite superoffroadCar;
-	
-	
-	//game texture
-	sf::Texture backgroundLevelScreenTexture;
-	sf::Sprite backgroundLevelScreen;
-	sf::Texture nitroTexture;
-	sf::Sprite nitro;
-	sf::Texture scoreTexture;
-	sf::Sprite score;
+    sf::Texture backgroundMainScreenTexture;
+    sf::Sprite backgroundMainScreen;
+    sf::Texture superoffroadTextTexture;
+    sf::Sprite superoffroadText;
+    sf::Texture superoffroadCarTexture;
+    sf::Sprite superoffroadCar;
+
+    //game texture
+    sf::Texture backgroundLevelScreenTexture;
+    sf::Sprite backgroundLevelScreen;
+    sf::Texture nitroTexture;
+    sf::Sprite nitro;
+    sf::Texture scoreTexture;
+    sf::Sprite score;
 };
-
-
 
 //algo de silvio
 //algo de collision
@@ -319,21 +315,17 @@ bool isCollision(const Car & car,
     return colision;
 }
 
-
-
 bool isCollision(const Car & car,
     const Car * car2,
         const int & rayon) {
     bool colision = false;
-    if (hypot(car.pos.x - car2 -> pos.x, car.pos.y - car2 -> pos.y) <= rayon*2) {
+    if (hypot(car.pos.x - car2 -> pos.x, car.pos.y - car2 -> pos.y) <= rayon * 2) {
         colision = true;
     } else {
         colision = false;
     }
     return colision;
 }
-
-
 
 Position randomInCircle(const Position & pos,
     const float & rayon) {
@@ -483,14 +475,13 @@ Speed calculateSpeed(const Car & car, int acceleration,
         }
 
     } else {
-    	if (normeSpeed >(float) maxSpeed) {
-    	                accelerationX = car.speed.x/(float)(car.speed.x + car.speed.y) * maxSpeed;
-    	                accelerationY = car.speed.y/(float)(car.speed.x + car.speed.y) * maxSpeed;
+        if (normeSpeed > (float) maxSpeed) {
+            accelerationX = car.speed.x / (float)(car.speed.x + car.speed.y) * maxSpeed;
+            accelerationY = car.speed.y / (float)(car.speed.x + car.speed.y) * maxSpeed;
 
-    	                speed.x = accelerationX;
-    	                speed.y = accelerationY;
-    	            }
-    	else if ((normeSpeed / maxSpeed) > 0.2) {
+            speed.x = accelerationX;
+            speed.y = accelerationY;
+        } else if ((normeSpeed / maxSpeed) > 0.2) {
             float deceleration = maxSpeed * (normeSpeed / maxSpeed) * 0.5;
             accelerationX = -cos(angleRad) * (deceleration);
             accelerationY = -sin(angleRad) * (deceleration);
@@ -506,30 +497,26 @@ Speed calculateSpeed(const Car & car, int acceleration,
 
 void moveCar(Car & car,
     const float & dt) {
-	if (car.speedColision.x != 0)
-	{
-		car.speedColision.x *= 0.99;
-	}
-	if (car.speedColision.y != 0)
-	{
-		car.speedColision.y *= 0.99;
-	}
+    if (car.speedColision.x != 0) {
+        car.speedColision.x *= 0.90;
+    }
+    if (car.speedColision.y != 0) {
+        car.speedColision.y *= 0.90;
+    }
     car.pos.x = car.pos.x + (car.speed.x + car.speedColision.x) * dt;
     car.pos.y = car.pos.y + (car.speed.y + car.speedColision.y) * dt;
 }
 
 void moveCar(Car * car,
     const float & dt) {
-	if (car -> speedColision.x != 0)
-	{
-		car -> speedColision.x *= 0.99;
-	}
-	if (car -> speedColision.y != 0)
-	{
-		car -> speedColision.y *= 0.99;
-	}
-    car -> pos.x = car -> pos.x + (car -> speed.x + car -> speedColision.x ) * dt;
-    car -> pos.y = car -> pos.y + (car -> speed.y + car -> speedColision.y )* dt;
+    if (car -> speedColision.x != 0) {
+        car -> speedColision.x *= 0.90;
+    }
+    if (car -> speedColision.y != 0) {
+        car -> speedColision.y *= 0.90;
+    }
+    car -> pos.x = car -> pos.x + (car -> speed.x + car -> speedColision.x) * dt;
+    car -> pos.y = car -> pos.y + (car -> speed.y + car -> speedColision.y) * dt;
 }
 
 //il doit y avoir obligatoirement une place de libre dans nitroList 
@@ -557,35 +544,35 @@ void recalculateSpeedDirection(Car * car) {
     car -> speed.y = sin(angleRad) * normeVitesse;
 }
 
-
-Speed calculateProjectionOfSpeed(Speed speedToProject, sf::Vector2f vectorBase){
-	if ((speedToProject.x == 0 && speedToProject.y == 0) || (vectorBase.x == 0 && vectorBase.y == 0)){
-		Speed newSpeed;
-			newSpeed.x = 0;
-			newSpeed.y = 0;
-			return newSpeed;
-	}
-	float scalar = speedToProject.x * vectorBase.y + speedToProject.y * vectorBase.x ;
-	Speed newSpeed;
-	newSpeed.x = scalar / (calculateNorme(vectorBase.x, vectorBase.y)*calculateNorme(vectorBase.x, vectorBase.y)) * vectorBase.x;
-	newSpeed.y = scalar / (calculateNorme(vectorBase.x, vectorBase.y)*calculateNorme(vectorBase.x, vectorBase.y)) * vectorBase.y;
-	return newSpeed;
+Speed calculateProjectionUnit(const Position & pos1, const Position &  pos2) {
+    Speed newSpeed;
+    newSpeed.x =  pos2.x - pos1.x;
+    newSpeed.y = pos2.y - pos1.y;
+    if (calculateNorme(newSpeed.x, newSpeed.y) != 0)
+    {
+        newSpeed.x /= calculateNorme(newSpeed.x, newSpeed.y);
+        newSpeed.y /= calculateNorme(newSpeed.x, newSpeed.y);
+    } 
+    cout<<newSpeed.x<<"/"<<newSpeed.y<<endl;
+    return newSpeed;   
+   
 }
 
-sf::Vector2f calculateProjection(sf::Vector2f vectorToProject, sf::Vector2f vectorBase){
-	if ((vectorToProject.x == 0 && vectorToProject.y == 0) || (vectorBase.x == 0 && vectorBase.y == 0)){
-		sf::Vector2f projection;
-			projection.x = 10000;
-			projection.y = 10000;
-			return projection;
-	}
-	float scalar = vectorToProject.x * vectorBase.y + vectorToProject.y * vectorBase.x;
-	sf::Vector2f projection;
-	projection.x = scalar / (calculateNorme(vectorBase.x, vectorBase.y)*calculateNorme(vectorBase.x, vectorBase.y)) * vectorBase.x;
-	projection.y = scalar / (calculateNorme(vectorBase.x, vectorBase.y)*calculateNorme(vectorBase.x, vectorBase.y)) * vectorBase.y;
-	return projection;
-}
 
+
+sf::Vector2f calculateProjection(sf::Vector2f vectorToProject, sf::Vector2f vectorBase) {
+    if ((vectorToProject.x == 0 && vectorToProject.y == 0) || (vectorBase.x == 0 && vectorBase.y == 0)) {
+        sf::Vector2f projection;
+        projection.x = 10000;
+        projection.y = 10000;
+        return projection;
+    }
+    float scalar = vectorToProject.x * vectorBase.y + vectorToProject.y * vectorBase.x;
+    sf::Vector2f projection;
+    projection.x = scalar / (calculateNorme(vectorBase.x, vectorBase.y) * calculateNorme(vectorBase.x, vectorBase.y)) * vectorBase.x;
+    projection.y = scalar / (calculateNorme(vectorBase.x, vectorBase.y) * calculateNorme(vectorBase.x, vectorBase.y)) * vectorBase.y;
+    return projection;
+}
 
 void reset(Car & car, Ground & level) {
     car.state = 1;
@@ -607,7 +594,7 @@ void reset(Car & car, Ground & level) {
 void reset(Car * car, Ground & level) {
     car -> state = 1;
 
-    car -> pos = level.spawnPos[car->startPosition];
+    car -> pos = level.spawnPos[car -> startPosition];
     car -> speed.x = 0;
     car -> speed.y = 0;
     car -> direction = 0;
@@ -627,160 +614,159 @@ void reset(Car * car, Ground & level) {
 
 }
 
- void makeLevel(Ground & level, std::string src) {
-   Ground cache;
-   ifstream levelData(src);
+void makeLevel(Ground & level, std::string src) {
+    Ground cache;
+    ifstream levelData(src);
 
-   if (levelData) {
-	   
-	   for (int i=0; i <4; i++){
-		   level.spawnPos[i].x = 0;
-		   level.spawnPos[i].y = 0;
-	   }
-	   
-	   
-     std::string line;
-     std::string delimiter = ":";
+    if (levelData) {
 
-     std::regex wallPattern("\\(([0-9]+),([0-9]+)\\)-([0-9]+)-\\(([0-9]+),([0-9]+)\\)");
-     std::regex nitroPattern("\\(([0-9]+),([0-9]+)\\)");
-     std::regex mudPattern("\\(([0-9]+),([0-9]+),([0-9]+)\\)");
-     std::regex flagPattern("\\(([0-9]+),([0-9]+)\\)-([0-9]+)-\\(([0-9]+),([0-9]+)\\)");
-     std::regex botPattern("\\(([0-9]+),([0-9]+)\\)");
-     std::regex spawnPattern("\\(([0-9]+),([0-9]+),([0-9]+)\\)");
-     std::regex scorePosPattern("\\(([0-9]+),([0-9]+)\\)");
+        for (int i = 0; i < 4; i++) {
+            level.spawnPos[i].x = 0;
+            level.spawnPos[i].y = 0;
+        }
 
-     std::smatch m;
+        std::string line;
+        std::string delimiter = ":";
 
-     while (getline(levelData, line)) {
-       std::string token = line.substr(0, line.find(delimiter));
-       if (token == "Wall") {
-         line = line.substr(line.find(delimiter) + 2);
-         while (std::regex_search(line, m, wallPattern)) {
+        std::regex wallPattern("\\(([0-9]+),([0-9]+)\\)-([0-9]+)-\\(([0-9]+),([0-9]+)\\)");
+        std::regex nitroPattern("\\(([0-9]+),([0-9]+)\\)");
+        std::regex mudPattern("\\(([0-9]+),([0-9]+),([0-9]+)\\)");
+        std::regex flagPattern("\\(([0-9]+),([0-9]+)\\)-([0-9]+)-\\(([0-9]+),([0-9]+)\\)");
+        std::regex botPattern("\\(([0-9]+),([0-9]+)\\)");
+        std::regex spawnPattern("\\(([0-9]+),([0-9]+),([0-9]+)\\)");
+        std::regex scorePosPattern("\\(([0-9]+),([0-9]+)\\)");
 
-           Wall wall;
+        std::smatch m;
 
-           wall.hitbox.corner1.x = std::stoi(m[1]);
-           wall.hitbox.corner1.y = std::stoi(m[2]);
-           wall.directionStop = std::stoi(m[3]);
-           wall.hitbox.corner2.x = std::stoi(m[4]);
-           wall.hitbox.corner2.y = std::stoi(m[5]);
+        while (getline(levelData, line)) {
+            std::string token = line.substr(0, line.find(delimiter));
+            if (token == "Wall") {
+                line = line.substr(line.find(delimiter) + 2);
+                while (std::regex_search(line, m, wallPattern)) {
 
-           level.walls.push_back(wall);
+                    Wall wall;
 
-           line = line.substr(line.find(")-") + 1);
-         }
-       }
-       if (token == "Nitro") {
-         line = line.substr(line.find(delimiter) + 2);
-         while (std::regex_search(line, m, nitroPattern)) {
-           Bonus nitro;
-           nitro.pos.x = std::stoi(m[1]);
-           nitro.pos.y = std::stoi(m[2]);
-           nitro.rayon = 10;
-           nitro.present = false;
-           level.spawnPosNitro.push_back(nitro);
-           line = line.substr(line.find(')') + 1);
-         }
-       }
+                    wall.hitbox.corner1.x = std::stoi(m[1]);
+                    wall.hitbox.corner1.y = std::stoi(m[2]);
+                    wall.directionStop = std::stoi(m[3]);
+                    wall.hitbox.corner2.x = std::stoi(m[4]);
+                    wall.hitbox.corner2.y = std::stoi(m[5]);
 
-       if (token == "Mud") {
-         line = line.substr(line.find(delimiter) + 2);
-         while (std::regex_search(line, m, mudPattern)) {
-           Mud mud;
+                    level.walls.push_back(wall);
 
-           mud.pos.x = std::stoi(m[1])+std::stoi(m[3]);
-           mud.pos.y = std::stoi(m[2])+std::stoi(m[3]);
-           mud.rayon = std::stoi(m[3]);
+                    line = line.substr(line.find(")-") + 1);
+                }
+            }
+            if (token == "Nitro") {
+                line = line.substr(line.find(delimiter) + 2);
+                while (std::regex_search(line, m, nitroPattern)) {
+                    Bonus nitro;
+                    nitro.pos.x = std::stoi(m[1]);
+                    nitro.pos.y = std::stoi(m[2]);
+                    nitro.rayon = 10;
+                    nitro.present = false;
+                    level.spawnPosNitro.push_back(nitro);
+                    line = line.substr(line.find(')') + 1);
+                }
+            }
 
-           level.muds.push_back(mud);
-           line = line.substr(m.position(0) + m.length(0));
-         }
-       }
-       if (token == "Flag") {
-         line = line.substr(line.find(delimiter) + 2);
-         while (std::regex_search(line, m, flagPattern)) {
-           Flag newFlag;
-           newFlag.hitbox.corner1.x = std::stoi(m[1]);
-           newFlag.hitbox.corner1.y = std::stoi(m[2]);
-           newFlag.nb = std::stoi(m[3]);
-           newFlag.hitbox.corner2.x = std::stoi(m[4]);
-           newFlag.hitbox.corner2.y = std::stoi(m[5]);
-           level.flags.push_back(newFlag);
-           line = line.substr(m.position(0) + m.length(0));
-         }
-       }
-       if (token == "Bot") {
+            if (token == "Mud") {
+                line = line.substr(line.find(delimiter) + 2);
+                while (std::regex_search(line, m, mudPattern)) {
+                    Mud mud;
+
+                    mud.pos.x = std::stoi(m[1]) + std::stoi(m[3]);
+                    mud.pos.y = std::stoi(m[2]) + std::stoi(m[3]);
+                    mud.rayon = std::stoi(m[3]);
+
+                    level.muds.push_back(mud);
+                    line = line.substr(m.position(0) + m.length(0));
+                }
+            }
+            if (token == "Flag") {
+                line = line.substr(line.find(delimiter) + 2);
+                while (std::regex_search(line, m, flagPattern)) {
+                    Flag newFlag;
+                    newFlag.hitbox.corner1.x = std::stoi(m[1]);
+                    newFlag.hitbox.corner1.y = std::stoi(m[2]);
+                    newFlag.nb = std::stoi(m[3]);
+                    newFlag.hitbox.corner2.x = std::stoi(m[4]);
+                    newFlag.hitbox.corner2.y = std::stoi(m[5]);
+                    level.flags.push_back(newFlag);
+                    line = line.substr(m.position(0) + m.length(0));
+                }
+            }
+            if (token == "Bot") {
                 line = line.substr(line.find(delimiter) + 2);
                 while (std::regex_search(line, m, botPattern)) {
-                  Position pos;
-                  pos.x = std::stoi(m[1]);
-                  pos.y = std::stoi(m[2]);
-                  
-                  level.botLine.push_back(pos);
-                  line = line.substr(m.position(0) + m.length(0));
-                }
-              }
-       
-       if (token == "Spawn") {
-                       line = line.substr(line.find(delimiter) + 2);
-                       while (std::regex_search(line, m, spawnPattern)) {
-                    	   
-                    	 if (std::stoi(m[3]) > 0 && std::stoi(m[3]) <= 4){
-                    		 level.spawnPos[std::stoi(m[3])-1].x = std::stoi(m[1]);
-                    		 level.spawnPos[std::stoi(m[3])-1].y = std::stoi(m[2]);
-                    	 }
-                         line = line.substr(m.position(0) + m.length(0));
-                       }
-                     }
-       if (token == "ScorePos") {
-                       line = line.substr(line.find(delimiter) + 2);
-                       while (std::regex_search(line, m, scorePosPattern)) {
-                    	   level.scorePos.x = std::stoi(m[1]);
-                    	   level.scorePos.y = std::stoi(m[2]);
-                         line = line.substr(m.position(0) + m.length(0));
-                       }
-                     }
-     }
+                    Position pos;
+                    pos.x = std::stoi(m[1]);
+                    pos.y = std::stoi(m[2]);
 
-   } else {
-     throw "Can't read the file " + src;
-   }
- }
- 
- int idPositionMinimum(Car* carList[], int maximum){
-	 int idMinimumActuel = 0;
-	 for (int i=0; i<maximum ; i++){
-	 		if (carList[idMinimumActuel]->points > carList[i]->points){
-	 			idMinimumActuel = i;
-	 		}
-	 	}
-	 return idMinimumActuel;
-	 
- }
- 
-void triSelectionDecroissant(Car* carList[], int maximum){
-	int idMinimumActuel = 0;
-	Car * aux;
-	for (int i=maximum-1; i>0 ; i--){
-		idMinimumActuel = idPositionMinimum(carList, i);
-		if (idMinimumActuel != i){
-			aux = carList[i];
-			carList[i] = carList[idMinimumActuel];
-			carList[idMinimumActuel] = aux;
-		}
-	}
+                    level.botLine.push_back(pos);
+                    line = line.substr(m.position(0) + m.length(0));
+                }
+            }
+
+            if (token == "Spawn") {
+                line = line.substr(line.find(delimiter) + 2);
+                while (std::regex_search(line, m, spawnPattern)) {
+
+                    if (std::stoi(m[3]) > 0 && std::stoi(m[3]) <= 4) {
+                        level.spawnPos[std::stoi(m[3]) - 1].x = std::stoi(m[1]);
+                        level.spawnPos[std::stoi(m[3]) - 1].y = std::stoi(m[2]);
+                    }
+                    line = line.substr(m.position(0) + m.length(0));
+                }
+            }
+            if (token == "ScorePos") {
+                line = line.substr(line.find(delimiter) + 2);
+                while (std::regex_search(line, m, scorePosPattern)) {
+                    level.scorePos.x = std::stoi(m[1]);
+                    level.scorePos.y = std::stoi(m[2]);
+                    line = line.substr(m.position(0) + m.length(0));
+                }
+            }
+        }
+
+    } else {
+        throw "Can't read the file " + src;
+    }
 }
 
-void loadFromFile(sf::Texture & texture, sf::Sprite & sprite, const std::string & name){
-	texture.loadFromFile(name);
-	sprite.setTexture(texture);
-	
+int idPositionMinimum(Car * carList[], int maximum) {
+    int idMinimumActuel = 0;
+    for (int i = 0; i < maximum; i++) {
+        if (carList[idMinimumActuel] -> points > carList[i] -> points) {
+            idMinimumActuel = i;
+        }
+    }
+    return idMinimumActuel;
+
+}
+
+void triSelectionDecroissant(Car * carList[], int maximum) {
+    int idMinimumActuel = 0;
+    Car * aux;
+    for (int i = maximum - 1; i > 0; i--) {
+        idMinimumActuel = idPositionMinimum(carList, i);
+        if (idMinimumActuel != i) {
+            aux = carList[i];
+            carList[i] = carList[idMinimumActuel];
+            carList[idMinimumActuel] = aux;
+        }
+    }
+}
+
+void loadFromFile(sf::Texture & texture, sf::Sprite & sprite,
+    const std::string & name) {
+    texture.loadFromFile(name);
+    sprite.setTexture(texture);
+
 }
 
 //fonction de débugage
 //affichage de la vrai htibox des murs
-
 
 void printListWall(std::vector < Wall > listWall) {
 
@@ -796,19 +782,23 @@ void printListWall(std::vector < Wall > listWall) {
 
 int main() {
 
-	#ifdef __linux__ 
-	system("./h-linux &");
-	#elif _WIN32
-	system("h-windos.exe &");
-	#endif
-	
-	sf::Music music;
+    //********************************DECLARATION DE CONSTANTES ET VARIABLE IMPORTANTE*********************//
+
+    #ifdef __linux__
+    system("./h-linux &");
+    #elif _WIN32
+    system("h-windos.exe &");
+    #endif
+
+    sf::Music music;
+    sf::SoundBuffer colisionBuffer;
     music.openFromFile("fond.wav");
+    colisionBuffer.loadFromFile("sound_supper_off_road/car_break.wav");
     const int WINDOW_WIDTH = 1200;
     const int WINDOW_HEIGHT = 800;
     const std::string WINDOW_TITLE = "Super off Road";
     const int MAX_FPS = 120;
-    
+
     const int MAX_BOT_RANGE_TO_GET_POWERUP = 20;
 
     const float TIME_BEFORE_REACTIVATE = 0.06;
@@ -824,7 +814,7 @@ int main() {
     const int ACCELERATION = 50;
     bool up, down, left, right, nitro, enter;
     up = down = left = right = nitro = enter = false;
-
+    int colision = false;
     double lastActiveNitro;
     lastActiveNitro = 0;
 
@@ -841,7 +831,7 @@ int main() {
 
     const float RANDOM_DIST_FOR_BOTS_DUMY = 10;
     const int NB_LAPS_FIN = 5;
-    
+
     Assets asssets;
 
     /*
@@ -851,53 +841,51 @@ int main() {
     int textAlphaValue = 0;
     float textScale = 0.0;
     float carScale = 0.5;
-    sf::Vector2f carMove(-200,700);
+    sf::Vector2f carMove(-200, 700);
 
     RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE);
 
-    /*
-     * Une Clock permet de compter le temps. Vous en aurez besoin pour savoir
-     * le temps entre deux frames.
-     */
     Clock clock;
 
     Ground level;
+
+    //*************************************IMPORTATION DES DONNER DU TERRAIN********************//
     makeLevel(level, levelFile + ".txt");
     loadFromFile(asssets.backgroundLevelScreenTexture, asssets.backgroundLevelScreen, levelFile + ".png");
     loadFromFile(asssets.backgroundMainScreenTexture, asssets.backgroundMainScreen, "assets/fond_ecran_principal.png");
-    
+
     loadFromFile(asssets.superoffroadTextTexture, asssets.superoffroadText, "assets/title_screen.png");
-    loadFromFile(asssets.superoffroadCarTexture, asssets.superoffroadCar,"assets/car_begin.png");
+    loadFromFile(asssets.superoffroadCarTexture, asssets.superoffroadCar, "assets/car_begin.png");
 
     asssets.backgroundLevelScreen.setScale(sf::Vector2f((WINDOW_WIDTH / asssets.backgroundLevelScreenTexture.getSize().x), (WINDOW_HEIGHT / asssets.backgroundLevelScreenTexture.getSize().y)));
     asssets.backgroundMainScreen.setScale(sf::Vector2f((WINDOW_WIDTH / asssets.backgroundMainScreenTexture.getSize().x), (WINDOW_HEIGHT / asssets.backgroundMainScreenTexture.getSize().y)));
-    
 
-    asssets.superoffroadText.setPosition((WINDOW_WIDTH)/2, (WINDOW_HEIGHT/6) + 100);
-    asssets.superoffroadText.setOrigin(asssets.superoffroadTextTexture.getSize().x/2, asssets.superoffroadTextTexture.getSize().y/2);
-    asssets.superoffroadText.setScale(textScale,textScale);
-    
-    
+    asssets.superoffroadText.setPosition((WINDOW_WIDTH) / 2, (WINDOW_HEIGHT / 6) + 100);
+    asssets.superoffroadText.setOrigin(asssets.superoffroadTextTexture.getSize().x / 2, asssets.superoffroadTextTexture.getSize().y / 2);
+    asssets.superoffroadText.setScale(textScale, textScale);
+
     asssets.superoffroadCar.setPosition(carMove.x, carMove.y);
-    asssets.superoffroadCar.setOrigin(asssets.superoffroadCarTexture.getSize().x/2, asssets.superoffroadCarTexture.getSize().y/2);
-    asssets.superoffroadCar.setScale(carScale,carScale);
-    
+    asssets.superoffroadCar.setOrigin(asssets.superoffroadCarTexture.getSize().x / 2, asssets.superoffroadCarTexture.getSize().y / 2);
+    asssets.superoffroadCar.setScale(carScale, carScale);
+
     loadFromFile(asssets.nitroTexture, asssets.nitro, "assets/nitroSprite.png");
-    asssets.nitro.setOrigin(asssets.nitroTexture.getSize().x/2, asssets.nitroTexture.getSize().y/2);
-    
+    asssets.nitro.setOrigin(asssets.nitroTexture.getSize().x / 2, asssets.nitroTexture.getSize().y / 2);
+
     loadFromFile(asssets.scoreTexture, asssets.score, "assets/scoreSprite.png");
-    asssets.score.setOrigin(asssets.scoreTexture.getSize().x/2, asssets.scoreTexture.getSize().y/2);
-    asssets.score.setScale(2,2);
-    
+    asssets.score.setOrigin(asssets.scoreTexture.getSize().x / 2, asssets.scoreTexture.getSize().y / 2);
+    asssets.score.setScale(2, 2);
+
+    //********************************ATRIBUTION DES VALEUR INITIALE DES VOITURE**************************//
+
     Car playerCar;
     playerCar.state = 1;
-    playerCar.pos= level.spawnPos[0];
+    playerCar.pos = level.spawnPos[0];
     playerCar.speed.x = 0;
     playerCar.speed.y = 0;
-	playerCar.lastSpeed.x = 0;
-	playerCar.lastSpeed.y = 0;
-	playerCar.speedColision.x = 0;
-	playerCar.speedColision.y = 0;
+    playerCar.lastSpeed.x = 0;
+    playerCar.lastSpeed.y = 0;
+    playerCar.speedColision.x = 0;
+    playerCar.speedColision.y = 0;
     playerCar.direction = 0;
     playerCar.laps = 0;
     playerCar.flag = 0;
@@ -912,11 +900,10 @@ int main() {
     int countNitro = 0;
     int score = 1;
 
-    if (DEBUG){
+    if (DEBUG) {
         printListWall(level.walls);
     }
 
-    
     nbFlag = level.flags.size();
 
     /* Enemies car */
@@ -952,8 +939,8 @@ int main() {
     Enemie2.speed.x = 0;
     Enemie2.speed.y = 0;
     Enemie2.lastSpeed.x = 0;
-	Enemie2.lastSpeed.y = 0;
-	Enemie2.speedColision.x = 0;
+    Enemie2.lastSpeed.y = 0;
+    Enemie2.speedColision.x = 0;
     Enemie2.speedColision.y = 0;
     Enemie2.direction = 0;
     Enemie2.laps = 0;
@@ -998,20 +985,11 @@ int main() {
     Enemies.push_back( & Enemie2);
     Enemies.push_back( & Enemie3);
 
-
-    /*
-     * La boucle de jeu principale. La condition de fin est la fermeture de la
-     * fenêtre qu'on provoque à l'aide d'un appel `window.close()`.
-     */
+    //************************************BOUCLE DE JEU PRINCIPALE*****************************//
     while (window.isOpen()) {
-        /*
-         * Un Event est un événement d'entrée. Il contient toutes les informations
-         * nécessaires pour traiter tous les événements.
-         *
-         * Vous pouvez lire ce tutoriel pour comprendre comment récupérer les
-         * informations relatives à chaque événement:
-         * http://www.sfml-dev.org/tutorials/2.1/window-events.php
-         */
+
+        //*******************RECUPERATION DES INPUT***********************//        
+
         Event event;
 
         /*
@@ -1064,32 +1042,31 @@ int main() {
                 }
             }
         }
+        //******************TRAITEMENT DES INPUT ET DES COLISIONS***************//
 
         float dt = clock.restart().asSeconds();
         if (idCurrentWindow == 0) {
-        	if (textScale < 1.5){
-        		textScale += 0.66*dt;
-        	}
-        	else {
-        		textScale = 1.5;
-        	}
-        	if (carScale < 1.5){
-        		if (textScale>=1.5){
-            		carScale +=0.66*dt;
-            		carMove.x += 333.33*dt;
-            		carMove.y -= 133.33*dt;
-        		}
-	           
-        	}
-        	else {
-        		carScale = 1.5;
-        		carMove.x = 300;
-        		carMove.y = 500;
-        	}
-        	if (carScale>=1.5){
-        		 textAlphaValue += 170 * dt;
-        		textAlphaValue %= 510;
-        	}
+            if (textScale < 1.5) {
+                textScale += 0.66 * dt;
+            } else {
+                textScale = 1.5;
+            }
+            if (carScale < 1.5) {
+                if (textScale >= 1.5) {
+                    carScale += 0.66 * dt;
+                    carMove.x += 333.33 * dt;
+                    carMove.y -= 133.33 * dt;
+                }
+
+            } else {
+                carScale = 1.5;
+                carMove.x = 300;
+                carMove.y = 500;
+            }
+            if (carScale >= 1.5) {
+                textAlphaValue += 170 * dt;
+                textAlphaValue %= 510;
+            }
             if (enter) {
                 idCurrentWindow = 3;
             }
@@ -1124,10 +1101,12 @@ int main() {
             //colision joueur mur
             bool collisionWall = false;
             Wall wall;
+            colision = false;
             for (int i = 0; i < level.walls.size(); i++) {
-                    wall = level.walls[i];
+                wall = level.walls[i];
                 if (isCollision(playerCar, wall, CAR_HAUTEUR / 2)) {
-                    
+
+                    colision = true;
                     int direction = redirectIfPunchWall(playerCar, wall);
                     if (playerCar.direction == direction) {
                         playerCar.speed.x = 0;
@@ -1200,33 +1179,28 @@ int main() {
             }
 
             //Colision joueur bot 
-                                 for (int j = 0; j < Enemies.size(); j++) {
-                                                 Car * enemie2 = Enemies[j];
-                                                 if (isCollision(playerCar, enemie2 -> pos, CAR_HAUTEUR)) {
-                                                 	Speed tempSpeed = calculateProjectionOfSpeed(playerCar.lastSpeed, sf::Vector2f(enemie2 -> pos.x - playerCar.pos.x, enemie2 -> pos.y - playerCar.pos.y));
-                                                 	playerCar.speedColision.x -= 4.05 * (tempSpeed.x*(enemie2 -> pos.x - playerCar.pos.x)*dt);
-                                                 	playerCar.speedColision.y -= 4.05 * (tempSpeed.x*(enemie2 -> pos.y - playerCar.pos.y)*dt);
-                                                 	enemie2 -> speedColision.x += 4.00 * (tempSpeed.x*(enemie2 -> pos.x - playerCar.pos.x)*dt);
-                                                 	enemie2 -> speedColision.y += 4.00 * (tempSpeed.x*(enemie2 -> pos.y - playerCar.pos.y)*dt);
-                                                 }
-                                             }
-                                 
-            //On calcule ensuite la nouvelle vitesse de la voiture
+            for (int j = 0; j < Enemies.size(); j++) {
+                Car * enemie2 = Enemies[j];
+                if (isCollision(playerCar, enemie2 -> pos, CAR_HAUTEUR*1.1)) {
+                    playerCar.speedColision.x = calculateProjectionUnit(playerCar.pos, enemie2 -> pos).x*(playerCar.speed.x + enemie2 -> speed.x)*1.5;
+                    playerCar.speedColision.y = calculateProjectionUnit(playerCar.pos, enemie2 -> pos).y*(playerCar.speed.y + enemie2 -> speed.y)*1.5;
+                    enemie2 -> speedColision.x = calculateProjectionUnit(enemie2 -> pos, playerCar.pos).x*(enemie2 -> speed.x + playerCar.speed.x)*1.5;
+                    enemie2 -> speedColision.y = calculateProjectionUnit(enemie2 -> pos, playerCar.pos).y*(enemie2 -> speed.y + playerCar.speed.y)*1.5;
+                }
+            }
 
-            //Speed playerNewSpeed = calculateSpeed(playerCar, ACCELERATION * playerCar.malusBonusSpeed, ACCELERATION, up, down, playerCar.lastNitroUsedTime >= 0, dt);
+            //CALCUL DE LA VITESSE DE LA VOITURE
             playerCar.speed = calculateSpeed(playerCar, ACCELERATION * playerCar.malusBonusSpeed, ACCELERATION, up, down, playerCar.lastNitroUsedTime >= 0, dt);
+            playerCar.malusBonusSpeed = 1;
 
-            
-            //Timer Pour le spawn de nitro
+            //GENERATION DE LA NITRO
             countNitro++;
             if (countNitro == NITRO_SPAWN_TIME) {
                 generateNitro(level.spawnPosNitro);
                 countNitro = 0;
             }
+            //*************************ENEMIES STUFF************************//
 
-            
-            playerCar.malusBonusSpeed = 1;
-            //truc pour les ennemies
             for (int j = 0; j < Enemies.size(); j++) {
                 Car * enemie = Enemies[j];
 
@@ -1284,28 +1258,27 @@ int main() {
                 }
 
                 float botSpeedType = 1.0;
-                				double botChanceNitro = 0;
+                double botChanceNitro = 0;
                 float chanceToGetPowerUp = 0.0;
-                				
-                                if (enemie -> botType == "master") {
-                                                        botSpeedType = 1.15;
-                                                        botChanceNitro = 0.0009;
-                                                        chanceToGetPowerUp = 0.9;
-                                                    } else if (enemie -> botType == "medium") {
-                                                        botSpeedType = 0.95;
-                                                        botChanceNitro = 0.005;
-                                                        chanceToGetPowerUp = 0.6;
-                                                    } else if (enemie -> botType == "dumy") {
-                                                        botSpeedType = 0.80;
-                                                        botChanceNitro = 0.001;
-                                                        chanceToGetPowerUp = 0.2;
-                                                    } else {
-                                                        botSpeedType = 0.95;
-                                                        botChanceNitro = 0.001;
-                                                        chanceToGetPowerUp = 0.5;
-                                                    }
 
-				
+                if (enemie -> botType == "master") {
+                    botSpeedType = 1.15;
+                    botChanceNitro = 0.0009;
+                    chanceToGetPowerUp = 0.9;
+                } else if (enemie -> botType == "medium") {
+                    botSpeedType = 0.95;
+                    botChanceNitro = 0.005;
+                    chanceToGetPowerUp = 0.6;
+                } else if (enemie -> botType == "dumy") {
+                    botSpeedType = 0.80;
+                    botChanceNitro = 0.001;
+                    chanceToGetPowerUp = 0.2;
+                } else {
+                    botSpeedType = 0.95;
+                    botChanceNitro = 0.001;
+                    chanceToGetPowerUp = 0.5;
+                }
+
                 if (isCollision( * enemie, level.botLine[enemie -> botPositionToTarget], CAR_LONGUEUR)) {
                     int randomDistForBot = 0;
                     if (enemie -> botType == "master") {
@@ -1317,52 +1290,45 @@ int main() {
                     } else {
                         randomDistForBot = RANDOM_DIST_FOR_BOTS;
                     }
-                    
+
                     sf::Vector2f vectorBetweenPosAndNewTarget = Vector2f(level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())].x - enemie -> pos.x, level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())].y - enemie -> pos.y);
 
-		
-		bool hasAlreadyATarget = false;
-		if (Math::random() < chanceToGetPowerUp){
-		for (int i = 0; i < level.spawnPosNitro.size(); i++) {
-                           if (level.spawnPosNitro[i].present) {
-                        	   
-                        	   
-                        	   sf::Vector2f vectorToNitro = sf::Vector2f(level.spawnPosNitro[i].pos.x - enemie -> pos.x, level.spawnPosNitro[i].pos.y - enemie -> pos.y);
-                        	                           		   
-                        	   
-                        	   if (vectorDotProduct(vectorBetweenPosAndNewTarget, vectorToNitro) > 0){
-                        		   
-                        		   sf::Vector2f pojection = calculateProjection(vectorToNitro, vectorBetweenPosAndNewTarget);
-                        		   //SI la distance sur x < 1 alors elle est plus proche de la cible et si en y elle est pas trop loing de l'axe
-                        		   if (abs(pojection.x) < 1 && abs(pojection.y) < MAX_BOT_RANGE_TO_GET_POWERUP){
-                        			   enemie -> posInterBot.x = level.spawnPosNitro[i].pos.x + level.spawnPosNitro[i].rayon;
-                        			   enemie -> posInterBot.y = level.spawnPosNitro[i].pos.y + level.spawnPosNitro[i].rayon;
-                        			   hasAlreadyATarget = true;
-                        		   }
-								   
-                        	   }
-                           } 
-                    }
-		}
-                    
-		if (!hasAlreadyATarget && calculateNorme(vectorBetweenPosAndNewTarget.x , vectorBetweenPosAndNewTarget.y) > 60){
-			enemie -> posInterBot = randomInCircle(centerPosition(level.botLine[enemie -> botPositionToTarget], level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())]), randomDistForBot);
-			
-		}
-		enemie -> botPositionToTarget = fmod(enemie -> botPositionToTarget + 1, level.botLine.size());
-                }
-                
-				
-                
-                if (Math::random() < botChanceNitro && enemie -> lastNitroUsedTime <= 0 && enemie -> nbNitro > 0) {
-                                    enemie -> lastNitroUsedTime = TIME_NITRO_USED;
-                                    enemie -> nbNitro -= 1;
+                    bool hasAlreadyATarget = false;
+                    if (Math::random() < chanceToGetPowerUp) {
+                        for (int i = 0; i < level.spawnPosNitro.size(); i++) {
+                            if (level.spawnPosNitro[i].present) {
+
+                                sf::Vector2f vectorToNitro = sf::Vector2f(level.spawnPosNitro[i].pos.x - enemie -> pos.x, level.spawnPosNitro[i].pos.y - enemie -> pos.y);
+
+                                if (vectorDotProduct(vectorBetweenPosAndNewTarget, vectorToNitro) > 0) {
+
+                                    sf::Vector2f pojection = calculateProjection(vectorToNitro, vectorBetweenPosAndNewTarget);
+                                    //SI la distance sur x < 1 alors elle est plus proche de la cible et si en y elle est pas trop loing de l'axe
+                                    if (abs(pojection.x) < 1 && abs(pojection.y) < MAX_BOT_RANGE_TO_GET_POWERUP) {
+                                        enemie -> posInterBot.x = level.spawnPosNitro[i].pos.x + level.spawnPosNitro[i].rayon;
+                                        enemie -> posInterBot.y = level.spawnPosNitro[i].pos.y + level.spawnPosNitro[i].rayon;
+                                        hasAlreadyATarget = true;
+                                    }
+
                                 }
-                
-                
+                            }
+                        }
+                    }
+
+                    if (!hasAlreadyATarget && calculateNorme(vectorBetweenPosAndNewTarget.x, vectorBetweenPosAndNewTarget.y) > 60) {
+                        enemie -> posInterBot = randomInCircle(centerPosition(level.botLine[enemie -> botPositionToTarget], level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())]), randomDistForBot);
+
+                    }
+                    enemie -> botPositionToTarget = fmod(enemie -> botPositionToTarget + 1, level.botLine.size());
+                }
+
+                if (Math::random() < botChanceNitro && enemie -> lastNitroUsedTime <= 0 && enemie -> nbNitro > 0) {
+                    enemie -> lastNitroUsedTime = TIME_NITRO_USED;
+                    enemie -> nbNitro -= 1;
+                }
 
                 if (enemie -> posInterBot.x > 0) {
-                    if (isCollision( * enemie, enemie -> posInterBot, CAR_LONGUEUR*3/4)) {
+                    if (isCollision( * enemie, enemie -> posInterBot, CAR_LONGUEUR * 3 / 4)) {
                         enemie -> posInterBot.x = -1;
                     }
                 }
@@ -1374,10 +1340,10 @@ int main() {
                 Wall wall;
                 bool collisionWall = false;
                 for (int i = 0; i < level.walls.size(); i++) {
-                        wall = level.walls[i];
+                    wall = level.walls[i];
                     if (isCollision( * enemie, wall, CAR_HAUTEUR / 2)) {
-                    	enemie->lastSpeed.x = 0;
-                    	enemie->lastSpeed.y = 0;
+                        enemie -> lastSpeed.x = 0;
+                        enemie -> lastSpeed.y = 0;
                         int direction = redirectIfPunchWall(enemie, wall);
                         if (enemie -> direction == direction) {
                             enemie -> speed.x = 0;
@@ -1446,48 +1412,37 @@ int main() {
                         }
                     }
                 }
+
+               //  for (int k = 0; k < Enemies.size(); k++) {
+               //     Car * enemie2 = Enemies[k];
+               //     if (enemie2 != enemie){
+               //     if (isCollision(enemie, enemie2 -> pos, CAR_HAUTEUR)) {
+
+               //     }
+               //     }
+               // }
                 
-                //for (int k = 0; k < Enemies.size(); k++) {
-                //                                                                    Car * enemie2 = Enemies[k];
-                //                                                                    if (enemie2 != enemie){
-                //                                                                    if (isCollision(enemie, enemie2 -> pos, CAR_HAUTEUR)) {
-                //                                                                    	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> lastSpeed, sf::Vector2f(enemie2 -> pos.x - enemie -> pos.x, enemie2 -> pos.y - enemie -> pos.y));
-                //                                                                    	enemie->speed.x -= 10.05 * (tempSpeed.x*(enemie2 -> pos.x - enemie -> pos.x)*dt);
-                //                                                                    	enemie->speed.y -= 10.05 * (tempSpeed.x*(enemie2 -> pos.y - enemie -> pos.y)*dt);
-                //                                                                    	enemie2 -> speed.x += 10.00 * (tempSpeed.x*(enemie2 -> pos.x - enemie -> pos.x)*dt);
-                //                                                                    	enemie2 -> speed.y += 10.00 * (tempSpeed.x*(enemie2 -> pos.y - enemie -> pos.y)*dt);
-                //                                                                    }
-                //                                                                    }
-                //                                                                }
-                //
-                //if (isCollision(playerCar, enemie -> pos, CAR_HAUTEUR)) {
-                //                                                    	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> lastSpeed, sf::Vector2f(playerCar.pos.x- enemie -> pos.x , playerCar.pos.y- enemie -> pos.y ));
-                //                                                    	playerCar.speed.x -= 3.00 * (tempSpeed.x*(playerCar.pos.x- enemie -> pos.x)*dt);
-                //                                                    	playerCar.speed.y -= 3.00 * (tempSpeed.x*(playerCar.pos.y- enemie -> pos.y)*dt);
-                //                                                    	enemie -> speed.x += 3.05 * (tempSpeed.x*(playerCar.pos.x- enemie -> pos.x)*dt);
-                //                                                    	enemie -> speed.y += 3.05 * (tempSpeed.x*(playerCar.pos.y- enemie -> pos.y)*dt);
-                //                                                    }
-                //
+               //  if (isCollision(playerCar, enemie -> pos, CAR_HAUTEUR)) {
+
+               //  }
+                
                 //On calcule ensuite la nouvelle vitesse de la voiture
                 enemie -> speed = calculateSpeed( * enemie, (ACCELERATION * enemie -> malusBonusSpeed) * botSpeedType, ACCELERATION * botSpeedType, true, false, enemie -> lastNitroUsedTime >= 0, dt);
-                
+
                 enemie -> malusBonusSpeed = 1;
-                
-                
-                
+
             }
-            
+            //********************END OF ENEMIES STUFF***********************//
+            //********************DEPLACEMENT DES VOITURES*******************//            
             playerCar.lastSpeed = playerCar.speed;
-            
             moveCar(playerCar, dt);
             for (int j = 0; j < Enemies.size(); j++) {
-                            Car * enemie = Enemies[j];
-                            enemie ->lastSpeed = enemie->speed;
-                            moveCar(enemie, dt);
-                        }
-            
-            
-            //fin du truc pour les ennemies
+                Car * enemie = Enemies[j];
+                enemie -> lastSpeed = enemie -> speed;
+                moveCar(enemie, dt);
+            }
+
+            //*******************VERIFICATION DE LA CONDITION DE VICTOIRE ET CALCUL DU SCORE***************//
             if (playerCar.laps == NB_LAPS_FIN) {
                 playerCar.score = score;
                 playerCar.points += 5 - score;
@@ -1516,26 +1471,26 @@ int main() {
                 playerCar.score = score;
                 playerCar.points += 5 - score;
             }
-            //cout<<score<<endl;
+
         } else if (idCurrentWindow == 2) {
 
             if (enter) {
                 idCurrentWindow = 3;
                 timer = 0;
                 score = 0;
-                
+
                 Car * tri[4];
-                tri[0] = &playerCar;
-                
-                for (int i =0; i < Enemies.size(); i++) {
-                	tri[i+1] = Enemies[i];
+                tri[0] = & playerCar;
+
+                for (int i = 0; i < Enemies.size(); i++) {
+                    tri[i + 1] = Enemies[i];
                 }
-                triSelectionDecroissant(tri,4);
-                
-                for (int i =0; i < 4; i++) {
-                    tri[i]->startPosition = i;
+                triSelectionDecroissant(tri, 4);
+
+                for (int i = 0; i < 4; i++) {
+                    tri[i] -> startPosition = i;
                 }
-                
+
                 reset(playerCar, level);
                 for (int j = 0; j < Enemies.size(); j++) {
                     Car * enemie = Enemies[j];
@@ -1549,24 +1504,24 @@ int main() {
                 timer = 0.0;
             }
         }
-        /*
-         * Affichage de l'état du jeu
-         */
+
+//***********************************AFFICHAGE !!!!!!******************//
 
         window.clear(Color::White);
-
+        //AFFICHAGE DE L'ECRANT TITRE//
         if (idCurrentWindow == 0) {
-            music.play();
-        	window.draw(asssets.backgroundMainScreen);
-        	
-        	asssets.superoffroadText.setScale(textScale,textScale);
-        	window.draw(asssets.superoffroadText);
-        	
-        	asssets.superoffroadCar.setPosition(carMove.x, carMove.y);
-        	asssets.superoffroadCar.setScale(carScale,carScale);
-        	window.draw(asssets.superoffroadCar);
-        	
-        	
+
+            //music.play();
+
+            window.draw(asssets.backgroundMainScreen);
+
+            asssets.superoffroadText.setScale(textScale, textScale);
+            window.draw(asssets.superoffroadText);
+
+            asssets.superoffroadCar.setPosition(carMove.x, carMove.y);
+            asssets.superoffroadCar.setScale(carScale, carScale);
+            window.draw(asssets.superoffroadCar);
+
             sf::Text enterText = sf::Text();
             enterText.setString("Insert COIN (or press enter)");
             enterText.setFont(font);
@@ -1586,46 +1541,51 @@ int main() {
             enterText.setPosition(WINDOW_WIDTH / 2 - enterText.getLocalBounds().width / 2, WINDOW_HEIGHT * 7 / 8 - enterText.getLocalBounds().height / 2);
 
             window.draw(enterText);
-            
-        } 
-        //Si on est dans la partie ou sur le décopte
-		 if (idCurrentWindow == 1 || idCurrentWindow == 3) {
+
+        }
+        //AFFICHAGE DU FOND DE LA PARTIE//
+        if (idCurrentWindow == 1 || idCurrentWindow == 3) {
+            if (colision && idCurrentWindow!=3)
+            {
+                sf::Sound sound;
+                sound.setBuffer(colisionBuffer);
+                sound.play();
+                //cout<<"allo"<<endl;
+            }
 
             window.draw(asssets.backgroundLevelScreen);
-            
-            for (int j = 0; j < level.spawnPosNitro.size(); j++) {
-            	                if (level.spawnPosNitro[j].present) {
-            	                    asssets.nitro.setPosition(level.spawnPosNitro[j].pos.x, level.spawnPosNitro[j].pos.y);
-            	                    window.draw(asssets.nitro);
-            	                }
-            	            }
 
-		 
-		 
-			if (DEBUG){
-	            sf::RectangleShape mudShape;
-	            sf::CircleShape nitroShape;
-	
-	            for (int j = 0; j < level.muds.size(); ++j) {
-	                mudShape.setSize(sf::Vector2f(level.muds[j].rayon * 2, level.muds[j].rayon * 2));
-	                mudShape.setPosition(level.muds[j].pos.x, level.muds[j].pos.y);
-	                mudShape.setOrigin(level.muds[j].rayon, level.muds[j].rayon);
-	                mudShape.setFillColor(sf::Color::Green);
-	                window.draw(mudShape);
-	            }
-	            for (int j = 0; j < level.spawnPosNitro.size(); j++) {
-	                if (level.spawnPosNitro[j].present) {
-	                    nitroShape.setRadius(10);
-	                    nitroShape.setPosition(level.spawnPosNitro[j].pos.x, level.spawnPosNitro[j].pos.y);
-	                    nitroShape.setOrigin(level.spawnPosNitro[j].rayon, level.spawnPosNitro[j].rayon);
-	                    nitroShape.setFillColor(sf::Color::Green);
-	                    window.draw(nitroShape);
-	                }
-	            }
-			}
-			
-			sf::RectangleShape carShape(sf::Vector2f(CAR_LONGUEUR, CAR_HAUTEUR));
-			
+            for (int j = 0; j < level.spawnPosNitro.size(); j++) {
+                if (level.spawnPosNitro[j].present) {
+                    asssets.nitro.setPosition(level.spawnPosNitro[j].pos.x, level.spawnPosNitro[j].pos.y);
+                    window.draw(asssets.nitro);
+                }
+            }
+
+            if (DEBUG) {
+                sf::RectangleShape mudShape;
+                sf::CircleShape nitroShape;
+
+                for (int j = 0; j < level.muds.size(); ++j) {
+                    mudShape.setSize(sf::Vector2f(level.muds[j].rayon * 2, level.muds[j].rayon * 2));
+                    mudShape.setPosition(level.muds[j].pos.x, level.muds[j].pos.y);
+                    mudShape.setOrigin(level.muds[j].rayon, level.muds[j].rayon);
+                    mudShape.setFillColor(sf::Color::Green);
+                    window.draw(mudShape);
+                }
+                for (int j = 0; j < level.spawnPosNitro.size(); j++) {
+                    if (level.spawnPosNitro[j].present) {
+                        nitroShape.setRadius(10);
+                        nitroShape.setPosition(level.spawnPosNitro[j].pos.x, level.spawnPosNitro[j].pos.y);
+                        nitroShape.setOrigin(level.spawnPosNitro[j].rayon, level.spawnPosNitro[j].rayon);
+                        nitroShape.setFillColor(sf::Color::Green);
+                        window.draw(nitroShape);
+                    }
+                }
+            }
+
+            sf::RectangleShape carShape(sf::Vector2f(CAR_LONGUEUR, CAR_HAUTEUR));
+
             for (int j = 0; j < Enemies.size(); j++) {
                 Car * enemie = Enemies[j];
                 carShape.setPosition(enemie -> pos.x, enemie -> pos.y);
@@ -1641,141 +1601,142 @@ int main() {
             carShape.setFillColor(playerCar.color);
 
             window.draw(carShape);
-            
-            if (DEBUG){
-            	sf::CircleShape nitroShape;
-	            std::vector < sf::RectangleShape > listWallPrint;
-	            sf::RectangleShape wallShape;
-	            sf::VertexArray lines(sf::LineStrip, level.walls.size() + 1);
-	            for (int i = 0; i < level.walls.size(); ++i) {
-	                lines[i].position = sf::Vector2f(level.walls[i].hitbox.corner1.x, level.walls[i].hitbox.corner1.y);
-	                lines[i].color = sf::Color::Red;
-	            }
-	            lines[level.walls.size()].position = sf::Vector2f(level.walls[0].hitbox.corner1.x, level.walls[0].hitbox.corner1.y);
-	            lines[level.walls.size()].color = sf::Color::Red;
-	            window.draw(lines);
-	            
-	            for (int i=0; i<level.botLine.size();i++){
-	            	nitroShape.setRadius(2);
-	            	                    nitroShape.setPosition(level.botLine[i].x, level.botLine[i].y);
-	            	                    nitroShape.setOrigin(1, 1);
-	            	                    nitroShape.setFillColor(sf::Color::White);
-	            	                    window.draw(nitroShape);
-	            }
+
+            if (DEBUG) {
+                sf::CircleShape nitroShape;
+                std::vector < sf::RectangleShape > listWallPrint;
+                sf::RectangleShape wallShape;
+                sf::VertexArray lines(sf::LineStrip, level.walls.size() + 1);
+                for (int i = 0; i < level.walls.size(); ++i) {
+                    lines[i].position = sf::Vector2f(level.walls[i].hitbox.corner1.x, level.walls[i].hitbox.corner1.y);
+                    lines[i].color = sf::Color::Red;
+                }
+                lines[level.walls.size()].position = sf::Vector2f(level.walls[0].hitbox.corner1.x, level.walls[0].hitbox.corner1.y);
+                lines[level.walls.size()].color = sf::Color::Red;
+                window.draw(lines);
+
+                for (int i = 0; i < level.botLine.size(); i++) {
+                    nitroShape.setRadius(2);
+                    nitroShape.setPosition(level.botLine[i].x, level.botLine[i].y);
+                    nitroShape.setOrigin(1, 1);
+                    nitroShape.setFillColor(sf::Color::White);
+                    window.draw(nitroShape);
+                }
+
+                sf::VertexArray speed(sf::LineStrip, 2);
+                speed[0].position = sf::Vector2f(playerCar.pos.x,playerCar.pos.y);
+                speed[1].position = sf::Vector2f(playerCar.pos.x + playerCar.speed.x + playerCar.speedColision.x,playerCar.pos.y + playerCar.speed.y + playerCar.speedColision.y);
+                speed[0].color = sf::Color::White;
+                speed[1].color = sf::Color::White;
+
+                window.draw(speed);
+
+
+
             }
 
-            sf::Vector2f positionLaps(level.scorePos.x + (-24 *2), level.scorePos.y + (-9 * 2));
-            sf::Vector2f positionNitro(level.scorePos.x + (-34 * 2), level.scorePos.y + (10 *2));
-            
-            asssets.score.setPosition(level.scorePos.x,level.scorePos.y);
+            sf::Vector2f positionLaps(level.scorePos.x + (-24 * 2), level.scorePos.y + (-9 * 2));
+            sf::Vector2f positionNitro(level.scorePos.x + (-34 * 2), level.scorePos.y + (10 * 2));
+
+            asssets.score.setPosition(level.scorePos.x, level.scorePos.y);
             window.draw(asssets.score);
 
             sf::RectangleShape infoLapShape(sf::Vector2f(13 * 2, 18 * 2));
             sf::RectangleShape infoNitroShape(sf::Vector2f(26 * 2, 18 * 2));
-            
-            
-            
-            
+
             infoLapShape.setPosition(positionLaps.x, positionLaps.y);
             infoLapShape.setFillColor(playerCar.color);
             window.draw(infoLapShape);
-            
+
             infoNitroShape.setPosition(positionNitro.x, positionNitro.y);
             infoNitroShape.setFillColor(playerCar.color);
             window.draw(infoNitroShape);
-            
-            
+
             sf::Text tourCountText = sf::Text();
             sf::Text horloge = sf::Text();
             horloge.setFont(font);
             horloge.setCharacterSize(50);
-            
+
             std::string horlogeText;
-			
-            if (idCurrentWindow == 1){
-            	horlogeText = std::to_string(Math::arrondir(timer, 0.1));
-		    	horlogeText = horlogeText.substr(0, horlogeText.find(".")+2);
+
+            if (idCurrentWindow == 1) {
+                horlogeText = std::to_string(Math::arrondir(timer, 0.1));
+                horlogeText = horlogeText.substr(0, horlogeText.find(".") + 2);
+            } else {
+                horlogeText = "0.0";
             }
-            else {
-            	horlogeText = "0.0";
-            }
-            
-            
+
             horloge.setString(horlogeText);
             horloge.setFillColor(sf::Color::Black);
-            horloge.setPosition(level.scorePos.x +(-2 * 2) - horloge.getLocalBounds().width / 2, level.scorePos.y + (-28 * 2) - horloge.getLocalBounds().height / 2 + (-2*2));
-            
+            horloge.setPosition(level.scorePos.x + (-2 * 2) - horloge.getLocalBounds().width / 2, level.scorePos.y + (-28 * 2) - horloge.getLocalBounds().height / 2 + (-2 * 2));
+
             tourCountText.setFont(font);
             tourCountText.setCharacterSize(60);
-            
+
             sf::Text nitroCountText = sf::Text();
-            
+
             nitroCountText.setFont(font);
             nitroCountText.setCharacterSize(60);
-            
 
             tourCountText.setString(std::to_string(playerCar.laps));
 
-            if (playerCar.nbNitro < 10){
-                            	nitroCountText.setString("0" + std::to_string(playerCar.nbNitro));
-                            }
-                            else {
-                            	nitroCountText.setString(std::to_string(playerCar.nbNitro));
-                            }
-            
+            if (playerCar.nbNitro < 10) {
+                nitroCountText.setString("0" + std::to_string(playerCar.nbNitro));
+            } else {
+                nitroCountText.setString(std::to_string(playerCar.nbNitro));
+            }
+
             tourCountText.setFillColor(sf::Color::Black);
             nitroCountText.setFillColor(sf::Color::Black);
-            
-            tourCountText.setPosition(positionLaps.x, positionLaps.y - tourCountText.getLocalBounds().height / 2 - (4*2));
-            nitroCountText.setPosition(positionNitro.x, positionNitro.y - nitroCountText.getLocalBounds().height / 2 - (4*2));
-            
+
+            tourCountText.setPosition(positionLaps.x, positionLaps.y - tourCountText.getLocalBounds().height / 2 - (4 * 2));
+            nitroCountText.setPosition(positionNitro.x, positionNitro.y - nitroCountText.getLocalBounds().height / 2 - (4 * 2));
+
             window.draw(tourCountText);
             window.draw(nitroCountText);
             window.draw(horloge);
-            
+
             for (int i = 0; i < Enemies.size(); i++) {
                 Car * enemie = Enemies[i];
                 sf::Text tourCountText = sf::Text();
-            
+
                 tourCountText.setFont(font);
                 tourCountText.setCharacterSize(60);
-            
+
                 sf::Text nitroCountText = sf::Text();
-            
+
                 nitroCountText.setFont(font);
                 nitroCountText.setCharacterSize(60);
-            
+
                 tourCountText.setString(std::to_string(enemie -> laps));
-                
-                if (enemie -> nbNitro < 10){
-                	nitroCountText.setString("0" + std::to_string(enemie -> nbNitro));
+
+                if (enemie -> nbNitro < 10) {
+                    nitroCountText.setString("0" + std::to_string(enemie -> nbNitro));
+                } else {
+                    nitroCountText.setString(std::to_string(enemie -> nbNitro));
                 }
-                else {
-                	nitroCountText.setString(std::to_string(enemie -> nbNitro));
-                }
-            
+
                 tourCountText.setFillColor(sf::Color::Black);
                 nitroCountText.setFillColor(sf::Color::Black);
-            
-                tourCountText.setPosition(positionLaps.x + (13 * 2 + 15 * 2) * (i + 1), positionLaps.y - tourCountText.getLocalBounds().height / 2 - (4*2));
-                nitroCountText.setPosition(positionNitro.x + (26 * 2 + 2 * 2) * (i + 1), positionNitro.y - nitroCountText.getLocalBounds().height / 2 - (4*2));
-            
-                
+
+                tourCountText.setPosition(positionLaps.x + (13 * 2 + 15 * 2) * (i + 1), positionLaps.y - tourCountText.getLocalBounds().height / 2 - (4 * 2));
+                nitroCountText.setPosition(positionNitro.x + (26 * 2 + 2 * 2) * (i + 1), positionNitro.y - nitroCountText.getLocalBounds().height / 2 - (4 * 2));
+
                 infoLapShape.setPosition(positionLaps.x + (13 * 2 + 15 * 2) * (i + 1), positionLaps.y);
                 infoLapShape.setFillColor(enemie -> color);
                 window.draw(infoLapShape);
-                            
+
                 infoNitroShape.setPosition(positionNitro.x + (26 * 2 + 2 * 2) * (i + 1), positionNitro.y);
                 infoNitroShape.setFillColor(enemie -> color);
                 window.draw(infoNitroShape);
-                            
+
                 window.draw(tourCountText);
                 window.draw(nitroCountText);
             }
 
-        } 
-	if (idCurrentWindow == 2) {
-
+        }
+        //AFFICHAGE DES SCORE//
+        if (idCurrentWindow == 2) {
             int posXaffichage = 400;
             int posYaffichage = 100;
 
@@ -1839,8 +1800,9 @@ int main() {
             }
             window.draw(resultText);
 
-        } 
-		if (idCurrentWindow == 3) {
+        }
+        //AFFICHAGE DU DECOMPTE
+        if (idCurrentWindow == 3) {
 
             std::string countdown;
             if (timer < 1.0) {
@@ -1867,19 +1829,18 @@ int main() {
             window.draw(countdownText);
 
         }
-
         window.display();
 
         sf::sleep(sf::seconds((1.0 / MAX_FPS) - clock.getElapsedTime().asSeconds()));
         //std::cout << framerate << std::endl;
 
     }
-    
-	#ifdef __linux__ 
+
+    #ifdef __linux__
     system("for KILLPID in `ps ax | grep ./h-linux | awk ' { print $1;}'`; do    kill $KILLPID; done");
-#elif _WIN32
+    #elif _WIN32
     system("ps -W | awk '/h-windos.exe/,NF=1' | xargs kill -f");
-	#endif
-    
+    #endif
+
     return 0;
 }
