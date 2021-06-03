@@ -40,7 +40,7 @@
 using namespace std;
 using namespace sf;
 
-const bool DEBUG = false;
+const bool DEBUG = true;
 
 /*
  * Ce morceau de code pour permet de tirer un nombre flottant au hasard
@@ -2487,17 +2487,17 @@ int main() {
 
       if (DEBUG) {
     	  sf::CircleShape nitroShape;
-    	                  std::vector < sf::RectangleShape > listWallPrint;
-    	                  sf::RectangleShape wallShape;
-    	                  sf::VertexArray lines(sf::LineStrip, level.walls.size() + 1);
+    	                  
+    	                  sf::Vertex line[2];
+    	                  
     	                  for (int i = 0; i < level.walls.size(); ++i) {
-    	                      lines[i].position = sf::Vector2f(level.walls[i].hitbox.corner1.x, level.walls[i].hitbox.corner1.y);
-    	                      lines[i].color = sf::Color::Red;
+    	                	  line[0] = sf::Vertex(sf::Vector2f(level.walls[i].hitbox.corner1.x, level.walls[i].hitbox.corner1.y));
+    	                	  line[1] = sf::Vertex(sf::Vector2f(level.walls[i].hitbox.corner2.x, level.walls[i].hitbox.corner2.y));
+        	                  window.draw(line, 2, sf::Lines);
     	                  }
-    	                  lines[level.walls.size()].position = sf::Vector2f(level.walls[0].hitbox.corner1.x, level.walls[0].hitbox.corner1.y);
-    	                  lines[level.walls.size()].color = sf::Color::Red;
-    	                  window.draw(lines);
 
+    	                  
+    	                  
     	                  for (int i = 0; i < level.botLine.size(); i++) {
     	                      nitroShape.setRadius(2);
     	                      nitroShape.setPosition(level.botLine[i].x, level.botLine[i].y);
