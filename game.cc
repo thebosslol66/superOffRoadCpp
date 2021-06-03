@@ -146,6 +146,7 @@ struct Ground {
   std::vector < Mud > muds;
   std::vector < Flag > flags;
   std::vector < Position > botLine;
+  std::Vector < Bonus > spawnPosMoney;
   Position spawnPos[4];
   sf::Vector2f scorePos;
 };
@@ -755,6 +756,7 @@ void makeLevel(Ground & level, std::string src) {
   level.spawnPosNitro.clear();
   level.flags.clear();
   level.botLine.clear();
+  level.spawnPosMoney.clear();
   if (levelData) {
 
     for (int i = 0; i < 4; i++) {
@@ -767,6 +769,7 @@ void makeLevel(Ground & level, std::string src) {
 
     std::regex wallPattern("\\(([0-9]+),([0-9]+)\\)-([0-9]+)-\\(([0-9]+),([0-9]+)\\)");
     std::regex nitroPattern("\\(([0-9]+),([0-9]+)\\)");
+    std::regex moneyPattern("\\(([0-9]+),([0-9]+)\\)");
     std::regex mudPattern("\\(([0-9]+),([0-9]+),([0-9]+)\\)");
     std::regex flagPattern("\\(([0-9]+),([0-9]+)\\)-([0-9]+)-\\(([0-9]+),([0-9]+)\\)");
     std::regex botPattern("\\(([0-9]+),([0-9]+)\\)");
@@ -803,6 +806,19 @@ void makeLevel(Ground & level, std::string src) {
           nitro.rayon = 10;
           nitro.present = false;
           level.spawnPosNitro.push_back(nitro);
+          line = line.substr(line.find(')') + 1);
+        }
+      }
+
+      if (token == "Money") {
+        line = line.substr(line.find(delimiter) + 2);
+        while (std::regex_search(line, m, moneyPattern)) {
+          Bonus money;
+          money.pos.x = std::stoi(m[1]);
+          money.pos.y = std::stoi(m[2]);
+          money.rayon = 10;
+          money.present = false;
+          level.spawnPosMoney.push_back(nitro);
           line = line.substr(line.find(')') + 1);
         }
       }
@@ -1083,6 +1099,8 @@ int main() {
   font.loadFromFile("PixelOperator.ttf");
 
   const int NITRO_SPAWN_TIME = 1000;
+    const int MONEY_SPAWN_TIME = 6000;
+
   bool up, down, left, right, nitro, enter;
   up = down = left = right = nitro = enter = false;
 
@@ -1115,7 +1133,7 @@ int main() {
 
   const int NB_LAPS_FIN = 4;
   
-  int idLevel = 2;
+  int idLevel = 4;
 
 
   std::string levelDifficult[8][3];
@@ -1356,6 +1374,8 @@ int main() {
   float timer = 0;
   int nbFlag;
   int countNitro = 0;
+    int countMoney = 0;
+
   int score = 1;
 
   if (DEBUG) {
@@ -1707,6 +1727,15 @@ int main() {
           }
         }
       }
+      //colision joueur Money
+      for (int i = 0; i < level.spawnPosMoney.size(); i++) {
+        if (isCollision(playerCar, level.spawnPosMoney[i], CAR_HAUTEUR / 2)) {
+          if (level.spawnPosMoney[i].present) {
+            //Alphee met qu'on gagne de la moula
+            level.spawnPosNitro[i].present = false;
+          }
+        }
+      }
 
       //Colision joueur bot 
       for (int j = 0; j < Enemies.size(); j++) {
@@ -1727,6 +1756,12 @@ int main() {
       if (countNitro == NITRO_SPAWN_TIME) {
         generateNitro(level.spawnPosNitro);
         countNitro = 0;
+      }
+      //GENERATION DE LA MONEY
+      if (countMoney == MONEY_SPAWN_TIME)
+      {
+          generateNitro(level.spawnPosMoney)
+          countMoney = 0;
       }
 
       playerCar.malusBonusSpeed = 1;
@@ -1948,6 +1983,16 @@ int main() {
               level.spawnPosNitro[i].present = false;
             }
           }
+        }
+
+
+        for (int i = 0; i < level.spawnPosMoney.size(); i++) {
+            if (isCollision( * enemie, level.spawnPosMoney[i], CAR_HAUTEUR / 2)) {
+                if (level.spawnPosMoney[i].present) {
+                //Alphee met qu'on gagne de la moula
+                level.spawnPosNitro[i].present = false;
+                }
+            }
         }
 
         //for (int k = 0; k < Enemies.size(); k++) {
