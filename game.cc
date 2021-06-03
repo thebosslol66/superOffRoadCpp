@@ -40,7 +40,7 @@
 using namespace std;
 using namespace sf;
 
-const bool DEBUG = true;
+const bool DEBUG = false;
 
 /*
  * Ce morceau de code pour permet de tirer un nombre flottant au hasard
@@ -178,6 +178,8 @@ struct Assets {
   sf::Sprite nitro;
   sf::Texture scoreTexture;
   sf::Sprite score;
+  sf::Texture moneyTexture;
+  sf::Sprite money;
 
   //fin course
   sf::Texture backgroundEndRunTexture;
@@ -237,6 +239,10 @@ struct Assets {
   sf::Music goalScreenmusic;
   sf::Music celebrationScreenmusic;
   sf::Music gameoverScreenmusic;
+  sf::Music fandango;
+  sf::Music sidewinder;
+  sf::Music blaster;
+  sf::Music bigDuke;
 
   //Voiture
   sf::Texture carTexture;
@@ -698,6 +704,24 @@ sf::Vector2f calculateProjection(sf::Vector2f vectorToProject, sf::Vector2f vect
   return projection;
 }
 
+Speed calculateProjectionOfSpeed(Speed vectorToProject, sf::Vector2f vectorBase) {
+  if ((vectorToProject.x == 0 && vectorToProject.y == 0) || (vectorBase.x == 0 && vectorBase.y == 0)) {
+    Speed projection;
+    projection.x = 0;
+    projection.y = 0;
+    return projection;
+  }
+  float alpha = atan(vectorToProject.y / vectorToProject.x);
+  float beta = atan(vectorBase.y / vectorBase.x);
+  float theta = beta - alpha;
+  float produitScalaire = calculateNorme(vectorToProject.x, vectorToProject.y) * calculateNorme(vectorBase.x, vectorBase.y) * cos(theta);
+  Speed projection;
+  projection.x = produitScalaire / (calculateNorme(vectorBase.x, vectorBase.y) * calculateNorme(vectorBase.x, vectorBase.y)) * vectorBase.x;
+  projection.y = produitScalaire / (calculateNorme(vectorBase.x, vectorBase.y) * calculateNorme(vectorBase.x, vectorBase.y)) * vectorBase.y;
+  return projection;
+}
+
+
 void reset(Car & car, Ground & level) {
   car.state = 1;
   car.pos = level.spawnPos[car.startPosition];
@@ -824,7 +848,7 @@ void makeLevel(Ground & level, std::string src) {
           Bonus money;
           money.pos.x = std::stoi(m[1]);
           money.pos.y = std::stoi(m[2]);
-          money.rayon = 10;
+          money.rayon = 8;
           money.present = false;
           level.spawnPosMoney.push_back(money);
           line = line.substr(line.find(')') + 1);
@@ -1090,6 +1114,11 @@ void stopAllMusic(Assets &assets){
 	assets.goalScreenmusic.stop();
 	assets.celebrationScreenmusic.stop();
 	assets.gameoverScreenmusic.stop();
+    assets.fandango.stop();
+    assets.sidewinder.stop();
+    assets.blaster.stop();
+    assets.bigDuke.stop();
+    
 }
 
 void muteAllMusic(Assets &assets){
@@ -1100,6 +1129,10 @@ void muteAllMusic(Assets &assets){
 	assets.goalScreenmusic.setVolume(0);
 	assets.celebrationScreenmusic.setVolume(0);
 	assets.gameoverScreenmusic.setVolume(0);
+    assets.fandango.setVolume(0);
+    assets.sidewinder.setVolume(0);
+    assets.blaster.setVolume(0);
+    assets.bigDuke.setVolume(0);
 }
 
 void writeHightScore(sf::String name, int score, std::string src){
@@ -1172,7 +1205,7 @@ int main() {
   std::string LEADERBOARD_FILE = "leaderboard.txt";
 
   const int NITRO_SPAWN_TIME = 1000;
-    const int MONEY_SPAWN_TIME = 6000;
+    const int MONEY_SPAWN_TIME = 500;
 
   bool up, down, left, right, nitro, enter;
   up = down = left = right = nitro = enter = false;
@@ -1308,7 +1341,6 @@ int main() {
   //*************************************IMPORTATION DES DONNER DU TERRAIN********************//
   
   Ground level;
-  Ground levelEmpty;
 
   makeLevel(level, levelFile+ to_string((idLevel-1)%4+1) + ".txt");
   loadFromFile(assets.backgroundLevelScreenTexture, assets.backgroundLevelScreen, levelFile+to_string((idLevel-1)%4+1) + ".png");
@@ -1385,6 +1417,7 @@ int main() {
   loadFromFile(assets.noUpgrade2Texture, assets.noUpgrade2, "assets/noUpgrade2.png");
   loadFromFile(assets.showUpgradeTexture, assets.showUpgrade, "assets/showUpgrade.png");
   loadFromFile(assets.carTexture, assets.carSprite, "assets/voiture.png");
+  loadFromFile(assets.moneyTexture, assets.money, "assets/money.png");
   
   
   
@@ -1399,9 +1432,16 @@ int main() {
 
   loadTextFromFile(allText, "gameText.txt");
 
-  
   loadMusicFromFile(assets.titleScreenmusic, "sound/01 Title Demo.flac");
   assets.titleScreenmusic.setLoop(true);
+  loadMusicFromFile(assets.fandango, "sound/05 Fandango.flac");
+  assets.fandango.setLoop(true);
+  loadMusicFromFile(assets.sidewinder, "sound/07 Sidewinder.flac");
+  assets.sidewinder.setLoop(true);
+  loadMusicFromFile(assets.blaster, "sound/12 Blaster.flac");
+  assets.blaster.setLoop(true);
+  loadMusicFromFile(assets.bigDuke, "sound/08 Big Dukes.flac");
+  assets.bigDuke.setLoop(true);
   loadMusicFromFile(assets.nameScreenmusic, "sound/02 Name Screen.flac");
   assets.nameScreenmusic.setLoop(true);
   loadMusicFromFile(assets.setupScreenmusic, "sound/03 Set Up.flac");
@@ -1411,7 +1451,7 @@ int main() {
   loadMusicFromFile(assets.celebrationScreenmusic, "sound/14 Celebration.flac");
   loadMusicFromFile(assets.gameoverScreenmusic, "sound/15 Game Over.flac");
   
-  muteAllMusic(assets);
+  //muteAllMusic(assets);
   
   
   loadLeaderBoard(leaderboard, LEADERBOARD_FILE);
@@ -1804,10 +1844,16 @@ int main() {
       for (int j = 0; j < Enemies.size(); j++) {
           Car * enemie2 = Enemies[j];
           if (isCollision(playerCar, enemie2 -> pos, CAR_HAUTEUR*1.1)) {
-              playerCar.speedColision.x = calculateProjectionUnit(playerCar.pos, enemie2 -> pos).x*(playerCar.speed.x + enemie2 -> speed.x)*1;
-              playerCar.speedColision.y = calculateProjectionUnit(playerCar.pos, enemie2 -> pos).y*(playerCar.speed.y + enemie2 -> speed.y)*1;
-              enemie2 -> speedColision.x = calculateProjectionUnit(enemie2 -> pos, playerCar.pos).x*(enemie2 -> speed.x + playerCar.speed.x)*1;
-              enemie2 -> speedColision.y = calculateProjectionUnit(enemie2 -> pos, playerCar.pos).y*(enemie2 -> speed.y + playerCar.speed.y)*1;
+            Speed tempSpeed = calculateProjectionOfSpeed(playerCar.speed, sf::Vector2f(enemie2 -> pos.x - playerCar.pos.x, enemie2 -> pos.y - playerCar.pos.y));
+            if (calculateNorme(tempSpeed.x,tempSpeed.y) <=20 && calculateNorme(tempSpeed.x,tempSpeed.y != 0))
+            {
+                tempSpeed.x = 20;
+                tempSpeed.y = 20; 
+            }
+            playerCar.speedColision.x -= 1.05 * (tempSpeed.x*(enemie2 -> pos.x - playerCar.pos.x)*dt);
+            playerCar.speedColision.y -= 1.05 * (tempSpeed.x*(enemie2 -> pos.y - playerCar.pos.y)*dt);
+            enemie2 -> speedColision.x += 1.00 * (tempSpeed.x*(enemie2 -> pos.x - playerCar.pos.x)*dt);
+            enemie2 -> speedColision.y += 1.00 * (tempSpeed.x*(enemie2 -> pos.y - playerCar.pos.y)*dt);
           }
       }
 
@@ -1821,10 +1867,16 @@ int main() {
         countNitro = 0;
       }
       //GENERATION DE LA MONEY
+      countMoney++;
       if (countMoney == MONEY_SPAWN_TIME)
       {
+<<<<<<< HEAD
+        generateNitro(level.spawnPosMoney);
+        countMoney = 0;
+=======
           generateNitro(level.spawnPosMoney);
           countMoney = 0;
+>>>>>>> 47316e448f2fec4f42b34eb8b33f27a7a66dab84
       }
 
       playerCar.malusBonusSpeed = 1;
@@ -2048,26 +2100,36 @@ int main() {
             }
         }
 
-        //for (int k = 0; k < Enemies.size(); k++) {
-        //                                                                    Car * enemie2 = Enemies[k];
-        //                                                                    if (enemie2 != enemie){
-        //                                                                    if (isCollision(enemie, enemie2 -> pos, CAR_HAUTEUR)) {
-        //                                                                    	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> speed, sf::Vector2f(enemie2 -> pos.x - enemie -> pos.x, enemie2 -> pos.y - enemie -> pos.y));
-        //                                                                    	enemie->collisionSpeed.x -= 1.05 * (tempSpeed.x*(enemie2 -> pos.x - enemie -> pos.x)*dt);
-        //                                                                    	enemie->collisionSpeed.y -= 1.05 * (tempSpeed.x*(enemie2 -> pos.y - enemie -> pos.y)*dt);
-        //                                                                    	enemie2 -> collisionSpeed.x += 1.00 * (tempSpeed.x*(enemie2 -> pos.x - enemie -> pos.x)*dt);
-        //                                                                    	enemie2 -> collisionSpeed.y += 1.00 * (tempSpeed.x*(enemie2 -> pos.y - enemie -> pos.y)*dt);
-        //                                                                    }
-        //                                                                    }
-        //                                                                }
-        //
-        //if (isCollision(playerCar, enemie -> pos, CAR_HAUTEUR)) {
-        //                                                    	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> speed, sf::Vector2f(playerCar.pos.x- enemie -> pos.x , playerCar.pos.y- enemie -> pos.y ));
-        //                                                    	playerCar.collisionSpeed.x -= 1.00 * (tempSpeed.x*(playerCar.pos.x- enemie -> pos.x)*dt);
-        //                                                    	playerCar.collisionSpeed.y -= 1.00 * (tempSpeed.x*(playerCar.pos.y- enemie -> pos.y)*dt);
-        //                                                    	enemie -> collisionSpeed.x += 1.05 * (tempSpeed.x*(playerCar.pos.x- enemie -> pos.x)*dt);
-        //                                                    	enemie -> collisionSpeed.y += 1.05 * (tempSpeed.x*(playerCar.pos.y- enemie -> pos.y)*dt);
-        //                                                    }
+        for (int k = 0; k < Enemies.size(); k++) {
+                                                                           Car * enemie2 = Enemies[k];
+                                                                           if (enemie2 != enemie){
+                                                                           if (isCollision(enemie, enemie2 -> pos, CAR_HAUTEUR)) {
+                                                                           	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> speed, sf::Vector2f(enemie2 -> pos.x - enemie -> pos.x, enemie2 -> pos.y - enemie -> pos.y));
+                                                                            if (calculateNorme(tempSpeed.x,tempSpeed.y) <=20 && calculateNorme(tempSpeed.x,tempSpeed.y != 0))
+                                                                            {
+                                                                                tempSpeed.x = 20;
+                                                                                tempSpeed.y = 20; 
+                                                                            }
+                                                                           	enemie->speedColision.x -= 1.05 * (tempSpeed.x*(enemie2 -> pos.x - enemie -> pos.x)*dt);
+                                                                           	enemie->speedColision.y -= 1.05 * (tempSpeed.x*(enemie2 -> pos.y - enemie -> pos.y)*dt);
+                                                                           	enemie2 -> speedColision.x += 1.00 * (tempSpeed.x*(enemie2 -> pos.x - enemie -> pos.x)*dt);
+                                                                           	enemie2 -> speedColision.y += 1.00 * (tempSpeed.x*(enemie2 -> pos.y - enemie -> pos.y)*dt);
+                                                                           }
+                                                                           }
+                                                                       }
+        
+        if (isCollision(playerCar, enemie -> pos, CAR_HAUTEUR)) {
+                                                           	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> speed, sf::Vector2f(playerCar.pos.x- enemie -> pos.x , playerCar.pos.y- enemie -> pos.y ));
+                                                            if (calculateNorme(tempSpeed.x,tempSpeed.y) <=20 && calculateNorme(tempSpeed.x,tempSpeed.y != 0))
+                                                            {
+                                                                tempSpeed.x = 20;
+                                                                tempSpeed.y = 20; 
+                                                            }
+                                                           	playerCar.speedColision.x -= 1.00 * (tempSpeed.x*(playerCar.pos.x- enemie -> pos.x)*dt);
+                                                           	playerCar.speedColision.y -= 1.00 * (tempSpeed.x*(playerCar.pos.y- enemie -> pos.y)*dt);
+                                                           	enemie -> speedColision.x += 1.05 * (tempSpeed.x*(playerCar.pos.x- enemie -> pos.x)*dt);
+                                                           	enemie -> speedColision.y += 1.05 * (tempSpeed.x*(playerCar.pos.y- enemie -> pos.y)*dt);
+                                                           }
         //
         //On calcule ensuite la nouvelle vitesse de la voiture
         enemie -> speed = calculateSpeed( * enemie, (enemie -> avgSpeed  * enemie -> malusBonusSpeed), enemie -> avgSpeed, enemie -> maxSpeed * 5, true, false, enemie -> lastNitroUsedTime >= 0, dt);
@@ -2457,10 +2519,12 @@ int main() {
     window.clear(Color::White);
 
     if (idCurrentWindow == 0) {
+
+        if (!assets.titleScreenmusic.getStatus()){
+            assets.titleScreenmusic.play();
+        }
     	
-    	if (!assets.titleScreenmusic.getStatus()){
-    		assets.titleScreenmusic.play();
-    	}
+    	
     	
     	
     	if (idMenuScreen == 1){
@@ -2574,10 +2638,32 @@ int main() {
     if (idCurrentWindow == 1 || idCurrentWindow == 3 || idCurrentWindow == 4 || idCurrentWindow == 5) {
 
     	if (idCurrentWindow == 1){
-    	if (!assets.titleScreenmusic.getStatus()){
-    	    		    		assets.titleScreenmusic.play();
-    	    		    	}
-    	}
+            if (idLevel-1%4 == 0){
+                if (!assets.fandango.getStatus())
+                {
+                    assets.fandango.play();
+                }
+            }else if (idLevel-1%4 == 1)
+            {
+                if (!assets.sidewinder.getStatus())
+                {
+                    assets.sidewinder.play();
+                }
+            }else if (idLevel-1%4 == 2)
+            {
+                if (!assets.blaster.getStatus())
+                {
+                    assets.blaster.play();
+                }
+            }else if(idLevel-1%4 == 3)
+            {
+                if (!assets.bigDuke.getStatus())
+                {
+                    assets.bigDuke.play();
+                } 
+            }
+    
+        }
 
     	if (colision && idCurrentWindow==1)
     	            {
@@ -2592,6 +2678,12 @@ int main() {
         if (level.spawnPosNitro[j].present) {
           assets.nitro.setPosition(level.spawnPosNitro[j].pos.x, level.spawnPosNitro[j].pos.y);
           window.draw(assets.nitro);
+        }
+      }
+      for (int j = 0; j < level.spawnPosMoney.size(); j++) {
+        if (level.spawnPosMoney[j].present) {
+          assets.money.setPosition(level.spawnPosMoney[j].pos.x, level.spawnPosMoney[j].pos.y);
+          window.draw(assets.money);
         }
       }
 
