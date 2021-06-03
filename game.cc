@@ -229,6 +229,10 @@ struct Assets {
   sf::Music celebrationScreenmusic;
   sf::Music gameoverScreenmusic;
 
+  //Voiture
+  sf::Texture carTexture;
+  sf::Sprite carSprite;
+
 };
 
 //algo de silvio
@@ -1223,6 +1227,7 @@ int main() {
   
   Ground level;
   Ground levelEmpty;
+
   makeLevel(level, levelFile+ to_string((idLevel-1)%4+1) + ".txt");
   loadFromFile(assets.backgroundLevelScreenTexture, assets.backgroundLevelScreen, levelFile+to_string((idLevel-1)%4+1) + ".png");
   loadFromFile(assets.backgroundMainScreenTexture, assets.backgroundMainScreen, "assets/fond_ecran_principal.png");
@@ -1297,6 +1302,7 @@ int main() {
   loadFromFile(assets.noUpgrade1Texture, assets.noUpgrade1Screen, "assets/noUpgrade1.png");
   loadFromFile(assets.noUpgrade2Texture, assets.noUpgrade2, "assets/noUpgrade2.png");
   loadFromFile(assets.showUpgradeTexture, assets.showUpgrade, "assets/showUpgrade.png");
+  loadFromFile(assets.carTexture, assets.carSprite, "assets/voiture.png");
   
   
   
@@ -2479,23 +2485,22 @@ int main() {
         }
       }
 
-      sf::RectangleShape carShape(sf::Vector2f(CAR_LONGUEUR, CAR_HAUTEUR));
 
       for (int j = 0; j < Enemies.size(); j++) {
         Car * enemie = Enemies[j];
-        carShape.setPosition(enemie -> pos.x, enemie -> pos.y);
-        carShape.setOrigin(CAR_LONGUEUR / 2, CAR_HAUTEUR / 2);
-        carShape.setRotation(180 - (enemie -> direction / 16.0 * 360));
-        carShape.setFillColor(enemie -> color);
-        window.draw(carShape);
+        assets.carSprite.setPosition(enemie -> pos.x, enemie -> pos.y);
+        assets.carSprite.setOrigin(CAR_LONGUEUR / 2, CAR_HAUTEUR / 2);
+        assets.carSprite.setRotation(180 - (enemie -> direction / 16.0 * 360));
+        assets.carSprite.setColor(enemie -> color);
+        window.draw(assets.carSprite);
       }
 
-      carShape.setPosition(playerCar.pos.x, playerCar.pos.y);
-      carShape.setOrigin(CAR_LONGUEUR / 2, CAR_HAUTEUR / 2);
-      carShape.setRotation(180 - (playerCar.direction / 16.0 * 360));
-      carShape.setFillColor(playerCar.color);
+      assets.carSprite.setPosition(playerCar.pos.x, playerCar.pos.y);
+      assets.carSprite.setOrigin(CAR_LONGUEUR / 2, CAR_HAUTEUR / 2);
+      assets.carSprite.setRotation(180 - (playerCar.direction / 16.0 * 360));
+      assets.carSprite.setColor(playerCar.color);
 
-      window.draw(carShape);
+      window.draw(assets.carSprite);
 
       if (DEBUG) {
     	  sf::CircleShape nitroShape;
