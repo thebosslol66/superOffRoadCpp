@@ -116,6 +116,9 @@ struct Car {
   int startPosition = 0;
   float timeBlocked = 0;
   
+  int monney = 0;
+  int monneyWinThisRun = 0;
+  
   float botChanceNitro = 0;
   float chanceToGetPowerUp = 0;
   
@@ -2022,6 +2025,7 @@ int main() {
 
         for (int i = 0; i < 4; i++) {
           tri[i] -> startPosition = i;
+          tri[i] -> monney += (3-i)*50;
         }
         //On arrete toutes les musiques
               stopAllMusic(assets);
@@ -2051,6 +2055,10 @@ int main() {
 		//Pour eviter les bugs et sauter des niveaux
     	  if (makeAnnimation){
         idLevel++;
+        
+        //ajout de l'argent de la course au portefeuille du joueur
+        playerCar.monney += playerCar.monneyWinThisRun;
+        playerCar.monneyWinThisRun = 0;
         
         //Regeneration du terrain
                 makeLevel(level, levelFile+ to_string((idLevel-1)%4+1) + ".txt");
@@ -2091,6 +2099,7 @@ int main() {
             clignotementTexteMenu = false;
             defeat = false;
             playerName.clear();
+            car.monney = 0;
             
             //reset des positions de départ
             playerCar.startPosition = 0;
@@ -2293,21 +2302,26 @@ int main() {
     	
     	if (enter1Pressure) {
     		//verifier a chaque fois si il a l'argent
-    		if (idSelectionUpgradePlayer1==0 && playerCar.nbNitro <= MAX_NITRO*5/6){
+    		if (idSelectionUpgradePlayer1==0 && playerCar.nbNitro <= MAX_NITRO*5/6 && monney >= 10){
     			playerCar.nbNitro += (int)MAX_NITRO/6;
+    			monney -= 10;
     		}
-    		if (idSelectionUpgradePlayer1==1 && playerCar.levelAcceleration < 6){
+    		if (idSelectionUpgradePlayer1==1 && playerCar.levelAcceleration < 6 && monney >= 80){
     			playerCar.levelAcceleration++;
+    			monney -= 80;
     		    		}
-    		if (idSelectionUpgradePlayer1==2 && playerCar.levelTires < 6){
+    		if (idSelectionUpgradePlayer1==2 && playerCar.levelTires < 6 && monney >= 40){
     			playerCar.levelTires++;
+    			monney -= 40;
     		    		    		}
-    		if (idSelectionUpgradePlayer1==3 && playerCar.levelMaxSpeed < 6){
+    		if (idSelectionUpgradePlayer1==3 && playerCar.levelMaxSpeed < 6 && monney >= 100){
     			playerCar.levelMaxSpeed++;
+    			monney -= 100;
     		    		    		}
-    		if (idSelectionUpgradePlayer1==4 && playerCar.levelShocks < 6){
+    		if (idSelectionUpgradePlayer1==4 && playerCar.levelShocks < 6 && monney >= 60){
     			playerCar.levelShocks++;
-    		    		    		}
+    			monney -= 60;
+    		    }
     		if (!hasTwoPlayer && idSelectionUpgradePlayer1 == 5)
     	        	    	  nextScreen = 4;
     		
