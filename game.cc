@@ -1119,7 +1119,6 @@ void writeHightScore(sf::String name, int score, std::string src){
 	ofstream leaderboardFile(src);
 	
 	for (int i = 1; i <= leaderboard.size() && i < 11; i++){
-		cout << leaderboard[i][0].toAnsiString() << endl;
 		leaderboardFile << leaderboard[i][0].toAnsiString() << "+" << leaderboard[i][1].toAnsiString();
 		if (i < leaderboard.size() && i < 10){
 			leaderboardFile << endl;
@@ -2630,7 +2629,10 @@ int main() {
 
       assets.carSprite.setPosition(playerCar.pos.x, playerCar.pos.y);
       assets.carSprite.setOrigin(CAR_LONGUEUR / 2, CAR_HAUTEUR / 2);
+      
       assets.carSprite.setRotation(180 - (playerCar.direction / 16.0 * 360));
+      
+      
       assets.carSprite.setColor(playerCar.color);
 
       window.draw(assets.carSprite);
