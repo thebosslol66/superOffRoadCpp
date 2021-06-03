@@ -116,6 +116,9 @@ struct Car {
   int startPosition = 0;
   float timeBlocked = 0;
   
+  float botChanceNitro = 0;
+  float chanceToGetPowerUp = 0;
+  
   //Upgrades
   int levelTires = 0;
   int levelShocks = 0;
@@ -123,8 +126,8 @@ struct Car {
   int levelMaxSpeed = 0;
   
   
-  int avgSpeed = 40;
-  int maxSpeed = 40;
+  float avgSpeed = 40;
+  float maxSpeed = 40;
   float tires = 0.12;
 };
 
@@ -725,8 +728,8 @@ void setUpgradePlayer(Car & car) {
 	int baseAvgSpeed = 40;
 	int baseMaxSpeed = 40;
 	
-	car.avgSpeed = baseAvgSpeed + 3 * car.levelAcceleration;
-	car.maxSpeed = baseMaxSpeed + 3 * car.levelMaxSpeed;
+	car.avgSpeed = baseAvgSpeed + 2.5 * car.levelAcceleration;
+	car.maxSpeed = baseMaxSpeed + 2.5 * car.levelMaxSpeed;
 	car.tires = baseTires - 0.01 * car.levelTires;
 	
 	//Set for shock
@@ -736,8 +739,8 @@ void setUpgradeBot(Car * car) {
 		int baseAvgSpeed = 40;
 		int baseMaxSpeed = 40;
 		
-		car-> avgSpeed = baseAvgSpeed + 3 * car -> levelAcceleration;
-		car-> maxSpeed = baseMaxSpeed + 3 * car -> levelMaxSpeed;
+		car-> avgSpeed = baseAvgSpeed + 2.5 * car -> levelAcceleration;
+		car-> maxSpeed = baseMaxSpeed + 2.5 * car -> levelMaxSpeed;
 		car-> tires = baseTires - 0.01 * car -> levelTires;
 }
 
@@ -973,6 +976,47 @@ void loadLeaderBoard(std::map<int, sf::String[2]> &leaderboard, std::string src)
 	
 }
 
+void setBotLevelFromType(Car * car){
+	if (car -> botType == "master") {
+				car -> botChanceNitro = 0.0009;
+	          	car -> chanceToGetPowerUp = 0.9;
+		          car -> levelTires = 5;
+		          car -> levelShocks = 4;
+		          car -> levelAcceleration = 6;
+		          car -> levelMaxSpeed = 7;
+	        } else if (car -> botType == "hard") {
+	          car -> botChanceNitro = 0.005;
+	          car -> chanceToGetPowerUp = 0.7;
+	          car -> levelTires = 4;
+	          car -> levelShocks = 2;
+	          car -> levelAcceleration = 5;
+	          car -> levelMaxSpeed = 5;
+	        } else if (car -> botType == "medium") {
+	        	car -> botChanceNitro = 0.003;
+	        	car -> chanceToGetPowerUp = 0.4;
+
+		          car -> levelTires = 2;
+		          car -> levelShocks = 1;
+		          car -> levelAcceleration = 2;
+		          car -> levelMaxSpeed = 2;
+	        } else if (car -> botType == "dumy") {
+	          car -> botChanceNitro = 0.001;
+	          car -> chanceToGetPowerUp = 0.2;
+	          car -> levelTires = 0;
+	          car -> levelShocks = 0;
+	          car -> levelAcceleration = 0;
+	          car -> levelMaxSpeed = 0;
+	        } else {
+	        	car -> botChanceNitro = 0.001;
+	        	car -> chanceToGetPowerUp = 0.5;
+	        	car -> levelTires = 2;
+	        			          car -> levelShocks = 1;
+	        			          car -> levelAcceleration = 2;
+	        			          car -> levelMaxSpeed = 2;
+	        }
+	
+}
+
 void stopAllMusic(Assets &assets){
 	assets.titleScreenmusic.stop();
 	assets.nameScreenmusic.stop();
@@ -1057,7 +1101,7 @@ int main() {
 
   const int NB_LAPS_FIN = 4;
   
-  int idLevel = 0;
+  int idLevel = 1;
 
 
   std::string levelDifficult[8][3];
@@ -1152,7 +1196,7 @@ int main() {
   float writingMaxCooldown = 0.2;
   
   //Upgrade
-  int idSelectionUpgradePlayer1 = 0;
+  int idSelectionUpgradePlayer1 = 5;
   float cooldownSelectionUpgradePlayer1 = 0.0;
   const float cooldownMaxSelectionUpgrade = 0.5;
   
@@ -1169,8 +1213,8 @@ int main() {
   
   Ground level;
   Ground levelEmpty;
-  makeLevel(level, levelFile+ to_string(idLevel) + ".txt");
-  loadFromFile(assets.backgroundLevelScreenTexture, assets.backgroundLevelScreen, levelFile+to_string(idLevel) + ".png");
+  makeLevel(level, levelFile+ to_string((idLevel-1)%4+1) + ".txt");
+  loadFromFile(assets.backgroundLevelScreenTexture, assets.backgroundLevelScreen, levelFile+to_string((idLevel-1)%4+1) + ".png");
   loadFromFile(assets.backgroundMainScreenTexture, assets.backgroundMainScreen, "assets/fond_ecran_principal.png");
 
   loadFromFile(assets.superoffroadTextTexture, assets.superoffroadText, "assets/title_screen.png");
@@ -1340,6 +1384,12 @@ int main() {
   Enemie3.speedColision.x = 0;
   Enemie3.speedColision.y = 0;
 
+  setBotLevelFromType(&Enemie1);
+  setUpgradeBot(&Enemie1);
+  setBotLevelFromType(&Enemie2);
+    setUpgradeBot(&Enemie2);
+    setBotLevelFromType(&Enemie3);
+      setUpgradeBot(&Enemie3);
   std::vector < Car * > Enemies;
   Enemies.push_back( & Enemie1);
   Enemies.push_back( & Enemie2);
@@ -1736,32 +1786,6 @@ int main() {
           enemie -> lastNitroUsedTime -= dt;
         }
 
-        float botSpeedType = 1.0;
-        double botChanceNitro = 0;
-        float chanceToGetPowerUp = 0.0;
-
-        if (enemie -> botType == "master") {
-          botSpeedType = 1.23;
-          botChanceNitro = 0.0009;
-          chanceToGetPowerUp = 0.9;
-        } else if (enemie -> botType == "hard") {
-          botSpeedType = 0.9;
-          botChanceNitro = 0.005;
-          chanceToGetPowerUp = 0.7;
-        } else if (enemie -> botType == "medium") {
-          botSpeedType = 0.80;
-          botChanceNitro = 0.003;
-          chanceToGetPowerUp = 0.4;
-        } else if (enemie -> botType == "dumy") {
-          botSpeedType = 0.76;
-          botChanceNitro = 0.001;
-          chanceToGetPowerUp = 0.2;
-        } else {
-          botSpeedType = 0.90;
-          botChanceNitro = 0.001;
-          chanceToGetPowerUp = 0.5;
-        }
-
         if (isCollision( * enemie, level.botLine[enemie -> botPositionToTarget], CAR_LONGUEUR)) {
           int randomDistForBot = 0;
           if (enemie -> botType == "master") {
@@ -1779,7 +1803,7 @@ int main() {
           sf::Vector2f vectorBetweenPosAndNewTarget = Vector2f(level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())].x - enemie -> pos.x, level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())].y - enemie -> pos.y);
 
           bool hasAlreadyATarget = false;
-          if (Math::random() < chanceToGetPowerUp) {
+          if (Math::random() < enemie -> chanceToGetPowerUp) {
             for (int i = 0; i < level.spawnPosNitro.size(); i++) {
               if (level.spawnPosNitro[i].present) {
 
@@ -1817,7 +1841,7 @@ int main() {
           enemie -> timeBlocked = 0;
         }
 
-        if (Math::random() < botChanceNitro && enemie -> lastNitroUsedTime <= 0 && enemie -> nbNitro > 0) {
+        if (Math::random() < enemie -> botChanceNitro && enemie -> lastNitroUsedTime <= 0 && enemie -> nbNitro > 0) {
           enemie -> lastNitroUsedTime = TIME_NITRO_USED;
           enemie -> nbNitro -= 1;
         }
@@ -1930,7 +1954,7 @@ int main() {
         //                                                    }
         //
         //On calcule ensuite la nouvelle vitesse de la voiture
-        enemie -> speed = calculateSpeed( * enemie, (enemie -> avgSpeed  * enemie -> malusBonusSpeed), enemie -> avgSpeed, enemie -> avgSpeed * 5 * botSpeedType, true, false, enemie -> lastNitroUsedTime >= 0, dt);
+        enemie -> speed = calculateSpeed( * enemie, (enemie -> avgSpeed  * enemie -> malusBonusSpeed), enemie -> avgSpeed, enemie -> maxSpeed * 5, true, false, enemie -> lastNitroUsedTime >= 0, dt);
 
         enemie -> malusBonusSpeed = 1;
 
@@ -2011,8 +2035,8 @@ int main() {
         idLevel++;
         
         //Regeneration du terrain
-                makeLevel(level, levelFile+ to_string(idLevel%4+1) + ".txt");
-                loadFromFile(assets.backgroundLevelScreenTexture, assets.backgroundLevelScreen, levelFile+to_string(idLevel%4+1) + ".png"); 
+                makeLevel(level, levelFile+ to_string((idLevel-1)%4+1) + ".txt");
+                loadFromFile(assets.backgroundLevelScreenTexture, assets.backgroundLevelScreen, levelFile+to_string((idLevel-1)%4+1) + ".png"); 
                 nbFlag = level.flags.size();
                 printListWall(level.walls);
     	  }
@@ -2030,7 +2054,7 @@ int main() {
         
 
         //Mise a jour des difficultées
-        if (idLevel < 7) {
+        if (idLevel < 8) {
           for (int i = 0; i < Enemies.size(); i++) {
             Enemies[i] -> botType = levelDifficult[idLevel - 1][i];
           }
@@ -2075,6 +2099,7 @@ int main() {
         //set For upgrades
         setUpgradePlayer(playerCar);
         for (int j = 0; j < Enemies.size(); j++) {
+        	setBotLevelFromType(Enemies[j]);
         	setUpgradeBot(Enemies[j]);
                           }
       }
@@ -2267,6 +2292,12 @@ int main() {
     		    		    		}
     		if (!hasTwoPlayer && idSelectionUpgradePlayer1 == 5)
     	        	    	  nextScreen = 4;
+    		
+    		//remove Nitro
+    		if (playerCar.nbNitro > MAX_NITRO){
+    			playerCar.nbNitro = MAX_NITRO;
+    			
+    		}
     	        	      }
     	
     }
