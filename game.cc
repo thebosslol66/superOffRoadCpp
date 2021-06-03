@@ -40,7 +40,7 @@
 using namespace std;
 using namespace sf;
 
-const bool DEBUG = true;
+const bool DEBUG = false;
 
 /*
  * Ce morceau de code pour permet de tirer un nombre flottant au hasard
@@ -176,6 +176,16 @@ struct Assets {
   sf::Sprite face;
   sf::Texture bulleTexture;
   sf::Sprite bulle;
+  
+  
+  //Musiques
+  sf::Music titleScreenmusic;
+  sf::Music nameScreenmusic;
+  sf::Music setupScreenmusic;
+  sf::Music startScreenmusic;
+  sf::Music goalScreenmusic;
+  sf::Music celebrationScreenmusic;
+  sf::Music gameoverScreenmusic;
 
 };
 
@@ -828,6 +838,10 @@ void loadFromFile(sf::Texture & texture, sf::Sprite & sprite,
 
 }
 
+void loadMusicFromFile(sf::Music &music, std::string src){
+	music.openFromFile(src);
+}
+
 void loadTextFromFile(std::map < int, std::map < int, std::vector < sf::String >>> & text, std::string src) {
   ifstream textData(src);
 
@@ -857,6 +871,17 @@ void loadTextFromFile(std::map < int, std::map < int, std::vector < sf::String >
     }
   }
 
+}
+
+
+void stopAllMusic(Assets &assets){
+	assets.titleScreenmusic.stop();
+	assets.nameScreenmusic.stop();
+	assets.setupScreenmusic.stop();
+	assets.startScreenmusic.stop();
+	assets.goalScreenmusic.stop();
+	assets.celebrationScreenmusic.stop();
+	assets.gameoverScreenmusic.stop();
 }
 
 //fonction de débugage
@@ -931,8 +956,8 @@ int main() {
   const float RANDOM_DIST_FOR_BOTS_DUMY = 35;
 
   const int NB_LAPS_FIN = 4;
-
-  int idLevel = 1;
+  
+  int idLevel = 0;
 
 
   std::string levelDifficult[8][3];
@@ -997,6 +1022,16 @@ int main() {
 
   float cooldownReset = 0;
   float cooldownMaxReset = 5.0;
+  
+  //BlackScreen
+
+  int nextScreen = -1;
+  bool makeAnnimation = true;
+  float alphaBlackScreen = 0;
+  
+  //goalScreen
+  float timeGoalScreen = 0;
+  const float durationGoalScreen = 5.0;
 
   RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE);
 
@@ -1070,6 +1105,20 @@ int main() {
 
   loadTextFromFile(allText, "gameText.txt");
 
+  
+  loadMusicFromFile(assets.titleScreenmusic, "sound/01 Title Demo.flac");
+  assets.titleScreenmusic.setLoop(true);
+  loadMusicFromFile(assets.nameScreenmusic, "sound/02 Name Screen.flac");
+  assets.nameScreenmusic.setLoop(true);
+  loadMusicFromFile(assets.setupScreenmusic, "sound/03 Set Up.flac");
+  assets.setupScreenmusic.setLoop(true);
+  loadMusicFromFile(assets.startScreenmusic, "sound/04 Start.flac");
+  loadMusicFromFile(assets.goalScreenmusic, "sound/13 Goal.flac");
+  loadMusicFromFile(assets.celebrationScreenmusic, "sound/14 Celebration.flac");
+  loadMusicFromFile(assets.gameoverScreenmusic, "sound/15 Game Over.flac");
+  
+  bool playMusicOnce = true;
+  
   sf::Music music;
   music.openFromFile("fond.wav");
   
@@ -1205,6 +1254,8 @@ int main() {
     }
     float dt = clock.restart().asSeconds();
 
+    
+    
     if ((enterLastState != enter && enter == true) || (enterLastState == enter && enter == true && enterCooldown <= 0)) {
       enter1Pressure = true;
       enterCooldown = enterMaxCooldown;
@@ -1216,11 +1267,30 @@ int main() {
     }
     enterLastState = enter;
 
+    
+    if (nextScreen > 0){
+        	alphaBlackScreen += 510 * dt;
+        	if (makeAnnimation && alphaBlackScreen < 255){
+        		makeAnnimation = false;
+        	}
+        	else if (alphaBlackScreen >= 255 && idCurrentWindow != nextScreen){
+        		//On arrete toutes les musiques
+        		 stopAllMusic(assets);
+        		 
+        		idCurrentWindow = nextScreen;
+        	}
+        	if (alphaBlackScreen >= 510){
+        		nextScreen = -1;
+        		alphaBlackScreen = 0;
+        		makeAnnimation = true;
+        	}
+        }
+    
+    
     if (idCurrentWindow == 0) {
-            cout<<idLevel<<endl;
-            makeLevel(level, levelFile+ to_string(idLevel) + ".txt");
-            loadFromFile(assets.backgroundLevelScreenTexture, assets.backgroundLevelScreen, levelFile+to_string(idLevel) + ".png"); 
  
+    	if (makeAnnimation){
+    		
       if (textScale < 1.5) {
         textScale += 0.66 * dt;
       } else {
@@ -1242,13 +1312,15 @@ int main() {
         textAlphaValue += 170 * dt;
         textAlphaValue %= 510;
       }
+    	}
       if (enter1Pressure) {
-        idCurrentWindow = 4;
+    	  nextScreen = 4;
         textAlphaValue = 0;
       }
 
     } else if (idCurrentWindow == 1) {
 
+    	if (makeAnnimation){
       timer = timer + dt;
       if (playerCar.lastNitroUsedTime >= 0) {
         playerCar.lastNitroUsedTime -= dt;
@@ -1684,9 +1756,11 @@ int main() {
         playerCar.score = score;
 
       }
+      
       if (score >= 4) {
 
-        idCurrentWindow = 2;
+    	  idCurrentWindow = 5;
+    	  makeAnnimation = false;
         tri[0] = & playerCar;
 
         for (int i = 0; i < Enemies.size(); i++) {
@@ -1697,12 +1771,17 @@ int main() {
         for (int i = 0; i < 4; i++) {
           tri[i] -> startPosition = i;
         }
+        //On arrete toutes les musiques
+              stopAllMusic(assets);
+      }
+      
       }
 
-      //cout<<score<<endl;
     } else if (idCurrentWindow == 2) {
+    	if (makeAnnimation){
       textAlphaValue += 170 * dt;
       textAlphaValue %= 510;
+    	}
 
       if (playerCar.startPosition >= 3 && !defeat) {
         defeat = true;
@@ -1721,15 +1800,18 @@ int main() {
         idLevel++;
 
         //Regeneration du terrain
-        cout<<idLevel<<endl;
-        makeLevel(level, levelFile+ to_string(idLevel) + ".txt");
-        loadFromFile(assets.backgroundLevelScreenTexture, assets.backgroundLevelScreen, levelFile+to_string(idLevel) + ".png"); 
+        makeLevel(level, levelFile+ to_string(idLevel%4) + ".txt");
+        loadFromFile(assets.backgroundLevelScreenTexture, assets.backgroundLevelScreen, levelFile+to_string(idLevel%4+1) + ".png"); 
+        nbFlag = level.flags.size();
+        printListWall(level.walls);
+
 
         //mise a jour des positions de départ
         textAlphaValue = 0;
-        idCurrentWindow = 4;
+        nextScreen = 4;
         timer = 0;
         score = 1;
+        
 
         //Mise a jour des difficultées
         if (idLevel < 8) {
@@ -1738,7 +1820,7 @@ int main() {
           }
 
           if (defeat) {
-            idCurrentWindow = 0;
+        	  nextScreen = 0;
             textAlphaValue = 0;
             textScale = 0.0;
             carScale = 0.5;
@@ -1793,6 +1875,10 @@ int main() {
         idCurrentWindow = 3;
         idText = 0;
         allTextForFrame.clear();
+        
+        stopAllMusic(assets);
+        playMusicOnce = true;
+        
       } else {
         if (idText < allTextForFrame.size()) {
           if (faceMove.x > 954 && idText == 0) {
@@ -1826,7 +1912,7 @@ int main() {
         } else if (idText == allTextForFrame.size()) {
           if (faceMove.x < 1446) {
             if (alphaBulleValue > 0) {
-              alphaBulleValue -= 610.0 * dt;
+              alphaBulleValue -= 510.0 * dt;
               if (alphaBulleValue < 0) {
                 alphaBulleValue = 0;
               }
@@ -1841,15 +1927,7 @@ int main() {
         }
 
         if (idText > allTextForFrame.size()) {
-          faceMove.x = 1446;
-          faceMove.y = 577;
-          bulleRotation = -40.0;
-          alphaBulleValue = 0.0;
-          idCharToShow = 0;
-          textAlphaValue = 0;
-          idCurrentWindow = 3;
-          idText = 0;
-          allTextForFrame.clear();
+        	enter1Pressure = true;
         }
 
         if (enter1Pressure) {
@@ -1867,20 +1945,33 @@ int main() {
             idCurrentWindow = 3;
             idText = 0;
             allTextForFrame.clear();
+            stopAllMusic(assets);
+            playMusicOnce = true;
           }
         }
 
       }
 
+    } else if (idCurrentWindow == 5){
+    	timeGoalScreen += dt;
+    	if (timeGoalScreen > durationGoalScreen){
+    		timeGoalScreen = 0;
+    		nextScreen = 2;
+    	}
     }
+    
+    
     
     //***********************************AFFICHAGE !!!!!!******************//
 
     window.clear(Color::White);
 
     if (idCurrentWindow == 0) {
-
-      music.play();
+    	
+    	if (!assets.titleScreenmusic.getStatus()){
+    		assets.titleScreenmusic.play();
+    	}
+    	
       
       window.draw(assets.backgroundMainScreen);
 
@@ -1913,15 +2004,19 @@ int main() {
 
     }
     //Si on est dans la partie ou sur le décompte ou si il parle
-    if (idCurrentWindow == 1 || idCurrentWindow == 3 || idCurrentWindow == 4) {
+    if (idCurrentWindow == 1 || idCurrentWindow == 3 || idCurrentWindow == 4 || idCurrentWindow == 5) {
 
-    	
+    	if (idCurrentWindow == 1){
+    	if (!assets.titleScreenmusic.getStatus()){
+    	    		    		assets.titleScreenmusic.play();
+    	    		    	}
+    	}
+
     	if (colision && idCurrentWindow==1)
     	            {
     	                sf::Sound sound;
     	                sound.setBuffer(colisionBuffer);
     	                sound.play();
-    	                //cout<<"allo"<<endl;
     	            }
     	
       window.draw(assets.backgroundLevelScreen);
@@ -2027,7 +2122,7 @@ int main() {
 
       std::string horlogeText;
 
-      if (idCurrentWindow == 1) {
+      if (idCurrentWindow == 1 || idCurrentWindow == 5) {
         horlogeText = std::to_string(Math::arrondir(timer, 0.1));
         horlogeText = horlogeText.substr(0, horlogeText.find(".") + 2);
       } else {
@@ -2106,6 +2201,8 @@ int main() {
     //AFFICHAGE DES SCORE//
     if (idCurrentWindow == 2) {
 
+    	
+    	
       window.draw(assets.backgroundEndRun);
 
       window.draw(assets.position1Perso);
@@ -2135,8 +2232,16 @@ int main() {
 
       sf::Text enterText = sf::Text();
       if (defeat) {
+    	  if (!assets.gameoverScreenmusic.getStatus() && playMusicOnce){
+    		  playMusicOnce = false;
+    	      		assets.gameoverScreenmusic.play();
+    	      	}
         enterText.setString("You lose!! Press enter to return Lobby");
       } else {
+    	  if (!assets.celebrationScreenmusic.getStatus() && playMusicOnce){
+    		  playMusicOnce = false;
+    	      		assets.celebrationScreenmusic.play();
+    	      	}
         enterText.setString("Press enter to continue");
       }
       enterText.setFont(font);
@@ -2161,6 +2266,10 @@ int main() {
     //AFFICHAGE DU DECOMPTE
     if (idCurrentWindow == 3) {
 
+    	if (!assets.startScreenmusic.getStatus()){
+    	    	    	    assets.startScreenmusic.play();
+    	    	    	}
+    	
       std::string countdown;
       if (timer < 1.0) {
         countdown = std::to_string(3);
@@ -2226,6 +2335,28 @@ int main() {
       window.draw(enterText);
 
     }
+    else if (idCurrentWindow == 5) {
+    	if (!assets.goalScreenmusic.getStatus()){
+    	    assets.goalScreenmusic.play();
+    	}
+    }
+    
+    
+    
+    if (nextScreen > 0){
+    	sf::RectangleShape blackShape(sf::Vector2f(WINDOW_WIDTH, WINDOW_HEIGHT));
+    	if (alphaBlackScreen <= 255) {
+    		blackShape.setFillColor(sf::Color(0, 0, 0, alphaBlackScreen));
+
+    	      } else {
+    	        blackShape.setFillColor(sf::Color(0, 0, 0, 509 - alphaBlackScreen));
+    	      }
+    	
+    	window.draw(blackShape);
+    }
+    
+    
+    
 
     window.display();
 
