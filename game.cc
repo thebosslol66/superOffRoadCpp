@@ -115,6 +115,17 @@ struct Car {
   std::string botType;
   int startPosition = 0;
   float timeBlocked = 0;
+  
+  //Upgrades
+  int levelTires = 0;
+  int levelShocks = 0;
+  int levelAcceleration = 0;
+  int levelMaxSpeed = 0;
+  
+  
+  int avgSpeed = 40;
+  int maxSpeed = 40;
+  float tires = 0.12;
 };
 
 struct Bonus {
@@ -143,6 +154,10 @@ struct Assets {
   sf::Sprite superoffroadText;
   sf::Texture superoffroadCarTexture;
   sf::Sprite superoffroadCar;
+  sf::Texture backgroundLeaderboardTexture;
+  sf::Sprite backgroundLeaderboard;
+  
+  
 
   //game texture
   sf::Texture backgroundLevelScreenTexture;
@@ -176,6 +191,30 @@ struct Assets {
   sf::Sprite face;
   sf::Texture bulleTexture;
   sf::Sprite bulle;
+  
+  //Upgrades
+  sf::Texture upgradeScreenTexture;
+  sf::Sprite upgradeScreen;
+  sf::Texture selectionUpgradeTexture;
+  sf::Sprite selectionUpgrade;
+  sf::Texture shocksUpgradeTexture;
+  sf::Sprite shocksUpgrade;
+  sf::Texture speedUpgradeTexture;
+  sf::Sprite speedUpgrade;
+  sf::Texture startUpgradeTexture;
+  sf::Sprite startUpgrade;
+  sf::Texture tiresUpgradeTexture;
+  sf::Sprite tiresUpgrade;
+  sf::Texture nitroUpgradeTexture;
+  sf::Sprite nitroUpgrade;
+  sf::Texture accelUpgradeTexture;
+  sf::Sprite accelUpgrade;
+  sf::Texture noUpgrade1Texture;
+  sf::Sprite noUpgrade1Screen;
+  sf::Texture noUpgrade2Texture;
+  sf::Sprite noUpgrade2;
+  sf::Texture showUpgradeTexture;
+  sf::Sprite showUpgrade;
   
   
   //Musiques
@@ -453,6 +492,7 @@ float calculateNorme(const float & x,
 
 Speed calculateSpeed(const Car & car, int acceleration,
   const int & avgAcceleration,
+  const int & maxSpeed,
     const bool & isAccelerate,
       const bool & isBreack,
         const bool & isNitro,
@@ -462,7 +502,6 @@ Speed calculateSpeed(const Car & car, int acceleration,
     2 * M_PI), (2 * M_PI));
 
   float normeSpeed = calculateNorme(car.speed.x, car.speed.y);
-  float maxSpeed = avgAcceleration * 5;
   float accelerationX;
   float accelerationY;
   Speed speed;
@@ -525,13 +564,14 @@ Speed calculateSpeed(const Car & car, int acceleration,
   } else {
     if (!isNitro) {
       if (normeSpeed > (float) maxSpeed) {
-        accelerationX = car.speed.x / (float)(car.speed.x + car.speed.y) * maxSpeed;
-        accelerationY = car.speed.y / (float)(car.speed.x + car.speed.y) * maxSpeed;
+    	  normeSpeed = maxSpeed;
+    	  accelerationX = cos(angleRad) * (normeSpeed);
+    	  accelerationY = sin(angleRad) * (normeSpeed);
 
         speed.x = accelerationX;
         speed.y = accelerationY;
       } else if ((normeSpeed / maxSpeed) > 0.2) {
-        float deceleration = maxSpeed * (normeSpeed / maxSpeed) * 0.5;
+        float deceleration = maxSpeed * (normeSpeed / maxSpeed) * 0.7;
         accelerationX = -cos(angleRad) * (deceleration);
         accelerationY = -sin(angleRad) * (deceleration);
         speed.x = car.speed.x + accelerationX * dt;
@@ -541,8 +581,16 @@ Speed calculateSpeed(const Car & car, int acceleration,
         speed.y = 0;
       }
     } else {
+    	if ((normeSpeed / maxSpeed) > 1) {
+    		normeSpeed = maxSpeed;
+    		accelerationX = cos(angleRad) * (normeSpeed);
+    		accelerationY = sin(angleRad) * (normeSpeed);
+
+    		speed.x = accelerationX;
+    		speed.y = accelerationY;
+    	}
       if ((normeSpeed / maxSpeed) > 0.2) {
-        float deceleration = avgAcceleration * 5 * (normeSpeed / (avgAcceleration * 5)) * 0.5;
+        float deceleration = avgAcceleration * 5 * (normeSpeed / (avgAcceleration * 5)) * 0.7;
         accelerationX = -cos(angleRad) * (deceleration);
         accelerationY = -sin(angleRad) * (deceleration);
         speed.x = car.speed.x + accelerationX * dt;
@@ -670,6 +718,27 @@ void reset(Car * car, Ground & level) {
   car -> speedColision.x = 0;
   car -> speedColision.y = 0;
 
+}
+
+void setUpgradePlayer(Car & car) {
+	float baseTires = 0.12;
+	int baseAvgSpeed = 40;
+	int baseMaxSpeed = 40;
+	
+	car.avgSpeed = baseAvgSpeed + 3 * car.levelAcceleration;
+	car.maxSpeed = baseMaxSpeed + 3 * car.levelMaxSpeed;
+	car.tires = baseTires - 0.01 * car.levelTires;
+	
+	//Set for shock
+}
+void setUpgradeBot(Car * car) {
+	float baseTires = 0.12;
+		int baseAvgSpeed = 40;
+		int baseMaxSpeed = 40;
+		
+		car-> avgSpeed = baseAvgSpeed + 3 * car -> levelAcceleration;
+		car-> maxSpeed = baseMaxSpeed + 3 * car -> levelMaxSpeed;
+		car-> tires = baseTires - 0.01 * car -> levelTires;
 }
 
 void makeLevel(Ground & level, std::string src) {
@@ -869,6 +938,36 @@ void loadTextFromFile(std::map < int, std::map < int, std::vector < sf::String >
 
 }
 
+void loadLeaderBoard(std::map<int, sf::String[2]> &leaderboard, std::string src){
+	ifstream leaderboardData(src);
+	
+	int classement = 1;
+	if (leaderboardData) {
+		std::string line;
+		std::string stringTemporaire;
+		while (getline(leaderboardData, line)) {
+			int pos = line.find(R"(\t)");
+			
+			stringTemporaire = line.substr(0,pos);
+			
+			std::basic_string < sf::Uint32 > utf32;
+			sf::Utf8::toUtf32(stringTemporaire.begin(), stringTemporaire.end(), std::back_inserter(utf32));
+        
+			leaderboard[classement][0] = sf::String(utf32);
+			
+			stringTemporaire = line.substr(pos+2, line.size() - (pos+2));
+			
+			utf32.clear();
+			
+			sf::Utf8::toUtf32(stringTemporaire.begin(), stringTemporaire.end(), std::back_inserter(utf32));
+			        
+			leaderboard[classement][1] = sf::String(utf32);
+			
+			classement++;
+		}
+	}
+	
+}
 
 void stopAllMusic(Assets &assets){
 	assets.titleScreenmusic.stop();
@@ -922,7 +1021,6 @@ int main() {
   font.loadFromFile("PixelOperator.ttf");
 
   const int NITRO_SPAWN_TIME = 1000;
-  const int ACCELERATION = 50;
   bool up, down, left, right, nitro, enter;
   up = down = left = right = nitro = enter = false;
 
@@ -937,6 +1035,8 @@ int main() {
   lastActiveNitro = 0;
 
   double TIME_NITRO_USED = 4.0;
+  
+  const int MAX_NITRO = 18;
 
   const int CAR_LONGUEUR = 40;
   const int CAR_HAUTEUR = 20;
@@ -989,6 +1089,8 @@ int main() {
   levelDifficult[7][2] = "hard";
 
   bool defeat = false;
+  
+  bool hasTwoPlayer = false;
 
   Assets assets;
 
@@ -1000,6 +1102,16 @@ int main() {
   float textScale = 0.0;
   float carScale = 0.5;
   sf::Vector2f carMove(-200, 700);
+  std::map<int, sf::String[2]> leaderboard;
+  float alphaLeaderBoard = 0;
+  const float timeToSwitchScreen = 15.0;
+  float cooldownToSwitchScreen = timeToSwitchScreen;
+  int idMenuScreen = 1;
+  
+  bool clignotementTexteMenu = false;
+  
+  float alphaMenuBlackScreen = -510;
+  
 
   //Pour affichage resultats
   Car * tri[4];
@@ -1016,7 +1128,7 @@ int main() {
   int idText = 0;
 
   float cooldownReset = 0;
-  float cooldownMaxReset = 5.0;
+  float cooldownMaxReset = 20.0;
   
   //BlackScreen
 
@@ -1027,6 +1139,18 @@ int main() {
   //goalScreen
   float timeGoalScreen = 0;
   const float durationGoalScreen = 5.0;
+  
+  //Name enter
+  sf::String playerName = "";
+  sf::String charWrite = "";
+  float writingCooldown = 0.0;
+  float writingMaxCooldown = 0.2;
+  
+  //Upgrade
+  int idSelectionUpgradePlayer1 = 0;
+  float cooldownSelectionUpgradePlayer1 = 0.0;
+  const float cooldownMaxSelectionUpgrade = 0.5;
+  
 
   RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE);
 
@@ -1045,9 +1169,12 @@ int main() {
 
   loadFromFile(assets.superoffroadTextTexture, assets.superoffroadText, "assets/title_screen.png");
   loadFromFile(assets.superoffroadCarTexture, assets.superoffroadCar, "assets/car_begin.png");
+  
+  loadFromFile(assets.backgroundLeaderboardTexture, assets.backgroundLeaderboard, "assets/fond_leaderboard.png");
 
   assets.backgroundLevelScreen.setScale(sf::Vector2f((WINDOW_WIDTH / assets.backgroundLevelScreenTexture.getSize().x), (WINDOW_HEIGHT / assets.backgroundLevelScreenTexture.getSize().y)));
   assets.backgroundMainScreen.setScale(sf::Vector2f((WINDOW_WIDTH / assets.backgroundMainScreenTexture.getSize().x), (WINDOW_HEIGHT / assets.backgroundMainScreenTexture.getSize().y)));
+  assets.backgroundLeaderboard.setScale(sf::Vector2f((WINDOW_WIDTH / assets.backgroundLeaderboardTexture.getSize().x), (WINDOW_HEIGHT / assets.backgroundLeaderboardTexture.getSize().y)));
 
   assets.superoffroadText.setPosition((WINDOW_WIDTH) / 2, (WINDOW_HEIGHT / 6) + 100);
   assets.superoffroadText.setOrigin(assets.superoffroadTextTexture.getSize().x / 2, assets.superoffroadTextTexture.getSize().y / 2);
@@ -1096,6 +1223,31 @@ int main() {
   assets.bulle.setOrigin(390, 295);
   assets.bulle.setPosition(850, 590);
   assets.bulle.setScale(1.5, 1.5);
+  
+  loadFromFile(assets.upgradeScreenTexture, assets.upgradeScreen, "assets/upgradeScreen.png");
+  assets.upgradeScreen.setScale(sf::Vector2f((WINDOW_WIDTH / assets.upgradeScreenTexture.getSize().x), (WINDOW_HEIGHT / assets.upgradeScreenTexture.getSize().y)));
+  
+  loadFromFile(assets.selectionUpgradeTexture, assets.selectionUpgrade, "assets/selectionUpgrade.png");
+  loadFromFile(assets.shocksUpgradeTexture, assets.shocksUpgrade, "assets/shocksUpgrade.png");
+  loadFromFile(assets.speedUpgradeTexture, assets.speedUpgrade, "assets/speedUpgrade.png");
+  loadFromFile(assets.startUpgradeTexture, assets.startUpgrade, "assets/startUpgrade.png");
+  loadFromFile(assets.tiresUpgradeTexture, assets.tiresUpgrade, "assets/tiresUpgrade.png");
+  loadFromFile(assets.nitroUpgradeTexture, assets.nitroUpgrade, "assets/nitroUpgrade.png");
+  loadFromFile(assets.accelUpgradeTexture, assets.accelUpgrade, "assets/accelUpgrade.png");
+  loadFromFile(assets.noUpgrade1Texture, assets.noUpgrade1Screen, "assets/noUpgrade1.png");
+  loadFromFile(assets.noUpgrade2Texture, assets.noUpgrade2, "assets/noUpgrade2.png");
+  loadFromFile(assets.showUpgradeTexture, assets.showUpgrade, "assets/showUpgrade.png");
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
   loadTextFromFile(allText, "gameText.txt");
 
@@ -1110,6 +1262,9 @@ int main() {
   loadMusicFromFile(assets.goalScreenmusic, "sound/13 Goal.flac");
   loadMusicFromFile(assets.celebrationScreenmusic, "sound/14 Celebration.flac");
   loadMusicFromFile(assets.gameoverScreenmusic, "sound/15 Game Over.flac");
+  
+  
+  loadLeaderBoard(leaderboard, "leaderboard.txt");
   
   bool playMusicOnce = true;
   
@@ -1246,6 +1401,15 @@ int main() {
         }
       }
     }
+    
+    if (event.type == sf::Event::TextEntered)
+    {
+    	if (event.text.unicode < 128){
+    		charWrite = event.text.unicode;
+    	}
+    }
+    
+    
     float dt = clock.restart().asSeconds();
 
     
@@ -1262,7 +1426,7 @@ int main() {
     enterLastState = enter;
 
     
-    if (nextScreen > 0){
+    if (nextScreen >= 0){
         	alphaBlackScreen += 510 * dt;
         	if (makeAnnimation && alphaBlackScreen < 255){
         		makeAnnimation = false;
@@ -1278,36 +1442,83 @@ int main() {
         		alphaBlackScreen = 0;
         		makeAnnimation = true;
         	}
+        	else{
+        		//Pour eviter de passer les ecrans lors de l'annimation
+        		enter1Pressure = false;
+        	}
         }
     
     
     if (idCurrentWindow == 0) {
-    	if (makeAnnimation){
-    		
-      if (textScale < 1.5) {
-        textScale += 0.66 * dt;
-      } else {
-        textScale = 1.5;
-      }
-      if (carScale < 1.5) {
-        if (textScale >= 1.5) {
-          carScale += 0.66 * dt;
-          carMove.x += 333.33 * dt;
-          carMove.y -= 133.33 * dt;
+      if (makeAnnimation) {
+        cooldownToSwitchScreen -= dt;
+
+        if (alphaMenuBlackScreen > 0 && cooldownToSwitchScreen > timeToSwitchScreen - 1) {
+          alphaMenuBlackScreen -= 255 * dt;
+        } else if (alphaMenuBlackScreen < 255 && cooldownToSwitchScreen < 1) {
+          alphaMenuBlackScreen += 255 * dt;
+        } else if (cooldownToSwitchScreen > 0) {
+          alphaMenuBlackScreen = 0;
+        } else {
+          alphaMenuBlackScreen = 255;
+        }
+        if (alphaMenuBlackScreen < 0) {
+          alphaMenuBlackScreen = 0;
+        }
+        if (alphaMenuBlackScreen > 255) {
+          alphaMenuBlackScreen = 255;
         }
 
-      } else {
-        carScale = 1.5;
-        carMove.x = 300;
-        carMove.y = 500;
+        if (cooldownToSwitchScreen <= 0) {
+          cooldownToSwitchScreen = timeToSwitchScreen;
+          if (idMenuScreen == 1) {
+            idMenuScreen = 2;
+            alphaLeaderBoard = -510;
+          } else if (idMenuScreen == 2) {
+            idMenuScreen = 1;
+            textScale = 0;
+            carScale = 0.5;
+            carMove.x = -200;
+            carMove.y= 700;
+          }
+        }
+
+        if (idMenuScreen == 1) {
+          if (textScale < 1.5) {
+        	  if(cooldownToSwitchScreen < timeToSwitchScreen - 1){
+            		textScale += 0.66 * dt;
+        	  }
+          } else {
+            textScale = 1.5;
+          }
+          if (carScale < 1.5) {
+            if (textScale >= 1.5) {
+              carScale += 0.66 * dt;
+              carMove.x += 333.33 * dt;
+              carMove.y -= 133.33 * dt;
+            }
+
+          } else {
+            carScale = 1.5;
+            carMove.x = 300;
+            carMove.y = 500;
+            clignotementTexteMenu = true;
+          }
+          
+        } else if (idMenuScreen == 2) {
+            alphaLeaderBoard += 510 * dt;
+          }
+        
+        if (clignotementTexteMenu) {
+                    textAlphaValue += 170 * dt;
+                    textAlphaValue %= 510;
+                  }
       }
-      if (carScale >= 1.5) {
-        textAlphaValue += 170 * dt;
-        textAlphaValue %= 510;
-      }
-    	}
+      
+      
+
       if (enter1Pressure) {
-    	  nextScreen = 4;
+        nextScreen = 6;
         textAlphaValue = 0;
       }
 
@@ -1320,11 +1531,11 @@ int main() {
 
       //On applique la direction a la voiture 
       if (left && playerCar.lastActive <= 0) {
-        playerCar.lastActive = TIME_BEFORE_REACTIVATE + dt;
+        playerCar.lastActive = playerCar.tires + dt;
         playerCar.direction = (playerCar.direction + 1) % 16;
       }
       if (right && playerCar.lastActive <= 0) {
-        playerCar.lastActive = TIME_BEFORE_REACTIVATE + dt;
+        playerCar.lastActive = playerCar.tires + dt;
         playerCar.direction = (playerCar.direction + 15) % 16;
       }
       if (left || right) {
@@ -1434,7 +1645,7 @@ int main() {
       }
 
       //CALCUL DE LA VITESSE DE LA VOITURE
-      playerCar.speed = calculateSpeed(playerCar, ACCELERATION * playerCar.malusBonusSpeed, ACCELERATION, up, down, playerCar.lastNitroUsedTime >= 0, dt);
+      playerCar.speed = calculateSpeed(playerCar, playerCar.avgSpeed * playerCar.malusBonusSpeed, playerCar.avgSpeed, playerCar.maxSpeed*5, up, down, playerCar.lastNitroUsedTime >= 0, dt);
 
       //GENERATION DE LA NITRO
       countNitro++;
@@ -1498,11 +1709,11 @@ int main() {
           } else if (distanceDroite < distanceCentre) {
             enemie -> direction = fmod(enemie -> direction + 15, 16);
             recalculateSpeedDirection(enemie);
-            enemie -> lastActive = TIME_BEFORE_REACTIVATE + dt;
+            enemie -> lastActive = enemie -> tires + dt;
           } else if (distanceGauche < distanceCentre) {
             enemie -> direction = fmod(enemie -> direction + 1, 16);
             recalculateSpeedDirection(enemie);
-            enemie -> lastActive = TIME_BEFORE_REACTIVATE + dt;
+            enemie -> lastActive = enemie -> tires + dt;
           } else if (distanceCentre > distanceDroite && distanceCentre > distanceGauche) {
             if (Math::random() < 0.5) {
               enemie -> direction = fmod(enemie -> direction + 15, 16);
@@ -1510,7 +1721,7 @@ int main() {
               enemie -> direction = fmod(enemie -> direction + 1, 16);
             }
             recalculateSpeedDirection(enemie);
-            enemie -> lastActive = TIME_BEFORE_REACTIVATE + dt;
+            enemie -> lastActive = enemie -> tires + dt;
           }
         }
 
@@ -1712,7 +1923,7 @@ int main() {
         //                                                    }
         //
         //On calcule ensuite la nouvelle vitesse de la voiture
-        enemie -> speed = calculateSpeed( * enemie, (ACCELERATION * enemie -> malusBonusSpeed) * botSpeedType, ACCELERATION * botSpeedType, true, false, enemie -> lastNitroUsedTime >= 0, dt);
+        enemie -> speed = calculateSpeed( * enemie, (enemie -> avgSpeed  * enemie -> malusBonusSpeed), enemie -> avgSpeed, enemie -> avgSpeed * 5 * botSpeedType, true, false, enemie -> lastNitroUsedTime >= 0, dt);
 
         enemie -> malusBonusSpeed = 1;
 
@@ -1775,11 +1986,11 @@ int main() {
       textAlphaValue %= 510;
     	}
 
-      if (playerCar.startPosition >= 3 && !defeat) {
+      if (playerCar.startPosition >= 3 && !defeat && nextScreen != 0) {
         defeat = true;
         cooldownReset = cooldownMaxReset;
       }
-      if (defeat) {
+      if (defeat && nextScreen != 0) {
         cooldownReset -= 1.0 * dt;
         if (cooldownReset <= 0) {
           enter1Pressure = true;
@@ -1788,12 +1999,17 @@ int main() {
       }
 
       if (enter1Pressure) {
-
+		//Pour eviter les bugs et sauter des niveaux
+    	  if (makeAnnimation){
         idLevel++;
-
+    	  }
+	
         //mise a jour des positions de départ
+    	
         textAlphaValue = 0;
-        nextScreen = 4;
+        if (!defeat){
+        	nextScreen = 7;
+        }
         timer = 0;
         score = 1;
         
@@ -1803,17 +2019,27 @@ int main() {
           for (int i = 0; i < Enemies.size(); i++) {
             Enemies[i] -> botType = levelDifficult[idLevel - 1][i];
           }
+        }
 
           if (defeat) {
-        	  nextScreen = 0;
+        	nextScreen = 0;
             textAlphaValue = 0;
             textScale = 0.0;
             carScale = 0.5;
             carMove.x = -200;
             carMove.y = 700;
             idLevel = 1;
+            cooldownToSwitchScreen = timeToSwitchScreen;
+            idMenuScreen = 1;
+            clignotementTexteMenu = false;
             defeat = false;
-          }
+            playerName.clear();
+            
+            //reset des positions de départ
+            playerCar.startPosition = 0;
+            for (int j = 0; j < Enemies.size(); j++) {
+                 Enemies[j] -> startPosition = j+1;
+                  }
         }
 
         reset(playerCar, level);
@@ -1830,6 +2056,12 @@ int main() {
       if (timer >= 3.0) {
         idCurrentWindow = 1;
         timer = 0.0;
+        
+        //set For upgrades
+        setUpgradePlayer(playerCar);
+        for (int j = 0; j < Enemies.size(); j++) {
+        	setUpgradeBot(Enemies[j]);
+                          }
       }
     } else if (idCurrentWindow == 4) {
 
@@ -1945,7 +2177,84 @@ int main() {
     	}
     }
     
+    else if (idCurrentWindow == 6){
+    	if (writingCooldown >0){
+    		writingCooldown -= dt;
+    	}
+        	if (charWrite != "" && writingCooldown <= 0){
+        		writingCooldown = writingMaxCooldown;
+        		int value = charWrite.toAnsiString()[0];
+        		if ((value > 47 && value <= 57) || (value > 64 && value <= 90) || (value > 96 && value <= 122)){
+        			if (playerName.getSize() < 15)
+        			playerName += charWrite;
+        		}
+        		else if(value == 8 && !playerName.isEmpty()){
+        			playerName.erase(playerName.getSize()-1,1);
+        		}
+        		else if (value == 32 && playerName.getSize() < 15){
+        			playerName += " ";
+        		}
+        		charWrite = "";
+        	}
+        	else{
+        		charWrite = "";
+        	}
+        	if (enter1Pressure) {
+        	    	  nextScreen = 4;
+        	      }
+        }
     
+    else if(idCurrentWindow == 7){
+    	if (makeAnnimation){
+    		if (cooldownSelectionUpgradePlayer1 >0){
+    		cooldownSelectionUpgradePlayer1 -= 1.0*dt;
+    		}
+    		if (left && cooldownSelectionUpgradePlayer1 <= 0){
+    			if (idSelectionUpgradePlayer1 % 2 == 1){
+    			    				idSelectionUpgradePlayer1--;
+    			    				cooldownSelectionUpgradePlayer1 = cooldownMaxSelectionUpgrade;
+    			    			        	}
+    		} else if(right && cooldownSelectionUpgradePlayer1 <= 0){
+    			if (idSelectionUpgradePlayer1 % 2 == 0){
+    				idSelectionUpgradePlayer1++;
+    				cooldownSelectionUpgradePlayer1 = cooldownMaxSelectionUpgrade;
+    			        	}
+    		} else if (up&& cooldownSelectionUpgradePlayer1 <= 0){
+    			if (idSelectionUpgradePlayer1/2 >= 1){
+    			    			    				idSelectionUpgradePlayer1 -=2;
+    			    			    				cooldownSelectionUpgradePlayer1 = cooldownMaxSelectionUpgrade;
+    			    			    			}
+    		}else if (down&& cooldownSelectionUpgradePlayer1 <= 0){
+    			if (idSelectionUpgradePlayer1/2 <= 1){
+    			    				idSelectionUpgradePlayer1 +=2;
+    			    				cooldownSelectionUpgradePlayer1 = cooldownMaxSelectionUpgrade;
+    			    			}
+    		}
+    		
+    	}
+    	
+    	if (enter1Pressure) {
+    		//verifier a chaque fois si il a l'argent
+    		if (idSelectionUpgradePlayer1==0 && playerCar.nbNitro <= MAX_NITRO*5/6){
+    			playerCar.nbNitro += (int)MAX_NITRO/6;
+    		}
+    		if (idSelectionUpgradePlayer1==1 && playerCar.levelAcceleration < 6){
+    			playerCar.levelAcceleration++;
+    		    		}
+    		if (idSelectionUpgradePlayer1==2 && playerCar.levelTires < 6){
+    			playerCar.levelTires++;
+    		    		    		}
+    		if (idSelectionUpgradePlayer1==3 && playerCar.levelMaxSpeed < 6){
+    			playerCar.levelMaxSpeed++;
+    		    		    		}
+    		if (idSelectionUpgradePlayer1==4 && playerCar.levelShocks < 6){
+    			playerCar.levelShocks++;
+    		    		    		}
+    		if (!hasTwoPlayer && idSelectionUpgradePlayer1 == 5)
+    	        	    	  nextScreen = 4;
+    	        	      }
+    	
+    }
     
     //***********************************AFFICHAGE !!!!!!******************//
 
@@ -1957,7 +2266,8 @@ int main() {
     		assets.titleScreenmusic.play();
     	}
     	
-      
+    	
+    	if (idMenuScreen == 1){
       window.draw(assets.backgroundMainScreen);
 
       assets.superoffroadText.setScale(textScale, textScale);
@@ -1966,6 +2276,82 @@ int main() {
       assets.superoffroadCar.setPosition(carMove.x, carMove.y);
       assets.superoffroadCar.setScale(carScale, carScale);
       window.draw(assets.superoffroadCar);
+    	}
+    	else if (idMenuScreen==2){
+    		window.draw(assets.backgroundLeaderboard);
+    		
+    		sf::Text leaderboardText = sf::Text();
+    		leaderboardText.setString(L"(Tableau des Scores)");
+    		leaderboardText.setFont(font);
+    		leaderboardText.setCharacterSize(90);
+    		leaderboardText.setFillColor(sf::Color::White);
+    		leaderboardText.setPosition(WINDOW_WIDTH / 2 - leaderboardText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 16 - leaderboardText.getLocalBounds().height / 2);
+    		window.draw(leaderboardText);
+    		
+    		sf::Text rankText = sf::Text();
+    		rankText.setString("Rang");
+    		rankText.setFont(font);
+    		rankText.setCharacterSize(60);
+    		rankText.setFillColor(sf::Color::White);
+    		rankText.setPosition(WINDOW_WIDTH * 2/8 - rankText.getLocalBounds().width / 2, WINDOW_HEIGHT * 3 / 16 - rankText.getLocalBounds().height / 2);
+    		window.draw(rankText);
+    		    		
+    		sf::Text playerText = sf::Text();
+    		playerText.setString("Joueur");
+    		playerText.setFont(font);
+    		playerText.setCharacterSize(60);
+    		playerText.setFillColor(sf::Color::White);
+    		playerText.setPosition(WINDOW_WIDTH / 2 - playerText.getLocalBounds().width / 2, WINDOW_HEIGHT * 3 / 16 - playerText.getLocalBounds().height / 2);
+    		window.draw(playerText);
+
+    		sf::Text scoreText = sf::Text();
+    		scoreText.setString("Score");
+    		scoreText.setFont(font);
+    		scoreText.setCharacterSize(60);
+    		scoreText.setFillColor(sf::Color::White);
+    		scoreText.setPosition(WINDOW_WIDTH *6/8 - scoreText.getLocalBounds().width / 2, WINDOW_HEIGHT * 3 / 16 - scoreText.getLocalBounds().height / 2);
+    		window.draw(scoreText);
+    		
+    		for (int i=0; i< leaderboard.size() && i< 10;i++){
+    			
+    			float alphaForText = alphaLeaderBoard-250*i;
+    			if (alphaForText < 0){
+    				alphaForText=0;
+    			}
+    			if(alphaForText >255){
+    				alphaForText = 255;
+    			}
+    			sf::Text rankText = sf::Text();
+    			    		rankText.setString(std::to_string(i+1));
+    			    		rankText.setFont(font);
+    			    		rankText.setCharacterSize(45);
+    			    		rankText.setFillColor(sf::Color(255,255,255,alphaForText));
+    			    		rankText.setPosition(WINDOW_WIDTH * 2/8 - rankText.getLocalBounds().width / 2, WINDOW_HEIGHT *  4 / 16 + 10- rankText.getLocalBounds().height / 2 + 45*i);
+    			    		window.draw(rankText);
+    			    		    		
+    			    		sf::Text playerText = sf::Text();
+    			    		playerText.setString(leaderboard[i+1][0]);
+    			    		playerText.setFont(font);
+    			    		playerText.setCharacterSize(45);
+    			    		playerText.setFillColor(sf::Color(255,255,255,alphaForText));
+    			    		playerText.setPosition(WINDOW_WIDTH / 2 - playerText.getLocalBounds().width / 2, WINDOW_HEIGHT * 4 / 16 + 10 - playerText.getLocalBounds().height / 2 + 45*i);
+    			    		window.draw(playerText);
+
+    			    		sf::Text scoreText = sf::Text();
+    			    		scoreText.setString(leaderboard[i+1][1]);
+    			    		scoreText.setFont(font);
+    			    		scoreText.setCharacterSize(45);
+    			    		scoreText.setFillColor(sf::Color(255,255,255,alphaForText));
+    			    		scoreText.setPosition(WINDOW_WIDTH *6/8 - scoreText.getLocalBounds().width / 2, WINDOW_HEIGHT * 4 / 16 + 10 - scoreText.getLocalBounds().height / 2 + 45*i);
+    			    		window.draw(scoreText);
+    			
+    		}
+    	}
+    	
+    	sf::RectangleShape blackShape(sf::Vector2f(WINDOW_WIDTH, WINDOW_HEIGHT));
+
+    	blackShape.setFillColor(sf::Color(0, 0, 0, alphaMenuBlackScreen));
+   		window.draw(blackShape);
 
       sf::Text enterText = sf::Text();
       enterText.setString("Insert COIN (or press enter)");
@@ -2320,15 +2706,115 @@ int main() {
       window.draw(enterText);
 
     }
-    else if (idCurrentWindow == 5) {
+    if (idCurrentWindow == 5) {
     	if (!assets.goalScreenmusic.getStatus()){
     	    assets.goalScreenmusic.play();
     	}
     }
+    if (idCurrentWindow == 6) {
+        	if (!assets.nameScreenmusic.getStatus()){
+        	    assets.nameScreenmusic.play();
+        	}
+        	
+        	sf::Text nameText = sf::Text();
+        	      nameText.setString(playerName);
+        	      nameText.setFont(font);
+        	      nameText.setFillColor(sf::Color::Black);
+        	      nameText.setCharacterSize(60);
+        	      nameText.setPosition(WINDOW_WIDTH / 2 - nameText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 2 - nameText.getLocalBounds().height / 2);
+        	      window.draw(nameText);
+        }
+    
+    if(idCurrentWindow == 7){
+    	if (!assets.setupScreenmusic.getStatus()){
+    	        	    assets.setupScreenmusic.play();
+    	        	}
+    	
+        	window.draw(assets.upgradeScreen);
+        	
+        	if (!hasTwoPlayer){
+        		assets.noUpgrade2.setPosition(638,176);
+        		window.draw(assets.noUpgrade2);
+        	}
+        	//
+        	int basex = 127;
+        	int basey = 332;
+        	
+        	int x = 0;
+        	int y = 0;
+        	for (int i=0; i < 6; i++){
+        		x = basex;
+        		y = basey;
+        		if (i % 2 == 1){
+        			x += 204;
+        		}
+        		y += (int)(i/2) * 134;
+        		
+        		int nbLevel = 0;
+        		
+        		if (i==0){
+        			assets.nitroUpgrade.setPosition(x,y);
+        			window.draw(assets.nitroUpgrade);
+        			nbLevel = (int)playerCar.nbNitro /((int)MAX_NITRO/6);
+        			if (fmod(nbLevel, (int)MAX_NITRO/6) > 0){
+        				nbLevel++;
+        			}
+        		}
+        		else if (i == 1){
+        			assets.accelUpgrade.setPosition(x,y);
+        			window.draw(assets.accelUpgrade);
+        			nbLevel = playerCar.levelAcceleration;
+        		} else if (i == 2){
+        			assets.tiresUpgrade.setPosition(x,y);
+        			window.draw(assets.tiresUpgrade);
+        			nbLevel = playerCar.levelTires;
+        		} else if (i == 3){
+        			assets.speedUpgrade.setPosition(x,y);
+        			window.draw(assets.speedUpgrade);
+        			nbLevel = playerCar.levelMaxSpeed;
+        		} else if (i == 4){
+        			assets.shocksUpgrade.setPosition(x,y);
+        			window.draw(assets.shocksUpgrade);
+        			nbLevel = playerCar.levelShocks;
+        		} else if (i == 5){
+        			assets.startUpgrade.setPosition(x,y);
+        			window.draw(assets.startUpgrade);
+        		}
+        		
+        		int xLevel = x;
+        		int yLevel = y;
+        		
+        		if (i % 2 == 1){
+        		    xLevel += 158;
+        		    yLevel += 108;
+        		}else{
+        			xLevel += 5;
+        			yLevel += 108;
+        		}
+        		
+        		for (int j=0; j< nbLevel; j++){
+        			assets.showUpgrade.setPosition(xLevel,yLevel - 15*j);
+        			window.draw(assets.showUpgrade);
+        		}
+        	}
+        	
+        	basex = 117;
+        	basey = 322;
+        	        	
+        	x = basex;
+        	y = basey;
+        	if (idSelectionUpgradePlayer1 % 2 == 1){
+        		x += 204;
+        	}
+        	y += (int)(idSelectionUpgradePlayer1/2) * 134;
+        	
+        	assets.selectionUpgrade.setPosition(x,y);
+        	window.draw(assets.selectionUpgrade);
+        	
+        }
     
     
-    
-    if (nextScreen > 0){
+    if (nextScreen >= 0){
     	sf::RectangleShape blackShape(sf::Vector2f(WINDOW_WIDTH, WINDOW_HEIGHT));
     	if (alphaBlackScreen <= 255) {
     		blackShape.setFillColor(sf::Color(0, 0, 0, alphaBlackScreen));
@@ -2336,6 +2822,8 @@ int main() {
     	      } else {
     	        blackShape.setFillColor(sf::Color(0, 0, 0, 509 - alphaBlackScreen));
     	      }
+    	
+    	
     	
     	window.draw(blackShape);
     }
