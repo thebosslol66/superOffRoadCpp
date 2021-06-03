@@ -116,8 +116,12 @@ struct Car {
   int startPosition = 0;
   float timeBlocked = 0;
   
+  int monney = 0;
+  int monneyWinThisRun = 0;
+  
   float botChanceNitro = 0;
   float chanceToGetPowerUp = 0;
+  int randomDistForBot = 0;
   
   //Upgrades
   int levelTires = 0;
@@ -129,6 +133,10 @@ struct Car {
   float avgSpeed = 40;
   float maxSpeed = 40;
   float tires = 0.12;
+  
+  //Points
+  int points = 0;
+  
 };
 
 struct Bonus {
@@ -907,7 +915,7 @@ void makeLevel(Ground & level, std::string src) {
     }
 
   } else {
-    throw "Can't read the file " + src;
+    throw std::string("Can't read the file " + src);
   }
 }
 
@@ -922,27 +930,42 @@ int idPositionMinimum(Car * carList[], int maximum) {
 
 }
 
-void triSelectionCroissant(Car * carList[], int maximum, int( & typeTri)(Car * [], int)) {
-  int idMaximumActuel = 0;
-  Car * aux;
-  for (int i = 0; i < maximum; i++) {
-    idMaximumActuel = typeTri(carList, i);
-    if (idMaximumActuel != i) {
-      aux = carList[i];
-      carList[i] = carList[idMaximumActuel];
-      carList[idMaximumActuel] = aux;
-    }
-  }
-}
-void triSelectionDecroissant(Car * carList[], int maximum, int( & typeTri)(Car * [], int)) {
+void triSelectionCroissant(Car * carList[], int maximum) {
   int idMinimumActuel = 0;
   Car * aux;
-  for (int i = maximum - 1; i > 0; i--) {
-    idMinimumActuel = typeTri(carList, i);
+  for (int i = 0; i < maximum; i++) {
+    idMinimumActuel = idPositionMinimum(carList, i);
     if (idMinimumActuel != i) {
       aux = carList[i];
       carList[i] = carList[idMinimumActuel];
       carList[idMinimumActuel] = aux;
+    }
+  }
+}
+
+int idleaderboardMaximum(std::map<int, sf::String[2]> &leaderboard, int maximum) {
+  int idMaximumActuel = 1;
+  for (int i = 1; i <= maximum; i++) {
+    if (std::stoi(leaderboard[idMaximumActuel][1].toAnsiString()) > std::stoi(leaderboard[i][1].toAnsiString())) {
+    	idMaximumActuel = i;
+    }
+  }
+  return idMaximumActuel;
+
+}
+
+void triSelectionDecroissantLeaderboard(std::map<int, sf::String[2]> &leaderboard, int maximum) {
+  int idMaximumActuel = 1;
+  sf::String aux[2];
+  for (int i = maximum-1; i > 1 ; i--) {
+	  idMaximumActuel = idleaderboardMaximum(leaderboard, i);
+    if (idMaximumActuel != i) {
+      aux[0] = leaderboard[i][0];
+      aux[1] = leaderboard[i][1];
+      leaderboard[i][0] = leaderboard[idMaximumActuel][0];
+      leaderboard[i][1] = leaderboard[idMaximumActuel][1];
+      leaderboard[idMaximumActuel][0] = aux[0];
+      leaderboard[idMaximumActuel][1] = aux[1];
     }
   }
 }
@@ -997,7 +1020,7 @@ void loadLeaderBoard(std::map<int, sf::String[2]> &leaderboard, std::string src)
 		std::string line;
 		std::string stringTemporaire;
 		while (getline(leaderboardData, line)) {
-			int pos = line.find(R"(\t)");
+			int pos = line.find("+");
 			
 			stringTemporaire = line.substr(0,pos);
 			
@@ -1006,7 +1029,12 @@ void loadLeaderBoard(std::map<int, sf::String[2]> &leaderboard, std::string src)
         
 			leaderboard[classement][0] = sf::String(utf32);
 			
-			stringTemporaire = line.substr(pos+2, line.size() - (pos+2));
+			if (line.size() - (pos+1) > 0){
+				stringTemporaire = line.substr(pos+1, line.size() - (pos+1));
+			}else{
+				stringTemporaire = "0";
+			}
+			
 			
 			utf32.clear();
 			
@@ -1014,9 +1042,21 @@ void loadLeaderBoard(std::map<int, sf::String[2]> &leaderboard, std::string src)
 			        
 			leaderboard[classement][1] = sf::String(utf32);
 			
+			try{
+				if (std::stoi(stringTemporaire) <= 0){
+					leaderboard.erase(classement);
+					classement--;
+				}
+			} catch(const std::exception& e){
+				leaderboard.erase(classement);
+								classement--;
+			}
+
 			classement++;
 		}
+		triSelectionDecroissantLeaderboard(leaderboard, leaderboard.size()+1);
 	}
+	
 	
 }
 
@@ -1028,6 +1068,7 @@ void setBotLevelFromType(Car * car){
 		          car -> levelShocks = 4;
 		          car -> levelAcceleration = 6;
 		          car -> levelMaxSpeed = 7;
+		          car -> randomDistForBot = 17;
 	        } else if (car -> botType == "hard") {
 	          car -> botChanceNitro = 0.005;
 	          car -> chanceToGetPowerUp = 0.7;
@@ -1035,6 +1076,7 @@ void setBotLevelFromType(Car * car){
 	          car -> levelShocks = 2;
 	          car -> levelAcceleration = 5;
 	          car -> levelMaxSpeed = 5;
+	          car -> randomDistForBot = 22;
 	        } else if (car -> botType == "medium") {
 	        	car -> botChanceNitro = 0.003;
 	        	car -> chanceToGetPowerUp = 0.4;
@@ -1043,6 +1085,8 @@ void setBotLevelFromType(Car * car){
 		          car -> levelShocks = 1;
 		          car -> levelAcceleration = 2;
 		          car -> levelMaxSpeed = 2;
+
+		          car -> randomDistForBot = 25;
 	        } else if (car -> botType == "dumy") {
 	          car -> botChanceNitro = 0.001;
 	          car -> chanceToGetPowerUp = 0.2;
@@ -1050,6 +1094,7 @@ void setBotLevelFromType(Car * car){
 	          car -> levelShocks = 0;
 	          car -> levelAcceleration = 0;
 	          car -> levelMaxSpeed = 0;
+	          car -> randomDistForBot = 35;
 	        } else {
 	        	car -> botChanceNitro = 0.001;
 	        	car -> chanceToGetPowerUp = 0.5;
@@ -1057,8 +1102,8 @@ void setBotLevelFromType(Car * car){
 	        			          car -> levelShocks = 1;
 	        			          car -> levelAcceleration = 2;
 	        			          car -> levelMaxSpeed = 2;
+	        			          car -> randomDistForBot = 50;
 	        }
-	
 }
 
 void stopAllMusic(Assets &assets){
@@ -1088,6 +1133,31 @@ void muteAllMusic(Assets &assets){
     assets.sidewinder.setVolume(0);
     assets.blaster.setVolume(0);
     assets.bigDuke.setVolume(0);
+}
+
+void writeHightScore(sf::String name, int score, std::string src){
+	std::map<int, sf::String[2]> leaderboard;
+	
+	leaderboard.clear();
+	
+	loadLeaderBoard(leaderboard, src);
+	
+	int newId = leaderboard.size()+1;
+			
+	leaderboard[newId][0] = name;
+	leaderboard[newId][1] = sf::String(std::to_string(score));
+	
+	triSelectionDecroissantLeaderboard(leaderboard, leaderboard.size());
+	
+	ofstream leaderboardFile(src);
+	
+	for (int i = 1; i <= leaderboard.size() && i < 11; i++){
+		cout << leaderboard[i][0].toAnsiString() << endl;
+		leaderboardFile << leaderboard[i][0].toAnsiString() << "+" << leaderboard[i][1].toAnsiString();
+		if (i < leaderboard.size() && i < 10){
+			leaderboardFile << endl;
+		}
+	}
 }
 
 //fonction de débugage
@@ -1123,6 +1193,8 @@ int main() {
   const int MAX_BOT_RANGE_TO_GET_POWERUP = 80;
 
   const float TIME_BEFORE_REACTIVATE = 0.06;
+  
+  const int PRICE_MONNEY_BAG = 20;
 
   int idCurrentWindow = 0;
 
@@ -1130,6 +1202,8 @@ int main() {
 
   sf::Font font;
   font.loadFromFile("PixelOperator.ttf");
+  
+  std::string LEADERBOARD_FILE = "leaderboard.txt";
 
   const int NITRO_SPAWN_TIME = 1000;
     const int MONEY_SPAWN_TIME = 500;
@@ -1153,16 +1227,6 @@ int main() {
 
   const int CAR_LONGUEUR = 40;
   const int CAR_HAUTEUR = 20;
-
-  const float RANDOM_DIST_FOR_BOTS = 50;
-
-  const float RANDOM_DIST_FOR_BOTS_MASTERMIND = 17;
-
-  const float RANDOM_DIST_FOR_BOTS_HARD = 22;
-
-  const float RANDOM_DIST_FOR_BOTS_MEDIUM = 25;
-
-  const float RANDOM_DIST_FOR_BOTS_DUMY = 35;
 
   const int NB_LAPS_FIN = 4;
   
@@ -1268,6 +1332,7 @@ int main() {
 
   RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE);
 
+  
   /*
    * Une Clock permet de compter le temps. Vous en aurez besoin pour savoir
    * le temps entre deux frames.
@@ -1390,7 +1455,7 @@ int main() {
   //muteAllMusic(assets);
   
   
-  loadLeaderBoard(leaderboard, "leaderboard.txt");
+  loadLeaderBoard(leaderboard, LEADERBOARD_FILE);
   
   bool playMusicOnce = true;
   
@@ -1399,8 +1464,6 @@ int main() {
   
   int colision = false;
   
-  sf::SoundBuffer colisionBuffer;
-  colisionBuffer.loadFromFile("sound_supper_off_road/car_break.wav");
 
   Car playerCar;
   playerCar.pos = level.spawnPos[0];
@@ -1772,6 +1835,7 @@ int main() {
         if (isCollision(playerCar, level.spawnPosMoney[i], CAR_HAUTEUR / 2)) {
           if (level.spawnPosMoney[i].present) {
             //Alphee met qu'on gagne de la moula
+        	  playerCar.monneyWinThisRun += PRICE_MONNEY_BAG;
             level.spawnPosNitro[i].present = false;
           }
         }
@@ -1807,8 +1871,13 @@ int main() {
       countMoney++;
       if (countMoney == MONEY_SPAWN_TIME)
       {
+<<<<<<< HEAD
         generateNitro(level.spawnPosMoney);
         countMoney = 0;
+=======
+          generateNitro(level.spawnPosMoney);
+          countMoney = 0;
+>>>>>>> 47316e448f2fec4f42b34eb8b33f27a7a66dab84
       }
 
       playerCar.malusBonusSpeed = 1;
@@ -1887,18 +1956,7 @@ int main() {
         }
 
         if (isCollision( * enemie, level.botLine[enemie -> botPositionToTarget], CAR_LONGUEUR)) {
-          int randomDistForBot = 0;
-          if (enemie -> botType == "master") {
-            randomDistForBot = RANDOM_DIST_FOR_BOTS_MASTERMIND;
-          } else if (enemie -> botType == "hard") {
-            randomDistForBot = RANDOM_DIST_FOR_BOTS_HARD;
-          } else if (enemie -> botType == "medium") {
-            randomDistForBot = RANDOM_DIST_FOR_BOTS_MEDIUM;
-          } else if (enemie -> botType == "dumy") {
-            randomDistForBot = RANDOM_DIST_FOR_BOTS_DUMY;
-          } else {
-            randomDistForBot = RANDOM_DIST_FOR_BOTS;
-          }
+
 
           sf::Vector2f vectorBetweenPosAndNewTarget = Vector2f(level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())].x - enemie -> pos.x, level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())].y - enemie -> pos.y);
 
@@ -1928,7 +1986,7 @@ int main() {
           }
 
           if (!hasAlreadyATarget && calculateNorme(vectorBetweenPosAndNewTarget.x, vectorBetweenPosAndNewTarget.y) > 60) {
-            enemie -> posInterBot = randomInCircle(centerPosition(level.botLine[enemie -> botPositionToTarget], level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())]), randomDistForBot);
+            enemie -> posInterBot = randomInCircle(centerPosition(level.botLine[enemie -> botPositionToTarget], level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())]), enemie -> randomDistForBot);
 
           }
           enemie -> botPositionToTarget = fmod(enemie -> botPositionToTarget + 1, level.botLine.size());
@@ -2037,6 +2095,7 @@ int main() {
             if (isCollision( * enemie, level.spawnPosMoney[i], CAR_HAUTEUR / 2)) {
                 if (level.spawnPosMoney[i].present) {
                 //Alphee met qu'on gagne de la moula
+                	enemie -> monneyWinThisRun += PRICE_MONNEY_BAG;
                 level.spawnPosNitro[i].present = false;
                 }
             }
@@ -2089,6 +2148,9 @@ int main() {
       //fin du truc pour les ennemies
       if (playerCar.laps == NB_LAPS_FIN) {
         playerCar.score = score;
+        
+        //Comptage des points pour leaderboard
+        playerCar.points += (100 - Math::arrondir(timer, 1))*idLevel;
         score++;
         for (int j = 0; j < Enemies.size(); j++) {
           Car * enemie = Enemies[j];
@@ -2108,6 +2170,7 @@ int main() {
       }
       if (score == 4) {
         playerCar.score = score;
+        playerCar.points += (100 - Math::arrondir(timer, 1))*idLevel;
 
       }
       
@@ -2120,10 +2183,17 @@ int main() {
         for (int i = 0; i < Enemies.size(); i++) {
           tri[i + 1] = Enemies[i];
         }
-        triSelectionDecroissant(tri, 4, idPositionMinimum);
+        triSelectionCroissant(tri, 4);
 
         for (int i = 0; i < 4; i++) {
           tri[i] -> startPosition = i;
+          tri[i] -> monney += (3-i)*50;
+          //Le premier a 20 le 2 eme 10 et le troisème 5
+          if (i == 0){
+          	tri[i] -> points += 20 * idLevel;
+          } else {
+        	  tri[i] -> points += (3-i) * 5 * idLevel;
+          }
         }
         //On arrete toutes les musiques
               stopAllMusic(assets);
@@ -2154,11 +2224,13 @@ int main() {
     	  if (makeAnnimation){
         idLevel++;
         
-        //Regeneration du terrain
-                makeLevel(level, levelFile+ to_string((idLevel-1)%4+1) + ".txt");
-                loadFromFile(assets.backgroundLevelScreenTexture, assets.backgroundLevelScreen, levelFile+to_string((idLevel-1)%4+1) + ".png"); 
-                nbFlag = level.flags.size();
-                printListWall(level.walls);
+        //ajout de l'argent de la course au portefeuille du joueur
+        playerCar.monney += playerCar.monneyWinThisRun;
+        playerCar.monneyWinThisRun = 0;
+        for (int j = 0; j < Enemies.size(); j++) {
+                         Enemies[j] -> monney += Enemies[j] -> monneyWinThisRun;
+                         Enemies[j] -> monneyWinThisRun = 0;
+                          }
     	  }
 
         
@@ -2187,19 +2259,35 @@ int main() {
             carScale = 0.5;
             carMove.x = -200;
             carMove.y = 700;
-            idLevel = 0;
+            idLevel = 1;
             cooldownToSwitchScreen = timeToSwitchScreen;
-            idMenuScreen = 1;
+            idMenuScreen = 2;
             clignotementTexteMenu = false;
             defeat = false;
+            
+            writeHightScore(playerName,playerCar.points, LEADERBOARD_FILE);
+            loadLeaderBoard(leaderboard, LEADERBOARD_FILE);
+            
             playerName.clear();
+            playerCar.monney = 0;
+            playerCar.points = 0;
             
             //reset des positions de départ
             playerCar.startPosition = 0;
             for (int j = 0; j < Enemies.size(); j++) {
                  Enemies[j] -> startPosition = j+1;
+                 Enemies[j] -> monney = 0;
+                 Enemies[j] -> points = 0;
                   }
+				  
         }
+          if (makeAnnimation){
+        	  //Regeneration du terrain
+        	                  makeLevel(level, levelFile+ to_string((idLevel-1)%4+1) + ".txt");
+        	                  loadFromFile(assets.backgroundLevelScreenTexture, assets.backgroundLevelScreen, levelFile+to_string((idLevel-1)%4+1) + ".png"); 
+        	                  nbFlag = level.flags.size();
+        	                  printListWall(level.walls);
+          }
 
         reset(playerCar, level);
         for (int i = 0; i < Enemies.size(); i++) {
@@ -2395,21 +2483,26 @@ int main() {
     	
     	if (enter1Pressure) {
     		//verifier a chaque fois si il a l'argent
-    		if (idSelectionUpgradePlayer1==0 && playerCar.nbNitro <= MAX_NITRO*5/6){
+    		if (idSelectionUpgradePlayer1==0 && playerCar.nbNitro <= MAX_NITRO*5/6 && playerCar.monney >= 10){
     			playerCar.nbNitro += (int)MAX_NITRO/6;
+    			playerCar.monney -= 10;
     		}
-    		if (idSelectionUpgradePlayer1==1 && playerCar.levelAcceleration < 6){
+    		if (idSelectionUpgradePlayer1==1 && playerCar.levelAcceleration < 6 && playerCar.monney >= 80){
     			playerCar.levelAcceleration++;
+    			playerCar.monney -= 80;
     		    		}
-    		if (idSelectionUpgradePlayer1==2 && playerCar.levelTires < 6){
+    		if (idSelectionUpgradePlayer1==2 && playerCar.levelTires < 6 && playerCar.monney >= 40){
     			playerCar.levelTires++;
+    			playerCar.monney -= 40;
     		    		    		}
-    		if (idSelectionUpgradePlayer1==3 && playerCar.levelMaxSpeed < 6){
+    		if (idSelectionUpgradePlayer1==3 && playerCar.levelMaxSpeed < 6 && playerCar.monney >= 100){
     			playerCar.levelMaxSpeed++;
+    			playerCar.monney -= 100;
     		    		    		}
-    		if (idSelectionUpgradePlayer1==4 && playerCar.levelShocks < 6){
+    		if (idSelectionUpgradePlayer1==4 && playerCar.levelShocks < 6 && playerCar.monney >= 60){
     			playerCar.levelShocks++;
-    		    		    		}
+    			playerCar.monney -= 60;
+    		    }
     		if (!hasTwoPlayer && idSelectionUpgradePlayer1 == 5)
     	        	    	  nextScreen = 4;
     		
@@ -2575,9 +2668,9 @@ int main() {
 
     	if (colision && idCurrentWindow==1)
     	            {
-    	                sf::Sound sound;
-    	                sound.setBuffer(colisionBuffer);
-    	                sound.play();
+    	                //sf::Sound sound;
+    	                //sound.setBuffer(colisionBuffer);
+    	                //sound.play();
     	            }
     	
       window.draw(assets.backgroundLevelScreen);
@@ -2801,7 +2894,25 @@ int main() {
       horloge.setFillColor(sf::Color::Black);
       horloge.setPosition(720 - horloge.getLocalBounds().width / 2, 30 - horloge.getLocalBounds().height / 2);
       window.draw(horloge);
-
+      
+      sf::Text extraMonneyText = sf::Text();
+      extraMonneyText.setFont(font);
+	  extraMonneyText.setCharacterSize(50);
+	  extraMonneyText.setFillColor(sf::Color::Yellow);
+      
+	  extraMonneyText.setString(std::to_string(tri[0] -> monneyWinThisRun));
+	  extraMonneyText.setPosition(290 - extraMonneyText.getLocalBounds().width, 625);
+	  window.draw(extraMonneyText);
+	  
+	  extraMonneyText.setString(std::to_string(tri[1] -> monneyWinThisRun));
+	  extraMonneyText.setPosition(600 - extraMonneyText.getLocalBounds().width, 625);
+	  	  window.draw(extraMonneyText);
+	  	  
+	  	extraMonneyText.setString(std::to_string(tri[2] -> monneyWinThisRun));
+	  	extraMonneyText.setPosition(905 - extraMonneyText.getLocalBounds().width, 625);
+	  		  window.draw(extraMonneyText);
+	  		  
+	  		  
       sf::Text enterText = sf::Text();
       if (defeat) {
     	  if (!assets.gameoverScreenmusic.getStatus() && playMusicOnce){
@@ -3011,6 +3122,20 @@ int main() {
         	
         	assets.selectionUpgrade.setPosition(x,y);
         	window.draw(assets.selectionUpgrade);
+        	
+        	
+        	sf::Text MonneyText = sf::Text();
+        	MonneyText.setFont(font);
+        	MonneyText.setCharacterSize(50);
+        	MonneyText.setFillColor(sf::Color::White);
+        	if (playerCar.monney >0){
+        		MonneyText.setString(std::to_string(playerCar.monney)+",000");
+        	}
+        	else {
+        		MonneyText.setString("0");
+        	}
+        	MonneyText.setPosition(470 - MonneyText.getLocalBounds().width,232);
+        	window.draw(MonneyText);
         	
         }
     
