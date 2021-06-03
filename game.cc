@@ -1027,6 +1027,16 @@ void stopAllMusic(Assets &assets){
 	assets.gameoverScreenmusic.stop();
 }
 
+void muteAllMusic(Assets &assets){
+	assets.titleScreenmusic.setVolume(0);
+	assets.nameScreenmusic.setVolume(0);
+	assets.setupScreenmusic.setVolume(0);
+	assets.startScreenmusic.setVolume(0);
+	assets.goalScreenmusic.setVolume(0);
+	assets.celebrationScreenmusic.setVolume(0);
+	assets.gameoverScreenmusic.setVolume(0);
+}
+
 //fonction de débugage
 //affichage de la vrai htibox des murs
 
@@ -1312,6 +1322,8 @@ int main() {
   loadMusicFromFile(assets.goalScreenmusic, "sound/13 Goal.flac");
   loadMusicFromFile(assets.celebrationScreenmusic, "sound/14 Celebration.flac");
   loadMusicFromFile(assets.gameoverScreenmusic, "sound/15 Game Over.flac");
+  
+  muteAllMusic(assets);
   
   
   loadLeaderBoard(leaderboard, "leaderboard.txt");
@@ -2495,6 +2507,12 @@ int main() {
     	                	  line[1] = sf::Vertex(sf::Vector2f(level.walls[i].hitbox.corner2.x, level.walls[i].hitbox.corner2.y));
         	                  window.draw(line, 2, sf::Lines);
     	                  }
+    	                  
+    	                  for (int i = 0; i < level.flags.size(); ++i) {
+    	                      	                	  line[0] = sf::Vertex(sf::Vector2f(level.flags[i].hitbox.corner1.x, level.flags[i].hitbox.corner1.y));
+    	                      	                	  line[1] = sf::Vertex(sf::Vector2f(level.flags[i].hitbox.corner2.x, level.flags[i].hitbox.corner2.y));
+    	                          	                  window.draw(line, 2, sf::Lines);
+    	                      	                  }
 
     	                  
     	                  
