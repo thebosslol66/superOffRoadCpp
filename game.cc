@@ -247,6 +247,14 @@ struct Assets {
   //Voiture
   sf::Texture carTexture;
   sf::Sprite carSprite;
+  
+  //Victoire
+  sf::Texture victoireBackgroundTexture;
+    sf::Sprite victoireBackground;
+  
+  sf::Texture choucrouteTexture;
+  sf::Sprite choucroute;
+  
 
 };
 
@@ -730,7 +738,6 @@ void reset(Car & car, Ground & level) {
   car.direction = 0;
   car.laps = 0;
   car.flag = 0;
-  car.nbNitro += 2;
   car.lastNitroUsedTime = 0;
   car.malusBonusSpeed = 1.0;
   car.lastActive = 0;
@@ -746,7 +753,7 @@ void reset(Car * car, Ground & level) {
   car -> direction = 0;
   car -> laps = 0;
   car -> flag = 0;
-  car -> nbNitro = 3;
+  car -> nbNitro = 5;
   car -> lastNitroUsedTime = 0;
   car -> malusBonusSpeed = 1.0;
   car -> lastActive = 0;
@@ -954,12 +961,18 @@ int idleaderboardMaximum(std::map<int, sf::String[2]> &leaderboard, int maximum)
 
 }
 
-void triSelectionDecroissantLeaderboard(std::map<int, sf::String[2]> &leaderboard, int maximum) {
+int triSelectionDecroissantLeaderboard(std::map<int, sf::String[2]> &leaderboard, int maximum) {
+	int idNew = maximum-1;
   int idMaximumActuel = 1;
   sf::String aux[2];
   for (int i = maximum-1; i > 1 ; i--) {
 	  idMaximumActuel = idleaderboardMaximum(leaderboard, i);
     if (idMaximumActuel != i) {
+    	if (idNew == idMaximumActuel){
+    		idNew = i;
+    	} else if (idNew == i){
+    		idNew = idMaximumActuel;
+    	}
       aux[0] = leaderboard[i][0];
       aux[1] = leaderboard[i][1];
       leaderboard[i][0] = leaderboard[idMaximumActuel][0];
@@ -968,6 +981,7 @@ void triSelectionDecroissantLeaderboard(std::map<int, sf::String[2]> &leaderboar
       leaderboard[idMaximumActuel][1] = aux[1];
     }
   }
+  return idNew;
 }
 
 void loadFromFile(sf::Texture & texture, sf::Sprite & sprite,
@@ -1135,8 +1149,7 @@ void muteAllMusic(Assets &assets){
     assets.bigDuke.setVolume(0);
 }
 
-void writeHightScore(sf::String name, int score, std::string src){
-	std::map<int, sf::String[2]> leaderboard;
+int writeHightScore(sf::String name, int score, std::map<int, sf::String[2]> &leaderboard, std::string src){
 	
 	leaderboard.clear();
 	
@@ -1147,7 +1160,7 @@ void writeHightScore(sf::String name, int score, std::string src){
 	leaderboard[newId][0] = name;
 	leaderboard[newId][1] = sf::String(std::to_string(score));
 	
-	triSelectionDecroissantLeaderboard(leaderboard, leaderboard.size());
+	int newScoreId = triSelectionDecroissantLeaderboard(leaderboard, leaderboard.size()+1);
 	
 	ofstream leaderboardFile(src);
 	
@@ -1157,6 +1170,12 @@ void writeHightScore(sf::String name, int score, std::string src){
 			leaderboardFile << endl;
 		}
 	}
+	for (int i = 12; i <= leaderboard.size(); i++){
+		leaderboard.erase(i);
+		}
+	
+	leaderboardFile.close();
+	return newScoreId;
 }
 
 //fonction de débugage
@@ -1189,6 +1208,8 @@ int main() {
   const std::string WINDOW_TITLE = "Super off Road";
   const int MAX_FPS = 120;
 
+  const int MAX_RUNS = 8;
+  
   const int MAX_BOT_RANGE_TO_GET_POWERUP = 80;
 
   const float TIME_BEFORE_REACTIVATE = 0.06;
@@ -1211,7 +1232,7 @@ int main() {
   up = down = left = right = nitro = enter = false;
 
   float enterCooldown = 0;
-
+  
   const float enterMaxCooldown = 0.50;
 
   bool enter1Pressure = false;
@@ -1220,7 +1241,7 @@ int main() {
   double lastActiveNitro;
   lastActiveNitro = 0;
 
-  double TIME_NITRO_USED = 4.0;
+  double TIME_NITRO_USED = 2.0;
   
   const int MAX_NITRO = 18;
 
@@ -1328,7 +1349,19 @@ int main() {
   float cooldownSelectionUpgradePlayer1 = 0.0;
   const float cooldownMaxSelectionUpgrade = 0.5;
   
-
+  //Win
+  float choucrouteSize = 0;
+  
+  //ecran montrer son score
+  int idPlayerScore = 0;
+  sf::Color hiligthMyScore(0,0,0);
+  float redForHiligthMyScore = 0;
+  float greenForHiligthMyScore = 0;
+  float blueForHiligthMyScore = 0;
+  bool redForHiligthMyScoreReverse = false;
+  bool greenForHiligthMyScoreReverse = false;
+  bool blueForHiligthMyScoreReverse = false;
+  
   RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE);
 
   
@@ -1402,6 +1435,19 @@ int main() {
   assets.bulle.setOrigin(390, 295);
   assets.bulle.setPosition(850, 590);
   assets.bulle.setScale(1.5, 1.5);
+  
+  
+  
+  loadFromFile(assets.victoireBackgroundTexture, assets.victoireBackground, "assets/fond_victoire.png");
+      assets.victoireBackground.setOrigin(assets.victoireBackgroundTexture.getSize().x / 2, assets.victoireBackgroundTexture.getSize().y / 2);
+      assets.victoireBackground.setPosition(WINDOW_WIDTH / 2, WINDOW_HEIGHT/2);
+      
+      
+  loadFromFile(assets.choucrouteTexture, assets.choucroute, "assets/choucroute.png");
+    assets.choucroute.setOrigin(assets.choucrouteTexture.getSize().x / 2, assets.choucrouteTexture.getSize().y / 2);
+    assets.choucroute.setPosition(WINDOW_WIDTH / 2, WINDOW_HEIGHT/2);
+    assets.choucroute.setScale(0, 0);
+  
   
   loadFromFile(assets.upgradeScreenTexture, assets.upgradeScreen, "assets/upgradeScreen.png");
   assets.upgradeScreen.setScale(sf::Vector2f((WINDOW_WIDTH / assets.upgradeScreenTexture.getSize().x), (WINDOW_HEIGHT / assets.upgradeScreenTexture.getSize().y)));
@@ -2240,14 +2286,39 @@ int main() {
         
 
         //Mise a jour des difficultées
-        if (idLevel < 8) {
+        if (idLevel < MAX_RUNS) {
           for (int i = 0; i < Enemies.size(); i++) {
             Enemies[i] -> botType = levelDifficult[idLevel - 1][i];
           }
         }
+        
+        if (idLevel >= MAX_RUNS){
+        	nextScreen = 8;
+        	            textAlphaValue = 0;
+        	            textScale = 0.0;
+        	            carScale = 0.5;
+        	            carMove.x = -200;
+        	            carMove.y = 700;
+        	            idLevel = 1;
+        	            cooldownToSwitchScreen = timeToSwitchScreen;
+        	            
+        	            idPlayerScore = writeHightScore(playerName,playerCar.points, leaderboard, LEADERBOARD_FILE);
+        	            
+        	            playerName.clear();
+        	            playerCar.monney = 0;
+        	            playerCar.points = 0;
+        	            
+        	            //reset des positions de départ
+        	            playerCar.startPosition = 0;
+        	            for (int j = 0; j < Enemies.size(); j++) {
+        	                 Enemies[j] -> startPosition = j+1;
+        	                 Enemies[j] -> monney = 0;
+        	                 Enemies[j] -> points = 0;
+        	                  }
+        }
 
           if (defeat) {
-        	nextScreen = 0;
+        	nextScreen = 9;
             textAlphaValue = 0;
             textScale = 0.0;
             carScale = 0.5;
@@ -2255,12 +2326,10 @@ int main() {
             carMove.y = 700;
             idLevel = 1;
             cooldownToSwitchScreen = timeToSwitchScreen;
-            idMenuScreen = 2;
             clignotementTexteMenu = false;
             defeat = false;
             
-            writeHightScore(playerName,playerCar.points, LEADERBOARD_FILE);
-            loadLeaderBoard(leaderboard, LEADERBOARD_FILE);
+            idPlayerScore = writeHightScore(playerName,playerCar.points, leaderboard, LEADERBOARD_FILE);
             
             playerName.clear();
             playerCar.monney = 0;
@@ -2508,6 +2577,114 @@ int main() {
     	        	      }
     	
     }
+    else if (idCurrentWindow == 8) {
+    	  if (makeAnnimation) {
+    	    textAlphaValue += 170 * dt;
+    	    textAlphaValue %= 510;
+    	  }
+    	  
+    	  if (choucrouteSize < 1){
+    		  choucrouteSize += 0.5*dt;
+    	  }
+    	  else{
+    		  choucrouteSize = 1;
+    	  }
+    	  if (enter1Pressure) {
+    	    nextScreen = 9;
+    	    textAlphaValue = 0;
+    	    textScale = 0.0;
+    	    carScale = 0.5;
+    	    carMove.x = -200;
+    	    carMove.y = 700;
+    	    idLevel = 1;
+    	    cooldownToSwitchScreen = timeToSwitchScreen;
+    	    idMenuScreen = 1;
+    	    clignotementTexteMenu = false;
+
+    	    choucrouteSize = 0;
+    	    
+    	    playerName.clear();
+    	    playerCar.monney = 0;
+    	    playerCar.points = 0;
+    	    playerCar.nbNitro = 3;
+
+    	    //reset des positions de départ
+    	    playerCar.startPosition = 0;
+    	    for (int j = 0; j < Enemies.size(); j++) {
+    	      Enemies[j] -> startPosition = j + 1;
+    	      Enemies[j] -> monney = 0;
+    	      Enemies[j] -> points = 0;
+    	      Enemies[j] -> nbNitro = 3;
+    	    }
+
+    	  if (makeAnnimation) {
+    	    //Regeneration du terrain
+    	    makeLevel(level, levelFile + to_string((idLevel - 1) % 4 + 1) + ".txt");
+    	    loadFromFile(assets.backgroundLevelScreenTexture, assets.backgroundLevelScreen, levelFile + to_string((idLevel - 1) % 4 + 1) + ".png");
+    	    nbFlag = level.flags.size();
+    	    printListWall(level.walls);
+    	  }
+
+    	  reset(playerCar, level);
+    	  for (int i = 0; i < Enemies.size(); i++) {
+    	    Car * enemie = Enemies[i];
+    	    reset(enemie, level);
+    	  }
+    	  for (int i = 0; i < level.spawnPosNitro.size(); i++) {
+    	    level.spawnPosNitro[i].present = false;
+    	  }
+    	}
+    }
+    else if (idCurrentWindow == 9) {
+    	if (makeAnnimation) {
+    	if (alphaLeaderBoard < 255 * 12){
+    		alphaLeaderBoard += 510 * dt;
+    	} else{
+		                    textAlphaValue += 170 * dt;
+		                    textAlphaValue %= 510;
+		                  }
+    	if (!redForHiligthMyScoreReverse){redForHiligthMyScore += 60 *dt;}
+    	else{redForHiligthMyScore -= 60 *dt;}
+    	if (!greenForHiligthMyScoreReverse){greenForHiligthMyScore += 30 * dt;}
+    	else{greenForHiligthMyScore -= 30 * dt;}
+    	if (!blueForHiligthMyScoreReverse){blueForHiligthMyScore += 45 * dt;}
+    	else{blueForHiligthMyScore -= 45 * dt;}
+    	if (redForHiligthMyScore>256){
+    		redForHiligthMyScoreReverse = true;
+    		redForHiligthMyScore = 256 - (redForHiligthMyScore-256);
+    	}
+    	if (redForHiligthMyScore<0){
+    		redForHiligthMyScoreReverse = false;
+    		redForHiligthMyScore = - redForHiligthMyScore;
+    	}
+    	if (greenForHiligthMyScore>256){
+    		greenForHiligthMyScoreReverse = true;
+    		greenForHiligthMyScore = 256 - (greenForHiligthMyScore-256);
+    	    	}
+    	    	if (greenForHiligthMyScore<0){
+    	    		greenForHiligthMyScoreReverse = false;
+    	    		greenForHiligthMyScore = - greenForHiligthMyScore;
+    	    	}
+    	    	if (blueForHiligthMyScore>256){
+    	    		blueForHiligthMyScoreReverse = true;
+    	    	    		blueForHiligthMyScore = 256 - (blueForHiligthMyScore-256);
+    	    	    	}
+    	    	    	if (blueForHiligthMyScore<0){
+    	    	    		blueForHiligthMyScoreReverse = false;
+    	    	    		blueForHiligthMyScore = - blueForHiligthMyScore;
+    	    	    	}
+    	hiligthMyScore = sf::Color(redForHiligthMyScore, greenForHiligthMyScore, blueForHiligthMyScore);
+    	}
+    	if (enter1Pressure) {
+    		alphaLeaderBoard = -510;
+    		textAlphaValue = 0;
+    		idPlayerScore = 0;
+    		nextScreen = 0;
+    		idMenuScreen = 1;
+    	}
+		
+    }
+    	
     
     //***********************************AFFICHAGE !!!!!!******************//
 
@@ -2536,7 +2713,7 @@ int main() {
     		window.draw(assets.backgroundLeaderboard);
     		
     		sf::Text leaderboardText = sf::Text();
-    		leaderboardText.setString(L"(Tableau des Scores)");
+    		leaderboardText.setString("Tableau des Scores");
     		leaderboardText.setFont(font);
     		leaderboardText.setCharacterSize(90);
     		leaderboardText.setFillColor(sf::Color::White);
@@ -3136,6 +3313,173 @@ int main() {
         	
         }
     
+    if(idCurrentWindow == 8){
+    	
+    	window.clear(sf::Color::Black);
+    	
+    	window.draw(assets.victoireBackground);
+    	
+    	
+    	
+    	assets.choucroute.setScale(choucrouteSize, choucrouteSize);
+    	
+    	
+    	sf::Text voictoireText = sf::Text();
+    	voictoireText.setString("Vous avez gagnez!!!");
+    	voictoireText.setFont(font);
+    	voictoireText.setCharacterSize(120);
+    	voictoireText.setFillColor(sf::Color::Black);
+    	    	      
+    	voictoireText.setPosition(WINDOW_WIDTH / 2 - voictoireText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 8 - voictoireText.getLocalBounds().height / 2);
+
+    	window.draw(voictoireText);
+    	
+    	window.draw(assets.choucroute);
+    	
+    	
+    	sf::Text scoreText = sf::Text();
+    	scoreText.setString("Votre score: " + std::to_string(playerCar.points)+ " points");
+    	scoreText.setFont(font);
+    	scoreText.setCharacterSize(75);
+    	scoreText.setFillColor(sf::Color::White);
+    	    	    	      
+    	scoreText.setPosition(WINDOW_WIDTH / 2 - scoreText.getLocalBounds().width / 2, WINDOW_HEIGHT * 6 / 8 - scoreText.getLocalBounds().height / 2);
+
+    	    	window.draw(scoreText);
+    	    	
+    	
+    	sf::Text enterText = sf::Text();
+    	      enterText.setString("Press enter to continue");
+    	      enterText.setFont(font);
+    	      enterText.setCharacterSize(60);
+
+    	      if (textAlphaValue <= 255) {
+    	        enterText.setFillColor(sf::Color(255, 255, 255, textAlphaValue));
+    	        enterText.setOutlineColor(sf::Color(0, 0, 0, textAlphaValue));
+    	        enterText.setOutlineThickness(2.0);
+
+    	      } else {
+    	        enterText.setFillColor(sf::Color(255, 255, 255, 509 - textAlphaValue));
+    	        enterText.setOutlineColor(sf::Color(0, 0, 0, 509 - textAlphaValue));
+    	        enterText.setOutlineThickness(2.0);
+    	      }
+
+    	      enterText.setPosition(WINDOW_WIDTH / 2 - enterText.getLocalBounds().width / 2, WINDOW_HEIGHT * 7 / 8 - enterText.getLocalBounds().height / 2);
+
+    	      window.draw(enterText);
+        }
+    
+    if (idCurrentWindow == 9) {
+    	window.draw(assets.backgroundLeaderboard);
+    	    		
+    	    		sf::Text leaderboardText = sf::Text();
+    	    		leaderboardText.setString("Tableau des Scores");
+    	    		leaderboardText.setFont(font);
+    	    		leaderboardText.setCharacterSize(90);
+    	    		leaderboardText.setFillColor(sf::Color::White);
+    	    		leaderboardText.setPosition(WINDOW_WIDTH / 2 - leaderboardText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 16 - leaderboardText.getLocalBounds().height / 2);
+    	    		window.draw(leaderboardText);
+    	    		
+    	    		sf::Text rankText = sf::Text();
+    	    		rankText.setString("Rang");
+    	    		rankText.setFont(font);
+    	    		rankText.setCharacterSize(60);
+    	    		rankText.setFillColor(sf::Color::White);
+    	    		rankText.setPosition(WINDOW_WIDTH * 2/8 - rankText.getLocalBounds().width / 2, WINDOW_HEIGHT * 3 / 16 - rankText.getLocalBounds().height / 2);
+    	    		window.draw(rankText);
+    	    		    		
+    	    		sf::Text playerText = sf::Text();
+    	    		playerText.setString("Joueur");
+    	    		playerText.setFont(font);
+    	    		playerText.setCharacterSize(60);
+    	    		playerText.setFillColor(sf::Color::White);
+    	    		playerText.setPosition(WINDOW_WIDTH / 2 - playerText.getLocalBounds().width / 2, WINDOW_HEIGHT * 3 / 16 - playerText.getLocalBounds().height / 2);
+    	    		window.draw(playerText);
+
+    	    		sf::Text scoreText = sf::Text();
+    	    		scoreText.setString("Score");
+    	    		scoreText.setFont(font);
+    	    		scoreText.setCharacterSize(60);
+    	    		scoreText.setFillColor(sf::Color::White);
+    	    		scoreText.setPosition(WINDOW_WIDTH *6/8 - scoreText.getLocalBounds().width / 2, WINDOW_HEIGHT * 3 / 16 - scoreText.getLocalBounds().height / 2);
+    	    		window.draw(scoreText);
+    	    		
+    	    		sf::Color thecolor;
+    	    		
+    	    		for (int i=0; i< leaderboard.size() && ((i< 11 && idPlayerScore == 11) || (i< 10 && idPlayerScore != 11)) ;i++){
+    	    			
+    	    			thecolor = sf::Color::White;
+    	    			
+    	    			float alphaForText = alphaLeaderBoard-250*i;
+    	    			if (alphaForText < 0){
+    	    				alphaForText=0;
+    	    			}
+    	    			if(alphaForText >255){
+    	    				alphaForText = 255;
+    	    			}
+    	    			if (i == idPlayerScore-1){
+    	    				thecolor = hiligthMyScore;
+    	    			}
+    	    			sf::Text rankText = sf::Text();
+    	    			    		rankText.setString(std::to_string(i+1));
+    	    			    		rankText.setFont(font);
+    	    			    		rankText.setCharacterSize(45);
+    	    			    		rankText.setFillColor(sf::Color(thecolor.r,thecolor.g,thecolor.b,alphaForText));
+    	    			    		rankText.setPosition(WINDOW_WIDTH * 2/8 - rankText.getLocalBounds().width / 2, WINDOW_HEIGHT *  4 / 16 + 10- rankText.getLocalBounds().height / 2 + 45*i);
+    	    			    		
+    	    			    		    		
+    	    			    		sf::Text playerText = sf::Text();
+    	    			    		playerText.setString(leaderboard[i+1][0]);
+    	    			    		playerText.setFont(font);
+    	    			    		playerText.setCharacterSize(45);
+    	    			    		playerText.setFillColor(sf::Color(thecolor.r,thecolor.g,thecolor.b,alphaForText));
+    	    			    		playerText.setPosition(WINDOW_WIDTH / 2 - playerText.getLocalBounds().width / 2, WINDOW_HEIGHT * 4 / 16 + 10 - playerText.getLocalBounds().height / 2 + 45*i);
+    	    			    		
+
+    	    			    		sf::Text scoreText = sf::Text();
+    	    			    		scoreText.setString(leaderboard[i+1][1]);
+    	    			    		scoreText.setFont(font);
+    	    			    		scoreText.setCharacterSize(45);
+    	    			    		scoreText.setFillColor(sf::Color(thecolor.r,thecolor.g,thecolor.b,alphaForText));
+    	    			    		scoreText.setPosition(WINDOW_WIDTH *6/8 - scoreText.getLocalBounds().width / 2, WINDOW_HEIGHT * 4 / 16 + 10 - scoreText.getLocalBounds().height / 2 + 45*i);
+    	    			    		
+    	    			    		//
+    	    			    		//if (i == idPlayerScore-1){
+    	    			    		//	rankText.setOutlineColor(sf::Color(255, 255, 255, alphaForText));
+    	    			    		//	playerText.setOutlineColor(sf::Color(255, 255, 255, alphaForText));
+    	    			    		//	scoreText.setOutlineColor(sf::Color(255, 255, 255, alphaForText));
+    	    			    		//	rankText.setOutlineThickness(1.0);
+    	    			    		//	playerText.setOutlineThickness(1.0);
+    	    			    		//	scoreText.setOutlineThickness(1.0);
+    	    			    		//	
+    	    			    		//}
+    	    			    		
+    	    			    		
+    	    			    		window.draw(rankText);
+    	    			    		window.draw(playerText);
+    	    			    		window.draw(scoreText);
+    	    			
+    	    		}
+    	    		sf::Text enterText = sf::Text();
+    	    		      enterText.setString("Press enter to continue");
+    	    		      enterText.setFont(font);
+    	    		      enterText.setCharacterSize(60);
+
+    	    		      if (textAlphaValue <= 255) {
+    	    		        enterText.setFillColor(sf::Color(255, 255, 255, textAlphaValue));
+    	    		        enterText.setOutlineColor(sf::Color(0, 0, 0, textAlphaValue));
+    	    		        enterText.setOutlineThickness(2.0);
+
+    	    		      } else {
+    	    		        enterText.setFillColor(sf::Color(255, 255, 255, 509 - textAlphaValue));
+    	    		        enterText.setOutlineColor(sf::Color(0, 0, 0, 509 - textAlphaValue));
+    	    		        enterText.setOutlineThickness(2.0);
+    	    		      }
+
+    	    		      enterText.setPosition(WINDOW_WIDTH / 2 - enterText.getLocalBounds().width / 2, WINDOW_HEIGHT * 7 / 8 - enterText.getLocalBounds().height / 2);
+
+    	    		      window.draw(enterText);
+        }
     
     if (nextScreen >= 0){
     	sf::RectangleShape blackShape(sf::Vector2f(WINDOW_WIDTH, WINDOW_HEIGHT));
@@ -3145,8 +3489,6 @@ int main() {
     	      } else {
     	        blackShape.setFillColor(sf::Color(0, 0, 0, 509 - alphaBlackScreen));
     	      }
-    	
-    	
     	
     	window.draw(blackShape);
     }
