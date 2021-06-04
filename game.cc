@@ -247,6 +247,10 @@ struct Assets {
   sf::Music huevosGrande;
   sf::Music voix;
 
+  //Bruitage
+  sf::SoundBuffer accelerationBuffer;
+  sf::Sound acceleration;
+
   //Voiture
   sf::Texture carTexture;
   sf::Sprite carSprite;
@@ -1507,11 +1511,16 @@ int main() {
   loadMusicFromFile(assets.celebrationScreenmusic, "sound/14 Celebration.flac");
   loadMusicFromFile(assets.gameoverScreenmusic, "sound/15 Game Over.flac");
   loadMusicFromFile(assets.caramella, "sound/caramella.flac");
-  loadMusicFromFile(assets.huevosGrande, "sound/Huevos Grande.flac");
+  loadMusicFromFile(assets.huevosGrande, "sound/06 Huevos Grande.flac");
   loadMusicFromFile(assets.voix, "sound/voix.flac");
   assets.voix.setLoop(true);
+
+
+  assets.accelerationBuffer.loadFromFile("sound/acceleration.flac");
+  assets.acceleration.setBuffer(assets.accelerationBuffer);
+  assets.acceleration.setLoop(true);
   
-  muteAllMusic(assets);
+  //muteAllMusic(assets);
   
   
   loadLeaderBoard(leaderboard, LEADERBOARD_FILE);
@@ -1917,7 +1926,6 @@ int main() {
           if (isCollision(playerCar, enemie2 -> pos, CAR_HAUTEUR*1.1)) {
             Speed tempSpeed = calculateProjectionOfSpeed(playerCar.speed, sf::Vector2f(enemie2 -> pos.x - playerCar.pos.x, enemie2 -> pos.y - playerCar.pos.y));
 
-            cout << tempSpeed.x << " " << tempSpeed.y << endl;
             if (calculateNorme(tempSpeed.x,tempSpeed.y) <=30 && calculateNorme(tempSpeed.x,tempSpeed.y) != 0)
             {
                 tempSpeed.x = 30;
@@ -2902,6 +2910,14 @@ int main() {
                 {
                     assets.bigDuke.play();
                 } 
+            }
+
+            if (!assets.acceleration.getStatus() && up)
+            {
+                assets.acceleration.play();
+            }else if (!up)
+            {
+                assets.acceleration.stop();
             }
     
         }
