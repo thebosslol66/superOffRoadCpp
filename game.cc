@@ -122,17 +122,20 @@ struct Car {
   float botChanceNitro = 0;
   float chanceToGetPowerUp = 0;
   int randomDistForBot = 0;
+  float maxTimeBlocked = 2.0;
+    
+    //Upgrades
+    int levelTires = 0;
+    int levelShocks = 0;
+    int levelAcceleration = 0;
+    int levelMaxSpeed = 0;
+    
+    
+    float avgSpeed = 40;
+    float maxSpeed = 40;
+    float tires = 0.12;
+    float shocks = 1;
   
-  //Upgrades
-  int levelTires = 6;
-  int levelShocks = 6;
-  int levelAcceleration = 6;
-  int levelMaxSpeed = 6;
-  
-  
-  float avgSpeed = 40;
-  float maxSpeed = 40;
-  float tires = 0.12;
   
   //Points
   int points = 0;
@@ -266,6 +269,13 @@ struct Assets {
   //Saisie du nom
   sf::Texture nameBackgroundTexture;
     sf::Sprite nameBackground;
+    
+    
+    //easter egg
+   sf::SoundBuffer nomBuffer;
+   sf::Sound nitroSound;//2-3s
+   sf::Sound endRunSound;//5-10
+   sf::Sound endGameLoseSound;//15s
 
 };
 
@@ -1095,6 +1105,7 @@ void setBotLevelFromType(Car * car){
 		          car -> levelAcceleration = 6;
 		          car -> levelMaxSpeed = 7;
 		          car -> randomDistForBot = 17;
+		          car -> maxTimeBlocked = 0.4;
 	        } else if (car -> botType == "hard") {
 	          car -> botChanceNitro = 0.005;
 	          car -> chanceToGetPowerUp = 0.7;
@@ -1103,6 +1114,7 @@ void setBotLevelFromType(Car * car){
 	          car -> levelAcceleration = 5;
 	          car -> levelMaxSpeed = 5;
 	          car -> randomDistForBot = 22;
+	          car -> maxTimeBlocked = 0.8;
 	        } else if (car -> botType == "medium") {
 	        	car -> botChanceNitro = 0.003;
 	        	car -> chanceToGetPowerUp = 0.4;
@@ -1113,6 +1125,7 @@ void setBotLevelFromType(Car * car){
 		          car -> levelMaxSpeed = 2;
 
 		          car -> randomDistForBot = 25;
+		          car -> maxTimeBlocked = 1.4;
 	        } else if (car -> botType == "dumy") {
 	          car -> botChanceNitro = 0.001;
 	          car -> chanceToGetPowerUp = 0.2;
@@ -1121,6 +1134,7 @@ void setBotLevelFromType(Car * car){
 	          car -> levelAcceleration = 0;
 	          car -> levelMaxSpeed = 0;
 	          car -> randomDistForBot = 35;
+	          car -> maxTimeBlocked = 2.0;
 	        } else {
 	        	car -> botChanceNitro = 0.001;
 	        	car -> chanceToGetPowerUp = 0.5;
@@ -1129,6 +1143,7 @@ void setBotLevelFromType(Car * car){
 	        			          car -> levelAcceleration = 2;
 	        			          car -> levelMaxSpeed = 2;
 	        			          car -> randomDistForBot = 50;
+	        			          car -> maxTimeBlocked = 2.0;
 	        }
 }
 
@@ -1891,400 +1906,397 @@ int main(int argc,char* argv[]) {
       }
 
       //colision joueur mur
-      bool collisionWall = false;
-      Wall wall;
-      colision = false;
-      for (int i = 0; i < level.walls.size(); i++) {
-        wall = level.walls[i];
-        if (isCollision(playerCar, wall, CAR_HAUTEUR / 2)) {
-        	
-        colision = true;
-        
-          int direction = redirectIfPunchWall(playerCar, wall);
+            bool collisionWall = false;
+            Wall wall;
+            colision = false;
+            for (int i = 0; i < level.walls.size(); i++) {
+              wall = level.walls[i];
+              if (isCollision(playerCar, wall, CAR_HAUTEUR / 2)) {
+              	
+              colision = true;
+              
+                int direction = redirectIfPunchWall(playerCar, wall);
 
-          playerCar.speedColision.x = 0;
-          playerCar.speedColision.y = 0;
+                playerCar.speedColision.x = 0;
+                playerCar.speedColision.y = 0;
 
-          if (playerCar.direction == direction) {
-            playerCar.speed.x = 0;
-            playerCar.speed.y = 0;
-            playerCar.malusBonusSpeed = 0;
-          }
-          if (direction >= 0) {
-            playerCar.direction = direction;
-            recalculateSpeedDirection(playerCar);
-            if (playerCar.state == 1) {
-              playerCar.state = 2;
-            } else if (playerCar.state == 3) {
-              playerCar.state = 4;
-            }
-          }
-        }
-        if (isCollision(playerCar, wall, CAR_HAUTEUR + 5)) {
-          collisionWall = true;
-        }
-      }
-
-      //colision joueur mud
-      bool collisionMud = false;
-      for (int i = 0; i < level.muds.size(); i++) {
-        if (isCollision(playerCar, level.muds[i], CAR_HAUTEUR / 2)) {
-          if (playerCar.state == 1) {
-            playerCar.state = 3;
-          } else if (playerCar.state == 2) {
-            playerCar.state = 4;
-          }
-          collisionMud = true;
-        }
-      }
-
-      if (playerCar.state == 2 and!collisionWall) {
-        playerCar.state = 1;
-
-      } else if (playerCar.state == 4 and!collisionWall) {
-        playerCar.state = 3;
-      } else if (playerCar.state == 3 and!collisionMud) {
-        playerCar.state = 1;
-      } else if (playerCar.state == 4 and!collisionMud) {
-        playerCar.state = 2;
-      }
-
-      if (playerCar.state == 2) {
-        playerCar.malusBonusSpeed *= 0.60;
-      } else if (playerCar.state == 3) {
-        playerCar.malusBonusSpeed *= 0.70;
-      } else if (playerCar.state == 4) {
-        playerCar.malusBonusSpeed *= 0.40;
-      }
-
-      //colision joueur flag
-      for (int i = 0; i < level.flags.size(); i++) {
-        if (isCollision(playerCar, level.flags[i], CAR_HAUTEUR / 2)) {
-          countTour(playerCar, level.flags[i], nbFlag);
-        }
-      }
-      //colision joueur nitro
-      for (int i = 0; i < level.spawnPosNitro.size(); i++) {
-        if (isCollision(playerCar, level.spawnPosNitro[i], CAR_HAUTEUR / 2)) {
-          if (level.spawnPosNitro[i].present) {
-            playerCar.nbNitro++;
-            level.spawnPosNitro[i].present = false;
-          }
-        }
-      }
-      //colision joueur Money
-      for (int i = 0; i < level.spawnPosMoney.size(); i++) {
-        if (isCollision(playerCar, level.spawnPosMoney[i], CAR_HAUTEUR / 2)) {
-          if (level.spawnPosMoney[i].present) {
-            //Alphee met qu'on gagne de la moula
-        	  playerCar.monneyWinThisRun += PRICE_MONNEY_BAG;
-            level.spawnPosMoney[i].present = false;
-          }
-        }
-      }
-
-      //Colision joueur bot 
-      for (int j = 0; j < Enemies.size(); j++) {
-          Car * enemie2 = Enemies[j];
-          if (isCollision(playerCar, enemie2 -> pos, CAR_HAUTEUR*1.1)) {
-            Speed tempSpeed = calculateProjectionOfSpeed(playerCar.speed, sf::Vector2f(enemie2 -> pos.x - playerCar.pos.x, enemie2 -> pos.y - playerCar.pos.y));
-
-            if (calculateNorme(tempSpeed.x,tempSpeed.y) <=30 && calculateNorme(tempSpeed.x,tempSpeed.y) != 0)
-            {
-                tempSpeed.x = 30;
-                tempSpeed.y = 30; 
-            }
-            if (vectorDotProduct(playerCar.speed, sf::Vector2f(enemie2 -> pos.x - playerCar.pos.x, enemie2 -> pos.y - playerCar.pos.y)) >=0){
-            playerCar.speedColision.x -= 1.05 * (tempSpeed.x*(enemie2 -> pos.x - playerCar.pos.x)*dt);
-            playerCar.speedColision.y -= 1.05 * (tempSpeed.y*(enemie2 -> pos.y - playerCar.pos.y)*dt);
-            enemie2 -> speedColision.x += 1.00 * (tempSpeed.x*(enemie2 -> pos.x - playerCar.pos.x)*dt);
-            enemie2 -> speedColision.y += 1.00 * (tempSpeed.y*(enemie2 -> pos.y - playerCar.pos.y)*dt);
-            }
-          }
-      }
-
-      //CALCUL DE LA VITESSE DE LA VOITURE
-      playerCar.speed = calculateSpeed(playerCar, playerCar.avgSpeed * playerCar.malusBonusSpeed, playerCar.avgSpeed, playerCar.maxSpeed*5, up, down, playerCar.lastNitroUsedTime >= 0, dt);
-
-      //GENERATION DE LA NITRO
-      countNitro++;
-      if (countNitro == NITRO_SPAWN_TIME) {
-        	generateNitro(level.spawnPosNitro);
-        countNitro = 0;
-      }
-      //GENERATION DE LA MONEY
-      countMoney++;
-      if (countMoney == MONEY_SPAWN_TIME)
-      {
-        generateNitro(level.spawnPosMoney);
-        countMoney = 0;
-      }
-
-      playerCar.malusBonusSpeed = 1;
-      
-      //*************************ENEMIES STUFF************************//
-      for (int j = 0; j < Enemies.size(); j++) {
-        Car * enemie = Enemies[j];
-
-        if (enemie -> timeBlocked > 2) {
-          float lowerDistance = 100000;
-          int idCheckpoint = 0;
-          float dist;
-          for (int k = 0; k < level.botLine.size(); k++) {
-            dist = calculateNorme(level.botLine[k].x - enemie -> pos.x, level.botLine[k].y - enemie -> pos.y);
-            if (dist < lowerDistance) {
-              idCheckpoint = k;
-              lowerDistance = dist;
-              enemie -> posInterBot.x = -1;
-            }
-          }
-          enemie -> botPositionToTarget = idCheckpoint;
-
-        }
-
-        if (enemie -> lastActive <= 0) {
-          float pointx;
-          float pointy;
-          if (enemie -> posInterBot.x > 0) {
-            pointx = enemie -> posInterBot.x;
-            pointy = enemie -> posInterBot.y;
-          } else {
-            pointx = level.botLine[enemie -> botPositionToTarget].x;
-            pointy = level.botLine[enemie -> botPositionToTarget].y;
-          }
-
-          float pointxCentre = Math::arrondir(cos(fmod((M_PI - enemie -> direction * (M_PI / 8) +
-            2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR / 2.0 + enemie -> pos.x + CAR_LONGUEUR / 2;
-          float pointyCentre = Math::arrondir(sin(fmod((M_PI - enemie -> direction * (M_PI / 8) +
-            2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR / 2.0 + enemie -> pos.y + CAR_HAUTEUR / 2;
-          float pointxDroite = Math::arrondir(cos(fmod((M_PI - (enemie -> direction + 15) * (M_PI / 8) +
-            2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR / 2.0 + enemie -> pos.x + CAR_LONGUEUR / 2;
-          float pointyDroite = Math::arrondir(sin(fmod((M_PI - (enemie -> direction + 15) * (M_PI / 8) +
-            2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR / 2.0 + enemie -> pos.y + CAR_HAUTEUR / 2;
-
-          float pointxGauche = Math::arrondir(cos(fmod((M_PI - (enemie -> direction + 1) * (M_PI / 8) +
-            2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR / 2.0 + enemie -> pos.x + CAR_LONGUEUR / 2;
-          float pointyGauche = Math::arrondir(sin(fmod((M_PI - (enemie -> direction + 1) * (M_PI / 8) +
-            2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR / 2.0 + enemie -> pos.y + CAR_HAUTEUR / 2;
-
-          float distanceCentre = hypot(pointxCentre - pointx, pointyCentre - pointy);
-          float distanceDroite = hypot(pointxDroite - pointx, pointyDroite - pointy);
-          float distanceGauche = hypot(pointxGauche - pointx, pointyGauche - pointy);
-
-          if (distanceCentre < distanceDroite && distanceCentre < distanceGauche) { //pas de changement de direction
-          } else if (distanceDroite < distanceCentre) {
-            enemie -> direction = fmod(enemie -> direction + 15, 16);
-            recalculateSpeedDirection(enemie);
-            enemie -> lastActive = enemie -> tires + dt;
-          } else if (distanceGauche < distanceCentre) {
-            enemie -> direction = fmod(enemie -> direction + 1, 16);
-            recalculateSpeedDirection(enemie);
-            enemie -> lastActive = enemie -> tires + dt;
-          } else if (distanceCentre > distanceDroite && distanceCentre > distanceGauche) {
-            if (Math::random() < 0.5) {
-              enemie -> direction = fmod(enemie -> direction + 15, 16);
-            } else {
-              enemie -> direction = fmod(enemie -> direction + 1, 16);
-            }
-            recalculateSpeedDirection(enemie);
-            enemie -> lastActive = enemie -> tires + dt;
-          }
-        }
-
-        if (enemie -> lastNitroUsedTime >= 0) {
-          enemie -> lastNitroUsedTime -= dt;
-        }
-
-        if (isCollision( * enemie, level.botLine[enemie -> botPositionToTarget], CAR_LONGUEUR)) {
-
-
-          sf::Vector2f vectorBetweenPosAndNewTarget = Vector2f(level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())].x - enemie -> pos.x, level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())].y - enemie -> pos.y);
-
-          bool hasAlreadyATarget = false;
-          if (Math::random() < enemie -> chanceToGetPowerUp) {
-            for (int i = 0; i < level.spawnPosNitro.size(); i++) {
-              if (level.spawnPosNitro[i].present) {
-
-                sf::Vector2f vectorToNitro = sf::Vector2f(level.spawnPosNitro[i].pos.x - enemie -> pos.x, level.spawnPosNitro[i].pos.y - enemie -> pos.y);
-
-                if (vectorDotProduct(vectorBetweenPosAndNewTarget, vectorToNitro) > 0 && calculateNorme(vectorToNitro.x, vectorToNitro.y) < calculateNorme(vectorBetweenPosAndNewTarget.x, vectorBetweenPosAndNewTarget.y)) {
-
-                  sf::Vector2f pojection1 = calculateProjection(vectorToNitro, vectorBetweenPosAndNewTarget);
-                  sf::Vector2f pojection2 = calculateProjection(vectorToNitro, sf::Vector2f(vectorBetweenPosAndNewTarget.y / vectorBetweenPosAndNewTarget.x, 1));
-
-                  //SI la distance sur x < 1 alors elle est plus proche de la cible et si en y elle est pas trop loing de l'axe
-                  if (abs(calculateNorme(pojection1.x, pojection1.y) / calculateNorme(vectorBetweenPosAndNewTarget.x, vectorBetweenPosAndNewTarget.y)) < 1 &&
-                    calculateNorme(pojection2.x, pojection2.y) < MAX_BOT_RANGE_TO_GET_POWERUP) {
-                    enemie -> posInterBot.x = level.spawnPosNitro[i].pos.x + level.spawnPosNitro[i].rayon;
-                    enemie -> posInterBot.y = level.spawnPosNitro[i].pos.y + level.spawnPosNitro[i].rayon;
-                    hasAlreadyATarget = true;
+                if (playerCar.direction == direction) {
+                  playerCar.speed.x = 0;
+                  playerCar.speed.y = 0;
+                  playerCar.malusBonusSpeed = 0;
+                }
+                if (direction >= 0) {
+                  playerCar.direction = direction;
+                  recalculateSpeedDirection(playerCar);
+                  if (playerCar.state == 1) {
+                    playerCar.state = 2;
+                  } else if (playerCar.state == 3) {
+                    playerCar.state = 4;
                   }
+                }
+              }
+              if (isCollision(playerCar, wall, CAR_HAUTEUR + 5)) {
+                collisionWall = true;
+              }
+            }
 
+            //colision joueur mud
+            bool collisionMud = false;
+            for (int i = 0; i < level.muds.size(); i++) {
+              if (isCollision(playerCar, level.muds[i], CAR_HAUTEUR / 2)) {
+                if (playerCar.state == 1) {
+                  playerCar.state = 3;
+                } else if (playerCar.state == 2) {
+                  playerCar.state = 4;
+                }
+                collisionMud = true;
+              }
+            }
+
+            if (playerCar.state == 2 and!collisionWall) {
+              playerCar.state = 1;
+
+            } else if (playerCar.state == 4 and!collisionWall) {
+              playerCar.state = 3;
+            } else if (playerCar.state == 3 and!collisionMud) {
+              playerCar.state = 1;
+            } else if (playerCar.state == 4 and!collisionMud) {
+              playerCar.state = 2;
+            }
+
+            if (playerCar.state == 2) {
+              playerCar.malusBonusSpeed *= 0.50;
+            } else if (playerCar.state == 3) {
+              playerCar.malusBonusSpeed *= 0.60;
+            } else if (playerCar.state == 4) {
+              playerCar.malusBonusSpeed *= 0.40;
+            }
+
+            //colision joueur flag
+            for (int i = 0; i < level.flags.size(); i++) {
+              if (isCollision(playerCar, level.flags[i], CAR_HAUTEUR / 2)) {
+                countTour(playerCar, level.flags[i], nbFlag);
+              }
+            }
+            //colision joueur nitro
+            for (int i = 0; i < level.spawnPosNitro.size(); i++) {
+              if (isCollision(playerCar, level.spawnPosNitro[i], CAR_HAUTEUR / 2)) {
+                if (level.spawnPosNitro[i].present) {
+                  playerCar.nbNitro++;
+                  level.spawnPosNitro[i].present = false;
                 }
               }
             }
-          }
-
-          if (!hasAlreadyATarget && calculateNorme(vectorBetweenPosAndNewTarget.x, vectorBetweenPosAndNewTarget.y) > 60) {
-            enemie -> posInterBot = randomInCircle(centerPosition(level.botLine[enemie -> botPositionToTarget], level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())]), enemie -> randomDistForBot);
-
-          }
-          enemie -> botPositionToTarget = fmod(enemie -> botPositionToTarget + 1, level.botLine.size());
-        }
-
-        //if an ennemie is blocked too long
-        if (enemie -> speed.x == 0 && enemie -> speed.y == 0) {
-          enemie -> timeBlocked += dt;
-        } else if (enemie -> timeBlocked > 0) {
-          enemie -> timeBlocked = 0;
-        }
-
-        if (Math::random() < enemie -> botChanceNitro && enemie -> lastNitroUsedTime <= 0 && enemie -> nbNitro > 0) {
-          enemie -> lastNitroUsedTime = TIME_NITRO_USED;
-          enemie -> nbNitro -= 1;
-        }
-
-        if (enemie -> posInterBot.x > 0) {
-          if (isCollision( * enemie, enemie -> posInterBot, CAR_LONGUEUR * 3 / 4)) {
-            enemie -> posInterBot.x = -1;
-          }
-        }
-
-        if (enemie -> lastActive > 0) {
-          enemie -> lastActive -= dt;
-        }
-
-        Wall wall;
-        bool collisionWall = false;
-        for (int i = 0; i < level.walls.size(); i++) {
-          wall = level.walls[i];
-          if (isCollision( * enemie, wall, CAR_HAUTEUR / 2)) {
-            int direction = redirectIfPunchWall(enemie, wall);
-
-            enemie -> speedColision.x = 0;
-            enemie -> speedColision.y = 0;
-
-            if (enemie -> direction == direction) {
-              enemie -> speed.x = 0;
-              enemie -> speed.y = 0;
-              enemie -> malusBonusSpeed = 0;
-            }
-            if (direction >= 0) {
-              enemie -> direction = direction;
-              recalculateSpeedDirection(enemie);
-              if (enemie -> state == 1) {
-                enemie -> state = 2;
-              } else if (enemie -> state == 3) {
-                enemie -> state = 4;
-              }
-            }
-          }
-          if (isCollision( * enemie, wall, CAR_LONGUEUR)) {
-            collisionWall = true;
-          }
-        }
-
-        bool collisionMud = false;
-        for (int i = 0; i < level.muds.size(); i++) {
-          if (isCollision( * enemie, level.muds[i], CAR_HAUTEUR / 2)) {
-            if (enemie -> state == 1) {
-              enemie -> state = 3;
-            } else if (enemie -> state == 2) {
-              enemie -> state = 4;
-            }
-            collisionMud = true;
-          }
-        }
-
-        if (enemie -> state == 2 and!collisionWall) {
-          enemie -> state = 1;
-
-        } else if (enemie -> state == 4 and!collisionWall) {
-          enemie -> state = 3;
-        } else if (playerCar.state == 3 and!collisionMud) {
-          enemie -> state = 1;
-        } else if (enemie -> state == 4 and!collisionMud) {
-          enemie -> state = 2;
-        }
-
-        if (enemie -> state == 2) {
-          enemie -> malusBonusSpeed *= 0.60;
-        } else if (enemie -> state == 3) {
-          enemie -> malusBonusSpeed *= 0.70;
-        } else if (enemie -> state == 4) {
-          enemie -> malusBonusSpeed *= 0.40;
-        }
-
-        for (int i = 0; i < level.flags.size(); i++) {
-          if (isCollision( * enemie, level.flags[i], CAR_HAUTEUR / 2)) {
-            countTour( * enemie, level.flags[i], nbFlag);
-          }
-        }
-
-        for (int i = 0; i < level.spawnPosNitro.size(); i++) {
-          if (isCollision( * enemie, level.spawnPosNitro[i], CAR_HAUTEUR / 2)) {
-            if (level.spawnPosNitro[i].present) {
-              enemie -> nbNitro++;
-              level.spawnPosNitro[i].present = false;
-            }
-          }
-        }
-
-
-        for (int i = 0; i < level.spawnPosMoney.size(); i++) {
-            if (isCollision( * enemie, level.spawnPosMoney[i], CAR_HAUTEUR / 2)) {
+            //colision joueur Money
+            for (int i = 0; i < level.spawnPosMoney.size(); i++) {
+              if (isCollision(playerCar, level.spawnPosMoney[i], CAR_HAUTEUR / 2)) {
                 if (level.spawnPosMoney[i].present) {
-                //Alphee met qu'on gagne de la moula
-                	enemie -> monneyWinThisRun += PRICE_MONNEY_BAG;
-                level.spawnPosMoney[i].present = false;
+                  //Alphee met qu'on gagne de la moula
+              	  playerCar.monneyWinThisRun += PRICE_MONNEY_BAG;
+                  level.spawnPosMoney[i].present = false;
+                }
+              }
+            }
+
+            //Colision joueur bot 
+            for (int j = 0; j < Enemies.size(); j++) {
+                Car * enemie2 = Enemies[j];
+                if (isCollision(playerCar, enemie2 -> pos, CAR_HAUTEUR*1.1)) {
+                  Speed tempSpeed = calculateProjectionOfSpeed(playerCar.speed, sf::Vector2f(enemie2 -> pos.x - playerCar.pos.x, enemie2 -> pos.y - playerCar.pos.y));
+                  if (calculateNorme(tempSpeed.x,tempSpeed.y) <=30 && calculateNorme(tempSpeed.x,tempSpeed.y) != 0)
+                  {
+                      tempSpeed.x = 30;
+                      tempSpeed.y = 30; 
+                  }
+                  if (vectorDotProduct(playerCar.speed, sf::Vector2f(enemie2 -> pos.x - playerCar.pos.x, enemie2 -> pos.y - playerCar.pos.y)) >=0){
+                  playerCar.speedColision.x -= 1.05 * (tempSpeed.x*(enemie2 -> pos.x - playerCar.pos.x)*dt);
+                  playerCar.speedColision.y -= 1.05 * (tempSpeed.y*(enemie2 -> pos.y - playerCar.pos.y)*dt);
+                  enemie2 -> speedColision.x += 1.00 * (tempSpeed.x*(enemie2 -> pos.x - playerCar.pos.x)*dt);
+                  enemie2 -> speedColision.y += 1.00 * (tempSpeed.y*(enemie2 -> pos.y - playerCar.pos.y)*dt);
+                  }
                 }
             }
-        }
+            
+            //*************************ENEMIES STUFF************************//
+            for (int j = 0; j < Enemies.size(); j++) {
+              Car * enemie = Enemies[j];
 
-        for (int k = 0; k < Enemies.size(); k++) {
-                                                                           Car * enemie2 = Enemies[k];
-                                                                           if (enemie2 != enemie){
-                                                                           if (isCollision(enemie, enemie2 -> pos, CAR_HAUTEUR)) {
-                                                                           	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> speed, sf::Vector2f(enemie2 -> pos.x - enemie -> pos.x, enemie2 -> pos.y - enemie -> pos.y));
+              if (enemie -> timeBlocked >= enemie -> maxTimeBlocked) {
+                float lowerDistance = 100000;
+                int idCheckpoint = 0;
+                float dist;
+                for (int k = 0; k < level.botLine.size(); k++) {
+                  dist = calculateNorme(level.botLine[k].x - enemie -> pos.x, level.botLine[k].y - enemie -> pos.y);
+                  if (dist < lowerDistance) {
+                    idCheckpoint = k;
+                    lowerDistance = dist;
+                  }
+                }
+                enemie -> posInterBot.x = -1;
+                enemie -> botPositionToTarget = idCheckpoint;
 
-                                                                            if (calculateNorme(tempSpeed.x,tempSpeed.y) <=30 && calculateNorme(tempSpeed.x,tempSpeed.y) != 0)
-                                                                            {
-                                                                                tempSpeed.x = 30;
-                                                                                tempSpeed.y = 30; 
-                                                                            }
-                                                                            if (vectorDotProduct(enemie -> speed, sf::Vector2f(enemie2 -> pos.x - enemie -> pos.x, enemie2 -> pos.y - enemie -> pos.y)) >= 0){
-                                                                           	enemie->speedColision.x -= 1.05 * (tempSpeed.x*(enemie2 -> pos.x - enemie -> pos.x)*dt);
-                                                                           	enemie->speedColision.y -= 1.05 * (tempSpeed.y*(enemie2 -> pos.y - enemie -> pos.y)*dt);
-                                                                           	enemie2 -> speedColision.x += 1.00 * (tempSpeed.x*(enemie2 -> pos.x - enemie -> pos.x)*dt);
-                                                                           	enemie2 -> speedColision.y += 1.00 * (tempSpeed.y*(enemie2 -> pos.y - enemie -> pos.y)*dt);
-                                                                            }
-                                                                           }
-                                                                           }
-                                                                       }
-        
-        if (isCollision(playerCar, enemie -> pos, CAR_HAUTEUR)) {
+              }
 
-                                                           	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> speed, sf::Vector2f(playerCar.pos.x- enemie -> pos.x , playerCar.pos.y- enemie -> pos.y));
-                                                            if (calculateNorme(tempSpeed.x,tempSpeed.y) <=30 && calculateNorme(tempSpeed.x,tempSpeed.y) != 0)
-                                                            {
-                                                                tempSpeed.x = 30;
-                                                                tempSpeed.y = 30; 
-                                                            }
-                                                            if (vectorDotProduct(enemie -> speed, sf::Vector2f(playerCar.pos.x- enemie -> pos.x , playerCar.pos.y- enemie -> pos.y)) >=0){
-                                                           	playerCar.speedColision.x -= 1.00 * (tempSpeed.x*(playerCar.pos.x- enemie -> pos.x)*dt);
-                                                           	playerCar.speedColision.y -= 1.00 * (tempSpeed.y*(playerCar.pos.y- enemie -> pos.y)*dt);
-                                                           	enemie -> speedColision.x += 1.05 * (tempSpeed.x*(playerCar.pos.x- enemie -> pos.x)*dt);
-                                                           	enemie -> speedColision.y += 1.05 * (tempSpeed.y*(playerCar.pos.y- enemie -> pos.y)*dt);
-                                                            }
-                                                           }
-        //
-        //On calcule ensuite la nouvelle vitesse de la voiture
-        enemie -> speed = calculateSpeed( * enemie, (enemie -> avgSpeed  * enemie -> malusBonusSpeed), enemie -> avgSpeed, enemie -> maxSpeed * 5, true, false, enemie -> lastNitroUsedTime >= 0, dt);
+              if (enemie -> lastActive <= 0) {
+                float pointx;
+                float pointy;
+                if (enemie -> posInterBot.x > 0) {
+                  pointx = enemie -> posInterBot.x;
+                  pointy = enemie -> posInterBot.y;
+                } else {
+                  pointx = level.botLine[enemie -> botPositionToTarget].x;
+                  pointy = level.botLine[enemie -> botPositionToTarget].y;
+                }
 
-        enemie -> malusBonusSpeed = 1;
+                float pointxCentre = Math::arrondir(cos(fmod((M_PI - enemie -> direction * (M_PI / 8) +
+                  2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR / 2.0 + enemie -> pos.x + CAR_LONGUEUR / 2;
+                float pointyCentre = Math::arrondir(sin(fmod((M_PI - enemie -> direction * (M_PI / 8) +
+                  2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR / 2.0 + enemie -> pos.y + CAR_HAUTEUR / 2;
+                float pointxDroite = Math::arrondir(cos(fmod((M_PI - (enemie -> direction + 15) * (M_PI / 8) +
+                  2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR / 2.0 + enemie -> pos.x + CAR_LONGUEUR / 2;
+                float pointyDroite = Math::arrondir(sin(fmod((M_PI - (enemie -> direction + 15) * (M_PI / 8) +
+                  2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR / 2.0 + enemie -> pos.y + CAR_HAUTEUR / 2;
 
-      }
+                float pointxGauche = Math::arrondir(cos(fmod((M_PI - (enemie -> direction + 1) * (M_PI / 8) +
+                  2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR / 2.0 + enemie -> pos.x + CAR_LONGUEUR / 2;
+                float pointyGauche = Math::arrondir(sin(fmod((M_PI - (enemie -> direction + 1) * (M_PI / 8) +
+                  2 * M_PI), (2 * M_PI))), 0.01) * CAR_HAUTEUR / 2.0 + enemie -> pos.y + CAR_HAUTEUR / 2;
 
+                float distanceCentre = hypot(pointxCentre - pointx, pointyCentre - pointy);
+                float distanceDroite = hypot(pointxDroite - pointx, pointyDroite - pointy);
+                float distanceGauche = hypot(pointxGauche - pointx, pointyGauche - pointy);
+
+                if (distanceCentre < distanceDroite && distanceCentre < distanceGauche) { //pas de changement de direction
+                } else if (distanceDroite < distanceCentre) {
+                  enemie -> direction = fmod(enemie -> direction + 15, 16);
+                  recalculateSpeedDirection(enemie);
+                  enemie -> lastActive = enemie -> tires + dt;
+                } else if (distanceGauche < distanceCentre) {
+                  enemie -> direction = fmod(enemie -> direction + 1, 16);
+                  recalculateSpeedDirection(enemie);
+                  enemie -> lastActive = enemie -> tires + dt;
+                } else if (distanceCentre > distanceDroite && distanceCentre > distanceGauche) {
+                  if (Math::random() < 0.5) {
+                    enemie -> direction = fmod(enemie -> direction + 15, 16);
+                  } else {
+                    enemie -> direction = fmod(enemie -> direction + 1, 16);
+                  }
+                  recalculateSpeedDirection(enemie);
+                  enemie -> lastActive = enemie -> tires + dt;
+                }
+              }
+
+              if (enemie -> lastNitroUsedTime >= 0) {
+                enemie -> lastNitroUsedTime -= dt;
+              }
+
+              if (isCollision( * enemie, level.botLine[enemie -> botPositionToTarget], CAR_LONGUEUR)) {
+
+
+                sf::Vector2f vectorBetweenPosAndNewTarget = Vector2f(level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())].x - enemie -> pos.x, level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())].y - enemie -> pos.y);
+
+                bool hasAlreadyATarget = false;
+                if (Math::random() < enemie -> chanceToGetPowerUp) {
+                  for (int i = 0; i < level.spawnPosNitro.size(); i++) {
+                    if (level.spawnPosNitro[i].present) {
+
+                      sf::Vector2f vectorToNitro = sf::Vector2f(level.spawnPosNitro[i].pos.x - enemie -> pos.x, level.spawnPosNitro[i].pos.y - enemie -> pos.y);
+
+                      if (vectorDotProduct(vectorBetweenPosAndNewTarget, vectorToNitro) > 0 && calculateNorme(vectorToNitro.x, vectorToNitro.y) < calculateNorme(vectorBetweenPosAndNewTarget.x, vectorBetweenPosAndNewTarget.y)) {
+
+                        sf::Vector2f pojection1 = calculateProjection(vectorToNitro, vectorBetweenPosAndNewTarget);
+                        sf::Vector2f pojection2 = calculateProjection(vectorToNitro, sf::Vector2f(vectorBetweenPosAndNewTarget.y / vectorBetweenPosAndNewTarget.x, 1));
+
+                        //SI la distance sur x < 1 alors elle est plus proche de la cible et si en y elle est pas trop loing de l'axe
+                        if (abs(calculateNorme(pojection1.x, pojection1.y) / calculateNorme(vectorBetweenPosAndNewTarget.x, vectorBetweenPosAndNewTarget.y)) < 1 &&
+                          calculateNorme(pojection2.x, pojection2.y) < MAX_BOT_RANGE_TO_GET_POWERUP) {
+                          enemie -> posInterBot.x = level.spawnPosNitro[i].pos.x + level.spawnPosNitro[i].rayon;
+                          enemie -> posInterBot.y = level.spawnPosNitro[i].pos.y + level.spawnPosNitro[i].rayon;
+                          hasAlreadyATarget = true;
+                        }
+
+                      }
+                    }
+                  }
+                }
+
+                if (!hasAlreadyATarget && calculateNorme(vectorBetweenPosAndNewTarget.x, vectorBetweenPosAndNewTarget.y) > 60) {
+                  enemie -> posInterBot = randomInCircle(centerPosition(level.botLine[enemie -> botPositionToTarget], level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())]), enemie -> randomDistForBot);
+
+                }
+                enemie -> botPositionToTarget = fmod(enemie -> botPositionToTarget + 1, level.botLine.size());
+              }
+
+              //if an ennemie is blocked too long
+              if (enemie -> speed.x == 0 && enemie -> speed.y == 0) {
+                enemie -> timeBlocked += dt;
+              } else if (enemie -> timeBlocked > 0) {
+                enemie -> timeBlocked = 0;
+              }
+
+              if (Math::random() < enemie -> botChanceNitro && enemie -> lastNitroUsedTime <= 0 && enemie -> nbNitro > 0) {
+                enemie -> lastNitroUsedTime = TIME_NITRO_USED;
+                enemie -> nbNitro -= 1;
+              }
+
+              if (enemie -> posInterBot.x > 0) {
+                if (isCollision( * enemie, enemie -> posInterBot, CAR_LONGUEUR * 3 / 4)) {
+                  enemie -> posInterBot.x = -1;
+                }
+              }
+
+              if (enemie -> lastActive > 0) {
+                enemie -> lastActive -= dt;
+              }
+
+              Wall wall;
+              bool collisionWall = false;
+              for (int i = 0; i < level.walls.size(); i++) {
+                wall = level.walls[i];
+                if (isCollision( * enemie, wall, CAR_HAUTEUR / 2)) {
+                  int direction = redirectIfPunchWall(enemie, wall);
+
+                  enemie -> speedColision.x = 0;
+                  enemie -> speedColision.y = 0;
+
+                  if (enemie -> direction == direction) {
+                    enemie -> speed.x = 0;
+                    enemie -> speed.y = 0;
+                    enemie -> malusBonusSpeed = 0;
+                  }
+                  if (direction >= 0) {
+                    enemie -> direction = direction;
+                    recalculateSpeedDirection(enemie);
+                    if (enemie -> state == 1) {
+                      enemie -> state = 2;
+                    } else if (enemie -> state == 3) {
+                      enemie -> state = 4;
+                    }
+                  }
+                }
+                if (isCollision( * enemie, wall, CAR_LONGUEUR)) {
+                  collisionWall = true;
+                }
+              }
+
+              bool collisionMud = false;
+              for (int i = 0; i < level.muds.size(); i++) {
+                if (isCollision( * enemie, level.muds[i], CAR_HAUTEUR / 2)) {
+                  if (enemie -> state == 1) {
+                    enemie -> state = 3;
+                  } else if (enemie -> state == 2) {
+                    enemie -> state = 4;
+                  }
+                  collisionMud = true;
+                }
+              }
+
+              if (enemie -> state == 2 and!collisionWall) {
+                enemie -> state = 1;
+
+              } else if (enemie -> state == 4 and!collisionWall) {
+                enemie -> state = 3;
+              } else if (playerCar.state == 3 and!collisionMud) {
+                enemie -> state = 1;
+              } else if (enemie -> state == 4 and!collisionMud) {
+                enemie -> state = 2;
+              }
+
+              if (enemie -> state == 2) {
+                enemie -> malusBonusSpeed *= 0.60;
+              } else if (enemie -> state == 3) {
+                enemie -> malusBonusSpeed *= 0.70;
+              } else if (enemie -> state == 4) {
+                enemie -> malusBonusSpeed *= 0.40;
+              }
+
+              for (int i = 0; i < level.flags.size(); i++) {
+                if (isCollision( * enemie, level.flags[i], CAR_HAUTEUR / 2)) {
+                  countTour( * enemie, level.flags[i], nbFlag);
+                }
+              }
+
+              for (int i = 0; i < level.spawnPosNitro.size(); i++) {
+                if (isCollision( * enemie, level.spawnPosNitro[i], CAR_HAUTEUR / 2)) {
+                  if (level.spawnPosNitro[i].present) {
+                    enemie -> nbNitro++;
+                    level.spawnPosNitro[i].present = false;
+                  }
+                }
+              }
+
+
+              for (int i = 0; i < level.spawnPosMoney.size(); i++) {
+                  if (isCollision( * enemie, level.spawnPosMoney[i], CAR_HAUTEUR / 2)) {
+                      if (level.spawnPosMoney[i].present) {
+                      //Alphee met qu'on gagne de la moula
+                      	enemie -> monneyWinThisRun += PRICE_MONNEY_BAG;
+                      level.spawnPosMoney[i].present = false;
+                      }
+                  }
+              }
+
+              for (int k = 0; k < Enemies.size(); k++) {
+                                                                                 Car * enemie2 = Enemies[k];
+                                                                                 if (enemie2 != enemie){
+                                                                                 if (isCollision(enemie, enemie2 -> pos, CAR_HAUTEUR)) {
+                                                                                 	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> speed, sf::Vector2f(enemie2 -> pos.x - enemie -> pos.x, enemie2 -> pos.y - enemie -> pos.y));
+                                                                                  if (calculateNorme(tempSpeed.x,tempSpeed.y) <=30 && calculateNorme(tempSpeed.x,tempSpeed.y) != 0)
+                                                                                  {
+                                                                                      tempSpeed.x = 30;
+                                                                                      tempSpeed.y = 30; 
+                                                                                  }
+                                                                                  if (vectorDotProduct(enemie -> speed, sf::Vector2f(enemie2 -> pos.x - enemie -> pos.x, enemie2 -> pos.y - enemie -> pos.y)) >= 0){
+                                                                                 	enemie->speedColision.x -= 1.05 * (tempSpeed.x*(enemie2 -> pos.x - enemie -> pos.x)*dt);
+                                                                                 	enemie->speedColision.y -= 1.05 * (tempSpeed.y*(enemie2 -> pos.y - enemie -> pos.y)*dt);
+                                                                                 	enemie2 -> speedColision.x += 1.00 * (tempSpeed.x*(enemie2 -> pos.x - enemie -> pos.x)*dt);
+                                                                                 	enemie2 -> speedColision.y += 1.00 * (tempSpeed.y*(enemie2 -> pos.y - enemie -> pos.y)*dt);
+                                                                                  }
+                                                                                 }
+                                                                                 }
+                                                                             }
+              
+              if (isCollision(playerCar, enemie -> pos, CAR_HAUTEUR)) {
+                                                                 	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> speed, sf::Vector2f(playerCar.pos.x- enemie -> pos.x , playerCar.pos.y- enemie -> pos.y));
+                                                                  if (calculateNorme(tempSpeed.x,tempSpeed.y) <=30 && calculateNorme(tempSpeed.x,tempSpeed.y) != 0)
+                                                                  {
+                                                                      tempSpeed.x = 30;
+                                                                      tempSpeed.y = 30; 
+                                                                  }
+                                                                  if (vectorDotProduct(enemie -> speed, sf::Vector2f(playerCar.pos.x- enemie -> pos.x , playerCar.pos.y- enemie -> pos.y)) >=0){
+                                                                 	playerCar.speedColision.x -= 1.00 * (tempSpeed.x*(playerCar.pos.x- enemie -> pos.x)*dt);
+                                                                 	playerCar.speedColision.y -= 1.00 * (tempSpeed.y*(playerCar.pos.y- enemie -> pos.y)*dt);
+                                                                 	enemie -> speedColision.x += 1.05 * (tempSpeed.x*(playerCar.pos.x- enemie -> pos.x)*dt);
+                                                                 	enemie -> speedColision.y += 1.05 * (tempSpeed.y*(playerCar.pos.y- enemie -> pos.y)*dt);
+                                                                  }
+                                                                 }
+
+
+            }
+            
+            //CALCUL DE LA VITESSE DE LA VOITURE
+            playerCar.speed = calculateSpeed(playerCar, playerCar.avgSpeed * (1-((1-playerCar.malusBonusSpeed)*playerCar.shocks)), playerCar.avgSpeed, playerCar.maxSpeed*5, up, down, playerCar.lastNitroUsedTime >= 0, dt);
+            playerCar.malusBonusSpeed = 1;
+            
+            for (int j = 0; j < Enemies.size(); j++) {
+            		//On calcule ensuite la nouvelle vitesse de la voiture
+          	  Enemies[j] -> speed = calculateSpeed( * Enemies[j], (Enemies[j] -> avgSpeed  * (1-((1-Enemies[j] -> malusBonusSpeed)*playerCar.shocks))), Enemies[j] -> avgSpeed, Enemies[j] -> maxSpeed * 5, true, false, Enemies[j] -> lastNitroUsedTime >= 0, dt);
+          	  Enemies[j] -> malusBonusSpeed = 1;
+            }
+                  //GENERATION DE LA NITRO
+                  countNitro++;
+                  if (countNitro == NITRO_SPAWN_TIME) {
+                    	generateNitro(level.spawnPosNitro);
+                    countNitro = 0;
+                  }
+                  //GENERATION DE LA MONEY
+                  countMoney++;
+                  if (countMoney == MONEY_SPAWN_TIME)
+                  {
+                    generateNitro(level.spawnPosMoney);
+                    countMoney = 0;
+                  }
+                  
       moveCar(playerCar, dt);
       for (int j = 0; j < Enemies.size(); j++) {
         Car * enemie = Enemies[j];
@@ -2343,6 +2355,15 @@ int main(int argc,char* argv[]) {
         }
         //On arrete toutes les musiques
               stopAllMusic(assets);
+              
+              
+              //On set la musique de victoire ou defaite
+              if (playerCar.score == 4){
+            	  assets.endRunSound;
+              }
+              else if (playerCar.score == 1 && idLevel == MAX_RUNS) {
+            	  assets.endRunSound;
+              }
       }
       
       }
@@ -2610,9 +2631,10 @@ int main(int argc,char* argv[]) {
       }
 
     } else if (idCurrentWindow == 5){
-    	timeGoalScreen += dt;
-    	if (timeGoalScreen > durationGoalScreen){
-    		timeGoalScreen = 0;
+    	if (playMusicOnce && !assets.endRunSound.getStatus()){
+    		assets.endRunSound.play();
+    	}
+    	if (!assets.endRunSound.getStatus()){
     		nextScreen = 2;
     	}
     }
