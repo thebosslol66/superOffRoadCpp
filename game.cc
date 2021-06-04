@@ -1881,7 +1881,7 @@ int main() {
           if (level.spawnPosMoney[i].present) {
             //Alphee met qu'on gagne de la moula
         	  playerCar.monneyWinThisRun += PRICE_MONNEY_BAG;
-            level.spawnPosNitro[i].present = false;
+            level.spawnPosMoney[i].present = false;
           }
         }
       }
@@ -2136,7 +2136,7 @@ int main() {
                 if (level.spawnPosMoney[i].present) {
                 //Alphee met qu'on gagne de la moula
                 	enemie -> monneyWinThisRun += PRICE_MONNEY_BAG;
-                level.spawnPosNitro[i].present = false;
+                level.spawnPosMoney[i].present = false;
                 }
             }
         }
