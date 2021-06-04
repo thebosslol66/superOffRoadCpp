@@ -122,19 +122,17 @@ struct Car {
   float botChanceNitro = 0;
   float chanceToGetPowerUp = 0;
   int randomDistForBot = 0;
-  float maxTimeBlocked = 2.0;
   
   //Upgrades
-  int levelTires = 0;
-  int levelShocks = 0;
-  int levelAcceleration = 0;
-  int levelMaxSpeed = 0;
+  int levelTires = 6;
+  int levelShocks = 6;
+  int levelAcceleration = 6;
+  int levelMaxSpeed = 6;
   
   
   float avgSpeed = 40;
   float maxSpeed = 40;
   float tires = 0.12;
-  float shocks = 1;
   
   //Points
   int points = 0;
@@ -245,6 +243,13 @@ struct Assets {
   sf::Music sidewinder;
   sf::Music blaster;
   sf::Music bigDuke;
+  sf::Music caramella;
+  sf::Music huevosGrande;
+  sf::Music voix;
+
+  //Bruitage
+  sf::SoundBuffer accelerationBuffer;
+  sf::Sound acceleration;
 
   //Voiture
   sf::Texture carTexture;
@@ -769,25 +774,21 @@ void setUpgradePlayer(Car & car) {
 	float baseTires = 0.12;
 	int baseAvgSpeed = 40;
 	int baseMaxSpeed = 40;
-	float baseShocks = 1.0;
 	
 	car.avgSpeed = baseAvgSpeed + 2.5 * car.levelAcceleration;
 	car.maxSpeed = baseMaxSpeed + 2.5 * car.levelMaxSpeed;
 	car.tires = baseTires - 0.01 * car.levelTires;
-	car.shocks = baseShocks - 0.09 * car.levelShocks;
 	
-	
+	//Set for shock
 }
 void setUpgradeBot(Car * car) {
 	float baseTires = 0.12;
 		int baseAvgSpeed = 40;
 		int baseMaxSpeed = 40;
-		float baseShocks = 1.0;
 		
 		car-> avgSpeed = baseAvgSpeed + 2.5 * car -> levelAcceleration;
 		car-> maxSpeed = baseMaxSpeed + 2.5 * car -> levelMaxSpeed;
 		car-> tires = baseTires - 0.01 * car -> levelTires;
-		car->shocks = baseShocks - 0.09 * car->levelShocks;
 }
 
 void makeLevel(Ground & level, std::string src) {
@@ -1094,7 +1095,6 @@ void setBotLevelFromType(Car * car){
 		          car -> levelAcceleration = 6;
 		          car -> levelMaxSpeed = 7;
 		          car -> randomDistForBot = 17;
-		          car -> maxTimeBlocked = 0.4;
 	        } else if (car -> botType == "hard") {
 	          car -> botChanceNitro = 0.005;
 	          car -> chanceToGetPowerUp = 0.7;
@@ -1103,16 +1103,16 @@ void setBotLevelFromType(Car * car){
 	          car -> levelAcceleration = 5;
 	          car -> levelMaxSpeed = 5;
 	          car -> randomDistForBot = 22;
-	          car -> maxTimeBlocked = 0.8;
 	        } else if (car -> botType == "medium") {
 	        	car -> botChanceNitro = 0.003;
 	        	car -> chanceToGetPowerUp = 0.4;
+
 		          car -> levelTires = 2;
 		          car -> levelShocks = 1;
 		          car -> levelAcceleration = 2;
 		          car -> levelMaxSpeed = 2;
+
 		          car -> randomDistForBot = 25;
-		          car -> maxTimeBlocked = 1.3;
 	        } else if (car -> botType == "dumy") {
 	          car -> botChanceNitro = 0.001;
 	          car -> chanceToGetPowerUp = 0.2;
@@ -1121,7 +1121,6 @@ void setBotLevelFromType(Car * car){
 	          car -> levelAcceleration = 0;
 	          car -> levelMaxSpeed = 0;
 	          car -> randomDistForBot = 35;
-	          car -> maxTimeBlocked = 2.0;
 	        } else {
 	        	car -> botChanceNitro = 0.001;
 	        	car -> chanceToGetPowerUp = 0.5;
@@ -1130,7 +1129,6 @@ void setBotLevelFromType(Car * car){
 	        			          car -> levelAcceleration = 2;
 	        			          car -> levelMaxSpeed = 2;
 	        			          car -> randomDistForBot = 50;
-	        			          car -> maxTimeBlocked = 2.0;
 	        }
 }
 
@@ -1146,6 +1144,9 @@ void stopAllMusic(Assets &assets){
     assets.sidewinder.stop();
     assets.blaster.stop();
     assets.bigDuke.stop();
+    assets.caramella.stop();
+    assets.huevosGrande.stop();
+    assets.voix.stop();
     
 }
 
@@ -1161,6 +1162,9 @@ void muteAllMusic(Assets &assets){
     assets.sidewinder.setVolume(0);
     assets.blaster.setVolume(0);
     assets.bigDuke.setVolume(0);
+    assets.caramella.setVolume(0);
+    assets.huevosGrande.setVolume(0);
+    assets.voix.setVolume(0);
 }
 
 int writeHightScore(sf::String name, int score, std::map<int, sf::String[2]> &leaderboard, std::string src){
@@ -1569,8 +1573,17 @@ int main(int argc,char* argv[]) {
   loadMusicFromFile(assets.goalScreenmusic, "sound/13 Goal.flac");
   loadMusicFromFile(assets.celebrationScreenmusic, "sound/14 Celebration.flac");
   loadMusicFromFile(assets.gameoverScreenmusic, "sound/15 Game Over.flac");
+  loadMusicFromFile(assets.caramella, "sound/caramella.flac");
+  loadMusicFromFile(assets.huevosGrande, "sound/06 Huevos Grande.flac");
+  loadMusicFromFile(assets.voix, "sound/voix.flac");
+  assets.voix.setLoop(true);
+
+
+  assets.accelerationBuffer.loadFromFile("sound/acceleration.flac");
+  assets.acceleration.setBuffer(assets.accelerationBuffer);
+  assets.acceleration.setLoop(true);
   
-  muteAllMusic(assets);
+  //muteAllMusic(assets);
   
   
   loadLeaderBoard(leaderboard, LEADERBOARD_FILE);
@@ -1937,9 +1950,9 @@ int main(int argc,char* argv[]) {
       }
 
       if (playerCar.state == 2) {
-        playerCar.malusBonusSpeed *= 0.50;
-      } else if (playerCar.state == 3) {
         playerCar.malusBonusSpeed *= 0.60;
+      } else if (playerCar.state == 3) {
+        playerCar.malusBonusSpeed *= 0.70;
       } else if (playerCar.state == 4) {
         playerCar.malusBonusSpeed *= 0.40;
       }
@@ -1975,6 +1988,7 @@ int main(int argc,char* argv[]) {
           Car * enemie2 = Enemies[j];
           if (isCollision(playerCar, enemie2 -> pos, CAR_HAUTEUR*1.1)) {
             Speed tempSpeed = calculateProjectionOfSpeed(playerCar.speed, sf::Vector2f(enemie2 -> pos.x - playerCar.pos.x, enemie2 -> pos.y - playerCar.pos.y));
+
             if (calculateNorme(tempSpeed.x,tempSpeed.y) <=30 && calculateNorme(tempSpeed.x,tempSpeed.y) != 0)
             {
                 tempSpeed.x = 30;
@@ -1988,12 +2002,31 @@ int main(int argc,char* argv[]) {
             }
           }
       }
+
+      //CALCUL DE LA VITESSE DE LA VOITURE
+      playerCar.speed = calculateSpeed(playerCar, playerCar.avgSpeed * playerCar.malusBonusSpeed, playerCar.avgSpeed, playerCar.maxSpeed*5, up, down, playerCar.lastNitroUsedTime >= 0, dt);
+
+      //GENERATION DE LA NITRO
+      countNitro++;
+      if (countNitro == NITRO_SPAWN_TIME) {
+        	generateNitro(level.spawnPosNitro);
+        countNitro = 0;
+      }
+      //GENERATION DE LA MONEY
+      countMoney++;
+      if (countMoney == MONEY_SPAWN_TIME)
+      {
+        generateNitro(level.spawnPosMoney);
+        countMoney = 0;
+      }
+
+      playerCar.malusBonusSpeed = 1;
       
       //*************************ENEMIES STUFF************************//
       for (int j = 0; j < Enemies.size(); j++) {
         Car * enemie = Enemies[j];
 
-        if (enemie -> timeBlocked >= enemie -> maxTimeBlocked) {
+        if (enemie -> timeBlocked > 2) {
           float lowerDistance = 100000;
           int idCheckpoint = 0;
           float dist;
@@ -2002,9 +2035,9 @@ int main(int argc,char* argv[]) {
             if (dist < lowerDistance) {
               idCheckpoint = k;
               lowerDistance = dist;
+              enemie -> posInterBot.x = -1;
             }
           }
-          enemie -> posInterBot.x = -1;
           enemie -> botPositionToTarget = idCheckpoint;
 
         }
@@ -2213,6 +2246,7 @@ int main(int argc,char* argv[]) {
                                                                            if (enemie2 != enemie){
                                                                            if (isCollision(enemie, enemie2 -> pos, CAR_HAUTEUR)) {
                                                                            	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> speed, sf::Vector2f(enemie2 -> pos.x - enemie -> pos.x, enemie2 -> pos.y - enemie -> pos.y));
+
                                                                             if (calculateNorme(tempSpeed.x,tempSpeed.y) <=30 && calculateNorme(tempSpeed.x,tempSpeed.y) != 0)
                                                                             {
                                                                                 tempSpeed.x = 30;
@@ -2229,6 +2263,7 @@ int main(int argc,char* argv[]) {
                                                                        }
         
         if (isCollision(playerCar, enemie -> pos, CAR_HAUTEUR)) {
+
                                                            	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> speed, sf::Vector2f(playerCar.pos.x- enemie -> pos.x , playerCar.pos.y- enemie -> pos.y));
                                                             if (calculateNorme(tempSpeed.x,tempSpeed.y) <=30 && calculateNorme(tempSpeed.x,tempSpeed.y) != 0)
                                                             {
@@ -2242,36 +2277,13 @@ int main(int argc,char* argv[]) {
                                                            	enemie -> speedColision.y += 1.05 * (tempSpeed.y*(playerCar.pos.y- enemie -> pos.y)*dt);
                                                             }
                                                            }
+        //
+        //On calcule ensuite la nouvelle vitesse de la voiture
+        enemie -> speed = calculateSpeed( * enemie, (enemie -> avgSpeed  * enemie -> malusBonusSpeed), enemie -> avgSpeed, enemie -> maxSpeed * 5, true, false, enemie -> lastNitroUsedTime >= 0, dt);
 
+        enemie -> malusBonusSpeed = 1;
 
       }
-      
-      //CALCUL DE LA VITESSE DE LA VOITURE
-      playerCar.speed = calculateSpeed(playerCar, playerCar.avgSpeed * (1-((1-playerCar.malusBonusSpeed)*playerCar.shocks)), playerCar.avgSpeed, playerCar.maxSpeed*5, up, down, playerCar.lastNitroUsedTime >= 0, dt);
-      playerCar.malusBonusSpeed = 1;
-      
-      for (int j = 0; j < Enemies.size(); j++) {
-      		//On calcule ensuite la nouvelle vitesse de la voiture
-    	  Enemies[j] -> speed = calculateSpeed( * Enemies[j], (Enemies[j] -> avgSpeed  * (1-((1-Enemies[j] -> malusBonusSpeed)*playerCar.shocks))), Enemies[j] -> avgSpeed, Enemies[j] -> maxSpeed * 5, true, false, Enemies[j] -> lastNitroUsedTime >= 0, dt);
-    	  Enemies[j] -> malusBonusSpeed = 1;
-      }
-            //GENERATION DE LA NITRO
-            countNitro++;
-            if (countNitro == NITRO_SPAWN_TIME) {
-              	generateNitro(level.spawnPosNitro);
-              countNitro = 0;
-            }
-            //GENERATION DE LA MONEY
-            countMoney++;
-            if (countMoney == MONEY_SPAWN_TIME)
-            {
-              generateNitro(level.spawnPosMoney);
-              countMoney = 0;
-            }
-
-            
-            
-            
 
       moveCar(playerCar, dt);
       for (int j = 0; j < Enemies.size(); j++) {
@@ -2977,6 +2989,14 @@ int main(int argc,char* argv[]) {
                     assets.bigDuke.play();
                 } 
             }
+
+            if (!assets.acceleration.getStatus() && up)
+            {
+                assets.acceleration.play();
+            }else if (!up)
+            {
+                assets.acceleration.stop();
+            }
     
         }
 
@@ -3296,6 +3316,15 @@ int main(int argc,char* argv[]) {
 
     }
     if (idCurrentWindow == 4) {
+
+
+        if (idText< allTextForFrame.size() && !assets.voix.getStatus())
+        {
+            assets.voix.play();
+        }else if (idText == allTextForFrame.size())
+        {
+            assets.voix.stop();
+        }
       sf::RectangleShape greyShape(sf::Vector2f(WINDOW_WIDTH, WINDOW_HEIGHT));
       greyShape.setFillColor(sf::Color(0, 0, 0, 100));
       window.draw(greyShape);
@@ -3475,6 +3504,11 @@ int main(int argc,char* argv[]) {
         }
     
     if(idCurrentWindow == 8){
+
+        if (!assets.caramella.getStatus())
+        {
+            assets.caramella.play();
+        }
     	
     	window.clear(sf::Color::Black);
     	
@@ -3531,6 +3565,11 @@ int main(int argc,char* argv[]) {
         }
     
     if (idCurrentWindow == 9) {
+
+        if (!assets.huevosGrande.getStatus())
+        {
+            assets.huevosGrande.play();
+        }
     	window.draw(assets.backgroundLeaderboard);
     	    		
     	    		sf::Text leaderboardText = sf::Text();
