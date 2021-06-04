@@ -243,6 +243,8 @@ struct Assets {
   sf::Music sidewinder;
   sf::Music blaster;
   sf::Music bigDuke;
+  sf::Music caramella;
+  sf::Music huevosGrande;
 
   //Voiture
   sf::Texture carTexture;
@@ -1136,6 +1138,8 @@ void stopAllMusic(Assets &assets){
     assets.sidewinder.stop();
     assets.blaster.stop();
     assets.bigDuke.stop();
+    assets.caramella.stop();
+    assets.huevosGrande.stop();
     
 }
 
@@ -1151,6 +1155,8 @@ void muteAllMusic(Assets &assets){
     assets.sidewinder.setVolume(0);
     assets.blaster.setVolume(0);
     assets.bigDuke.setVolume(0);
+    assets.caramella.setVolume(0);
+    assets.huevosGrande.setVolume(0);
 }
 
 int writeHightScore(sf::String name, int score, std::map<int, sf::String[2]> &leaderboard, std::string src){
@@ -1505,6 +1511,8 @@ int main() {
   loadMusicFromFile(assets.goalScreenmusic, "sound/13 Goal.flac");
   loadMusicFromFile(assets.celebrationScreenmusic, "sound/14 Celebration.flac");
   loadMusicFromFile(assets.gameoverScreenmusic, "sound/15 Game Over.flac");
+  loadMusicFromFile(assets.caramella, "sound/caramella.flac");
+  loadMusicFromFile(assets.huevosGrande, "sound/Huevos Grande.flac");
   
   //muteAllMusic(assets);
   
@@ -3386,6 +3394,11 @@ int main() {
         }
     
     if(idCurrentWindow == 8){
+
+        if (!assets.caramella.getStatus())
+        {
+            assets.caramella.play();
+        }
     	
     	window.clear(sf::Color::Black);
     	
@@ -3442,6 +3455,11 @@ int main() {
         }
     
     if (idCurrentWindow == 9) {
+
+        if (!assets.huevosGrande.getStatus())
+        {
+            assets.huevosGrande.play();
+        }
     	window.draw(assets.backgroundLeaderboard);
     	    		
     	    		sf::Text leaderboardText = sf::Text();
