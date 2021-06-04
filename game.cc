@@ -1078,7 +1078,16 @@ void loadLeaderBoard(std::map<int, sf::String[2]> &leaderboard, std::string src)
 }
 
 void setBotLevelFromType(Car * car){
-	if (car -> botType == "master") {
+	if (car -> botType == "choucroute") {
+					car -> botChanceNitro = 0.001;
+		          	car -> chanceToGetPowerUp = 1;
+			          car -> levelTires = 7;
+			          car -> levelShocks = 10;
+			          car -> levelAcceleration = 10;
+			          car -> levelMaxSpeed = 10;
+			          car -> randomDistForBot = 0;
+			          car -> maxTimeBlocked = 0.1;
+	} else if (car -> botType == "master") {
 				car -> botChanceNitro = 0.0009;
 	          	car -> chanceToGetPowerUp = 0.9;
 		          car -> levelTires = 5;
@@ -1202,10 +1211,99 @@ void printListWall(std::vector < Wall > listWall) {
 
 //affichage de la hitboxde la voiture
 
-int main() {
-
-	//********************************DECLARATION DE CONSTANTES ET VARIABLE IMPORTANTE*********************//
+int main(int argc,char* argv[]) {
 	
+	int idLevel = 1;
+	std::string levelDifficult[8][3];
+	
+  if (argc == 1){
+	  //Anti L2
+	  levelDifficult[0][0] = "choucroute";
+	  levelDifficult[0][1] = "choucroute";
+	  levelDifficult[0][2] = "choucroute";
+	  
+	  levelDifficult[1][0] = "choucroute";
+	  levelDifficult[1][1] = "choucroute";
+	  levelDifficult[1][2] = "choucroute";
+  }
+  if (argc >= 2){
+	  if (strcmp(argv[1], "Je prete allegeance a la choucroute") == 0){
+		  
+		    levelDifficult[0][0] = "dumy";
+		    levelDifficult[0][1] = "dumy";
+		    levelDifficult[0][2] = "dumy";
+
+		    levelDifficult[1][0] = "medium";
+		    levelDifficult[1][1] = "dumy";
+		    levelDifficult[1][2] = "dumy";
+
+		    levelDifficult[2][0] = "medium";
+		    levelDifficult[2][1] = "medium";
+		    levelDifficult[2][2] = "dumy";
+
+		    levelDifficult[3][0] = "medium";
+		    levelDifficult[3][1] = "medium";
+		    levelDifficult[3][2] = "medium";
+
+		    levelDifficult[4][0] = "hard";
+		    levelDifficult[4][1] = "medium";
+		    levelDifficult[4][2] = "medium";
+
+		    levelDifficult[5][0] = "hard";
+		    levelDifficult[5][1] = "hard";
+		    levelDifficult[5][2] = "hard";
+
+		    levelDifficult[6][0] = "master";
+		    levelDifficult[6][1] = "hard";
+		    levelDifficult[6][2] = "hard";
+
+		    levelDifficult[7][0] = "master";
+		    levelDifficult[7][1] = "master";
+		    levelDifficult[7][2] = "hard";
+		    
+		    cout << "Bienvenue dans la secte" << endl;
+
+	  }
+	  else if (strcmp(argv[1], "JUBE") == 0){
+		  			levelDifficult[0][0] = "dumy";
+		  		    levelDifficult[0][1] = "dumy";
+		  		    levelDifficult[0][2] = "dumy";
+
+		  		    levelDifficult[1][0] = "dumy";
+		  		    levelDifficult[1][1] = "dumy";
+		  		    levelDifficult[1][2] = "dumy";
+
+		  		    levelDifficult[2][0] = "medium";
+		  		    levelDifficult[2][1] = "dumy";
+		  		    levelDifficult[2][2] = "dumy";
+
+		  		    levelDifficult[3][0] = "medium";
+		  		    levelDifficult[3][1] = "medium";
+		  		    levelDifficult[3][2] = "dumy";
+
+		  		    levelDifficult[4][0] = "medium";
+		  		    levelDifficult[4][1] = "medium";
+		  		    levelDifficult[4][2] = "medium";
+
+		  		    levelDifficult[5][0] = "hard";
+		  		    levelDifficult[5][1] = "medium";
+		  		    levelDifficult[5][2] = "medium";
+
+		  		    levelDifficult[6][0] = "hard";
+		  		    levelDifficult[6][1] = "hard";
+		  		    levelDifficult[6][2] = "medium";
+
+		  		    levelDifficult[7][0] = "hard";
+		  		    levelDifficult[7][1] = "hard";
+		  		    levelDifficult[7][2] = "hard";
+		  		    
+		  		  cout << "Bonne chance Monsieur" << endl;
+	  }
+  }
+  
+  //********************************DECLARATION DE CONSTANTES ET VARIABLE IMPORTANTE*********************//
+	
+
   #ifdef __linux__
   system("./h-linux &");
   #elif _WIN32
@@ -1258,42 +1356,6 @@ int main() {
   const int CAR_HAUTEUR = 20;
 
   const int NB_LAPS_FIN = 4;
-  
-  int idLevel = 1;
-
-
-  std::string levelDifficult[8][3];
-  levelDifficult[0][0] = "dumy";
-  levelDifficult[0][1] = "dumy";
-  levelDifficult[0][2] = "dumy";
-
-  levelDifficult[1][0] = "medium";
-  levelDifficult[1][1] = "dumy";
-  levelDifficult[1][2] = "dumy";
-
-  levelDifficult[2][0] = "medium";
-  levelDifficult[2][1] = "medium";
-  levelDifficult[2][2] = "dumy";
-
-  levelDifficult[3][0] = "medium";
-  levelDifficult[3][1] = "medium";
-  levelDifficult[3][2] = "medium";
-
-  levelDifficult[4][0] = "hard";
-  levelDifficult[4][1] = "medium";
-  levelDifficult[4][2] = "medium";
-
-  levelDifficult[5][0] = "hard";
-  levelDifficult[5][1] = "hard";
-  levelDifficult[5][2] = "hard";
-
-  levelDifficult[6][0] = "master";
-  levelDifficult[6][1] = "hard";
-  levelDifficult[6][2] = "hard";
-
-  levelDifficult[7][0] = "master";
-  levelDifficult[7][1] = "master";
-  levelDifficult[7][2] = "hard";
 
   bool defeat = false;
   
@@ -1360,6 +1422,7 @@ int main() {
   
   //Win
   float choucrouteSize = 0;
+  float cooldownMaxResetWinScreen = 257.0;
   
   //ecran montrer son score
   int idPlayerScore = 0;
@@ -2354,6 +2417,13 @@ int main() {
         	            idLevel = 1;
         	            cooldownToSwitchScreen = timeToSwitchScreen;
         	            
+        	            
+        	            //Pour le troll des L2 Mais c'est impossible d'arriver ici
+        	            if (argc == 1){
+        	                        	playerCar.points = -playerCar.points;
+        	                        }
+        	                        
+        	                        
         	            idPlayerScore = writeHightScore(playerName,playerCar.points, leaderboard, LEADERBOARD_FILE);
         	            
         	            playerName.clear();
@@ -2379,6 +2449,14 @@ int main() {
             cooldownToSwitchScreen = timeToSwitchScreen;
             clignotementTexteMenu = false;
             defeat = false;
+            
+            
+            //Pour le troll des L2
+            if (argc == 1){
+            	playerCar.points = -playerCar.points;
+            }
+            
+            
             
             idPlayerScore = writeHightScore(playerName,playerCar.points, leaderboard, LEADERBOARD_FILE);
             
@@ -2646,7 +2724,7 @@ int main() {
     	  
 
   	    if (cooldownReset <= 0 && nextScreen != 9) {
-  	        	        cooldownReset = cooldownMaxReset;
+  	        	        cooldownReset = cooldownMaxResetWinScreen;
   	        	      }
   	        	if (nextScreen != 9) {
   	        	        cooldownReset -= 1.0 * dt;
