@@ -1365,11 +1365,6 @@ int main() {
   RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE);
 
   
-  /*
-   * Une Clock permet de compter le temps. Vous en aurez besoin pour savoir
-   * le temps entre deux frames.
-   */
-  Clock clock;
 
   //*************************************IMPORTATION DES DONNER DU TERRAIN********************//
   
@@ -1398,6 +1393,9 @@ int main() {
 
   loadFromFile(assets.nitroTexture, assets.nitro, "assets/nitroSprite.png");
   assets.nitro.setOrigin(assets.nitroTexture.getSize().x / 2, assets.nitroTexture.getSize().y / 2);
+  
+  loadFromFile(assets.moneyTexture, assets.money, "assets/nitroSprite.png");
+  assets.money.setOrigin(assets.moneyTexture.getSize().x / 2, assets.moneyTexture.getSize().y / 2);
 
   loadFromFile(assets.scoreTexture, assets.score, "assets/scoreSprite.png");
   assets.score.setOrigin(assets.scoreTexture.getSize().x / 2, assets.scoreTexture.getSize().y / 2);
@@ -1463,7 +1461,7 @@ int main() {
   loadFromFile(assets.noUpgrade2Texture, assets.noUpgrade2, "assets/noUpgrade2.png");
   loadFromFile(assets.showUpgradeTexture, assets.showUpgrade, "assets/showUpgrade.png");
   loadFromFile(assets.carTexture, assets.carSprite, "assets/voiture.png");
-  loadFromFile(assets.moneyTexture, assets.money, "assets/money.png");
+  
   
   
   
@@ -1497,7 +1495,7 @@ int main() {
   loadMusicFromFile(assets.celebrationScreenmusic, "sound/14 Celebration.flac");
   loadMusicFromFile(assets.gameoverScreenmusic, "sound/15 Game Over.flac");
   
-  //muteAllMusic(assets);
+  muteAllMusic(assets);
   
   
   loadLeaderBoard(leaderboard, LEADERBOARD_FILE);
@@ -1580,6 +1578,17 @@ int main() {
   Enemies.push_back( & Enemie1);
   Enemies.push_back( & Enemie2);
   Enemies.push_back( & Enemie3);
+  
+  
+  /*
+   * Une Clock permet de compter le temps. Vous en aurez besoin pour savoir
+   * le temps entre deux frames.
+   */
+  Clock clock;
+
+  
+  
+  
 
   /*
    * La boucle de jeu principale. La condition de fin est la fermeture de la
@@ -1909,14 +1918,14 @@ int main() {
       //GENERATION DE LA NITRO
       countNitro++;
       if (countNitro == NITRO_SPAWN_TIME) {
-        generateNitro(level.spawnPosNitro);
+        	generateNitro(level.spawnPosNitro);
         countNitro = 0;
       }
       //GENERATION DE LA MONEY
       countMoney++;
       if (countMoney == MONEY_SPAWN_TIME)
       {
-          generateNitro(level.spawnPosMoney);
+          	generateNitro(level.spawnPosMoney);
           countMoney = 0;
       }
 
@@ -2286,13 +2295,13 @@ int main() {
         
 
         //Mise a jour des difficultées
-        if (idLevel < MAX_RUNS) {
+        if (idLevel <= MAX_RUNS) {
           for (int i = 0; i < Enemies.size(); i++) {
             Enemies[i] -> botType = levelDifficult[idLevel - 1][i];
           }
         }
         
-        if (idLevel >= MAX_RUNS){
+        if (idLevel > MAX_RUNS){
         	nextScreen = 8;
         	            textAlphaValue = 0;
         	            textScale = 0.0;
@@ -2630,9 +2639,6 @@ int main() {
     	    Car * enemie = Enemies[i];
     	    reset(enemie, level);
     	  }
-    	  for (int i = 0; i < level.spawnPosNitro.size(); i++) {
-    	    level.spawnPosNitro[i].present = false;
-    	  }
     	}
     }
     else if (idCurrentWindow == 9) {
@@ -2810,24 +2816,24 @@ int main() {
     if (idCurrentWindow == 1 || idCurrentWindow == 3 || idCurrentWindow == 4 || idCurrentWindow == 5) {
 
     	if (idCurrentWindow == 1){
-            if (idLevel-1%4 == 0){
+            if ((idLevel-1)%4 == 0){
                 if (!assets.fandango.getStatus())
                 {
                     assets.fandango.play();
                 }
-            }else if (idLevel-1%4 == 1)
+            }else if ((idLevel-1)%4 == 1)
             {
                 if (!assets.sidewinder.getStatus())
                 {
                     assets.sidewinder.play();
                 }
-            }else if (idLevel-1%4 == 2)
+            }else if ((idLevel-1)%4 == 2)
             {
                 if (!assets.blaster.getStatus())
                 {
                     assets.blaster.play();
                 }
-            }else if(idLevel-1%4 == 3)
+            }else if((idLevel-1)%4 == 3)
             {
                 if (!assets.bigDuke.getStatus())
                 {
@@ -3075,11 +3081,11 @@ int main() {
 	  extraMonneyText.setFillColor(sf::Color::Yellow);
       
 	  extraMonneyText.setString(std::to_string(tri[0] -> monneyWinThisRun));
-	  extraMonneyText.setPosition(290 - extraMonneyText.getLocalBounds().width, 625);
+	  extraMonneyText.setPosition(600 - extraMonneyText.getLocalBounds().width, 625);
 	  window.draw(extraMonneyText);
 	  
 	  extraMonneyText.setString(std::to_string(tri[1] -> monneyWinThisRun));
-	  extraMonneyText.setPosition(600 - extraMonneyText.getLocalBounds().width, 625);
+	  extraMonneyText.setPosition(290 - extraMonneyText.getLocalBounds().width, 625);
 	  	  window.draw(extraMonneyText);
 	  	  
 	  	extraMonneyText.setString(std::to_string(tri[2] -> monneyWinThisRun));
@@ -3241,8 +3247,8 @@ int main() {
         		if (i==0){
         			assets.nitroUpgrade.setPosition(x,y);
         			window.draw(assets.nitroUpgrade);
-        			nbLevel = (int)playerCar.nbNitro /((int)MAX_NITRO/6);
-        			if (fmod(nbLevel, (int)MAX_NITRO/6) > 0){
+        			nbLevel = (int)(playerCar.nbNitro /(int)(MAX_NITRO/6));
+        			if (fmod(playerCar.nbNitro, (int)(MAX_NITRO/6)) > 0){
         				nbLevel++;
         			}
         		}
