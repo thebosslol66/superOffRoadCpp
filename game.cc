@@ -1912,7 +1912,6 @@ int main() {
           Car * enemie2 = Enemies[j];
           if (isCollision(playerCar, enemie2 -> pos, CAR_HAUTEUR*1.1)) {
             Speed tempSpeed = calculateProjectionOfSpeed(playerCar.speed, sf::Vector2f(enemie2 -> pos.x - playerCar.pos.x, enemie2 -> pos.y - playerCar.pos.y));
-            cout << tempSpeed.x << " " << tempSpeed.y << endl;
             if (calculateNorme(tempSpeed.x,tempSpeed.y) <=30 && calculateNorme(tempSpeed.x,tempSpeed.y) != 0)
             {
                 tempSpeed.x = 30;
