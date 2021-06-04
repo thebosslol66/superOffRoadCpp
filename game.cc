@@ -40,7 +40,7 @@
 using namespace std;
 using namespace sf;
 
-const bool DEBUG = false;
+const bool DEBUG = true;
 
 /*
  * Ce morceau de code pour permet de tirer un nombre flottant au hasard
@@ -124,10 +124,10 @@ struct Car {
   int randomDistForBot = 0;
   
   //Upgrades
-  int levelTires = 0;
-  int levelShocks = 0;
-  int levelAcceleration = 0;
-  int levelMaxSpeed = 0;
+  int levelTires = 6;
+  int levelShocks = 6;
+  int levelAcceleration = 6;
+  int levelMaxSpeed = 6;
   
   
   float avgSpeed = 40;
@@ -255,6 +255,10 @@ struct Assets {
   sf::Texture choucrouteTexture;
   sf::Sprite choucroute;
   
+  
+  //Saisie du nom
+  sf::Texture nameBackgroundTexture;
+    sf::Sprite nameBackground;
 
 };
 
@@ -1362,7 +1366,10 @@ int main() {
   bool greenForHiligthMyScoreReverse = false;
   bool blueForHiligthMyScoreReverse = false;
   
-  RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE);
+  sf::ContextSettings settings;
+  settings.antialiasingLevel = 8;
+  
+  RenderWindow window(VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), WINDOW_TITLE, sf::Style::Default, settings);
 
   
 
@@ -1393,8 +1400,9 @@ int main() {
 
   loadFromFile(assets.nitroTexture, assets.nitro, "assets/nitroSprite.png");
   assets.nitro.setOrigin(assets.nitroTexture.getSize().x / 2, assets.nitroTexture.getSize().y / 2);
+  assets.nitro.setScale(1.5,1.5);
   
-  loadFromFile(assets.moneyTexture, assets.money, "assets/nitroSprite.png");
+  loadFromFile(assets.moneyTexture, assets.money, "assets/money.png");
   assets.money.setOrigin(assets.moneyTexture.getSize().x / 2, assets.moneyTexture.getSize().y / 2);
 
   loadFromFile(assets.scoreTexture, assets.score, "assets/scoreSprite.png");
@@ -1433,6 +1441,9 @@ int main() {
   assets.bulle.setOrigin(390, 295);
   assets.bulle.setPosition(850, 590);
   assets.bulle.setScale(1.5, 1.5);
+  
+  loadFromFile(assets.nameBackgroundTexture, assets.nameBackground, "assets/fond_nom.png");
+  assets.nameBackground.setScale(sf::Vector2f((WINDOW_WIDTH / assets.nameBackgroundTexture.getSize().x), (WINDOW_HEIGHT / assets.nameBackgroundTexture.getSize().y)));
   
   
   
@@ -2302,7 +2313,16 @@ int main() {
         }
         
         if (idLevel > MAX_RUNS){
-        	nextScreen = 8;
+        	//Premier et il a gagné
+        	if (playerCar.startPosition == 0){
+        		nextScreen = 8;
+        	}
+        	else {
+        		playerCar.points = 0;
+        		nextScreen = 9;
+        		idMenuScreen = 1;
+        	}
+        	
         	            textAlphaValue = 0;
         	            textScale = 0.0;
         	            carScale = 0.5;
@@ -2315,7 +2335,6 @@ int main() {
         	            
         	            playerName.clear();
         	            playerCar.monney = 0;
-        	            playerCar.points = 0;
         	            
         	            //reset des positions de départ
         	            playerCar.startPosition = 0;
@@ -2521,6 +2540,9 @@ int main() {
         	}
         	if (enter1Pressure) {
         	    	  nextScreen = 4;
+        	    	  if (playerName.getSize()<=0){
+        	    		  playerName = "Unknown ?";
+        	    	  }
         	      }
         }
     
@@ -2590,14 +2612,27 @@ int main() {
     	  if (makeAnnimation) {
     	    textAlphaValue += 170 * dt;
     	    textAlphaValue %= 510;
-    	  }
-    	  
+    	    
     	  if (choucrouteSize < 1){
     		  choucrouteSize += 0.5*dt;
     	  }
     	  else{
     		  choucrouteSize = 1;
     	  }
+    	  
+    	  
+
+  	    if (cooldownReset <= 0 && nextScreen != 9) {
+  	        	        cooldownReset = cooldownMaxReset;
+  	        	      }
+  	        	if (nextScreen != 9) {
+  	        	        cooldownReset -= 1.0 * dt;
+  	        	        if (cooldownReset <= 0) {
+  	        	          enter1Pressure = true;
+  	        	        }
+
+  	        	      }
+    }
     	  if (enter1Pressure) {
     	    nextScreen = 9;
     	    textAlphaValue = 0;
@@ -2680,6 +2715,18 @@ int main() {
     	    	    		blueForHiligthMyScore = - blueForHiligthMyScore;
     	    	    	}
     	hiligthMyScore = sf::Color(redForHiligthMyScore, greenForHiligthMyScore, blueForHiligthMyScore);
+    	
+    	
+    	if (cooldownReset <= 0 && nextScreen != 0) {
+    	        cooldownReset = cooldownMaxReset;
+    	      }
+    	if (nextScreen != 0) {
+    	        cooldownReset -= 1.0 * dt;
+    	        if (cooldownReset <= 0) {
+    	          enter1Pressure = true;
+    	        }
+
+    	      }
     	}
     	if (enter1Pressure) {
     		alphaLeaderBoard = -510;
@@ -2687,6 +2734,7 @@ int main() {
     		idPlayerScore = 0;
     		nextScreen = 0;
     		idMenuScreen = 1;
+    		playerCar.points = 0;
     	}
 		
     }
@@ -3208,12 +3256,30 @@ int main() {
         	    assets.nameScreenmusic.play();
         	}
         	
+        	window.draw(assets.nameBackground);
+        	
+        	sf::Text yourNameText = sf::Text();
+        	yourNameText.setString("Write your name:");
+        	yourNameText.setFont(font);
+        	yourNameText.setCharacterSize(90);
+        	yourNameText.setFillColor(sf::Color::White);
+        	yourNameText.setPosition(WINDOW_WIDTH / 2 - yourNameText.getLocalBounds().width / 2, WINDOW_HEIGHT * 2 / 8 - yourNameText.getLocalBounds().height / 2);
+        	    	    		window.draw(yourNameText);
+        	    	    		
+        	    	    		
+        	
+        	sf::RectangleShape zoneTexte(sf::Vector2f(520,70));
+        	zoneTexte.setFillColor(sf::Color(255,255,255,100));
+        	zoneTexte.setPosition(WINDOW_WIDTH / 2 - zoneTexte.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 2 - zoneTexte.getLocalBounds().height / 2);
+        	window.draw(zoneTexte);
+        	
+        	
         	sf::Text nameText = sf::Text();
         	      nameText.setString(playerName);
         	      nameText.setFont(font);
         	      nameText.setFillColor(sf::Color::Black);
         	      nameText.setCharacterSize(60);
-        	      nameText.setPosition(WINDOW_WIDTH / 2 - nameText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 2 - nameText.getLocalBounds().height / 2);
+        	      nameText.setPosition(WINDOW_WIDTH / 2 - nameText.getLocalBounds().width / 2 - 4, WINDOW_HEIGHT * 1 / 2 - nameText.getLocalBounds().height / 2 - 25);
         	      window.draw(nameText);
         }
     
