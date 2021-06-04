@@ -270,6 +270,10 @@ int vectorDotProduct(const Position & pt1,
   const Position & pt2) {
   return (pt1.x * pt2.x + pt1.y * pt2.y);
 }
+int vectorDotProduct(const Speed & pt1,
+		const sf::Vector2f & pt2) {
+  return (pt1.x * pt2.x + pt1.y * pt2.y);
+}
 
 float vectorDotProduct(const sf::Vector2f & pt1,
   const sf::Vector2f & pt2) {
@@ -688,18 +692,6 @@ void recalculateSpeedDirection(Car * car) {
   car -> speed.y = sin(angleRad) * normeVitesse;
 }
 
-Speed calculateProjectionUnit(const Position & pos1, const Position &  pos2) {
-    Speed newSpeed;
-    newSpeed.x =  pos2.x - pos1.x;
-    newSpeed.y = pos2.y - pos1.y;
-    if (calculateNorme(newSpeed.x, newSpeed.y) != 0)
-    {
-        newSpeed.x /= calculateNorme(newSpeed.x, newSpeed.y);
-        newSpeed.y /= calculateNorme(newSpeed.x, newSpeed.y);
-    } 
-    
-    return newSpeed;   
-}
 
 sf::Vector2f calculateProjection(sf::Vector2f vectorToProject, sf::Vector2f vectorBase) {
   if ((vectorToProject.x == 0 && vectorToProject.y == 0) || (vectorBase.x == 0 && vectorBase.y == 0)) {
@@ -1515,7 +1507,7 @@ int main() {
   loadMusicFromFile(assets.celebrationScreenmusic, "sound/14 Celebration.flac");
   loadMusicFromFile(assets.gameoverScreenmusic, "sound/15 Game Over.flac");
   
-  //muteAllMusic(assets);
+  muteAllMusic(assets);
   
   
   loadLeaderBoard(leaderboard, LEADERBOARD_FILE);
@@ -1920,15 +1912,18 @@ int main() {
           Car * enemie2 = Enemies[j];
           if (isCollision(playerCar, enemie2 -> pos, CAR_HAUTEUR*1.1)) {
             Speed tempSpeed = calculateProjectionOfSpeed(playerCar.speed, sf::Vector2f(enemie2 -> pos.x - playerCar.pos.x, enemie2 -> pos.y - playerCar.pos.y));
-            if (calculateNorme(tempSpeed.x,tempSpeed.y) <=20 && calculateNorme(tempSpeed.x,tempSpeed.y) != 0)
+            cout << tempSpeed.x << " " << tempSpeed.y << endl;
+            if (calculateNorme(tempSpeed.x,tempSpeed.y) <=30 && calculateNorme(tempSpeed.x,tempSpeed.y) != 0)
             {
-                tempSpeed.x = 20;
-                tempSpeed.y = 20; 
+                tempSpeed.x = 30;
+                tempSpeed.y = 30; 
             }
+            if (vectorDotProduct(playerCar.speed, sf::Vector2f(enemie2 -> pos.x - playerCar.pos.x, enemie2 -> pos.y - playerCar.pos.y)) >=0){
             playerCar.speedColision.x -= 1.05 * (tempSpeed.x*(enemie2 -> pos.x - playerCar.pos.x)*dt);
-            playerCar.speedColision.y -= 1.05 * (tempSpeed.x*(enemie2 -> pos.y - playerCar.pos.y)*dt);
+            playerCar.speedColision.y -= 1.05 * (tempSpeed.y*(enemie2 -> pos.y - playerCar.pos.y)*dt);
             enemie2 -> speedColision.x += 1.00 * (tempSpeed.x*(enemie2 -> pos.x - playerCar.pos.x)*dt);
-            enemie2 -> speedColision.y += 1.00 * (tempSpeed.x*(enemie2 -> pos.y - playerCar.pos.y)*dt);
+            enemie2 -> speedColision.y += 1.00 * (tempSpeed.y*(enemie2 -> pos.y - playerCar.pos.y)*dt);
+            }
           }
       }
       
@@ -2156,30 +2151,34 @@ int main() {
                                                                            if (enemie2 != enemie){
                                                                            if (isCollision(enemie, enemie2 -> pos, CAR_HAUTEUR)) {
                                                                            	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> speed, sf::Vector2f(enemie2 -> pos.x - enemie -> pos.x, enemie2 -> pos.y - enemie -> pos.y));
-                                                                            if (calculateNorme(tempSpeed.x,tempSpeed.y) <=20 && calculateNorme(tempSpeed.x,tempSpeed.y) != 0)
+                                                                            if (calculateNorme(tempSpeed.x,tempSpeed.y) <=30 && calculateNorme(tempSpeed.x,tempSpeed.y) != 0)
                                                                             {
-                                                                                tempSpeed.x = 20;
-                                                                                tempSpeed.y = 20; 
+                                                                                tempSpeed.x = 30;
+                                                                                tempSpeed.y = 30; 
                                                                             }
+                                                                            if (vectorDotProduct(enemie -> speed, sf::Vector2f(enemie2 -> pos.x - enemie -> pos.x, enemie2 -> pos.y - enemie -> pos.y)) >= 0){
                                                                            	enemie->speedColision.x -= 1.05 * (tempSpeed.x*(enemie2 -> pos.x - enemie -> pos.x)*dt);
-                                                                           	enemie->speedColision.y -= 1.05 * (tempSpeed.x*(enemie2 -> pos.y - enemie -> pos.y)*dt);
+                                                                           	enemie->speedColision.y -= 1.05 * (tempSpeed.y*(enemie2 -> pos.y - enemie -> pos.y)*dt);
                                                                            	enemie2 -> speedColision.x += 1.00 * (tempSpeed.x*(enemie2 -> pos.x - enemie -> pos.x)*dt);
-                                                                           	enemie2 -> speedColision.y += 1.00 * (tempSpeed.x*(enemie2 -> pos.y - enemie -> pos.y)*dt);
+                                                                           	enemie2 -> speedColision.y += 1.00 * (tempSpeed.y*(enemie2 -> pos.y - enemie -> pos.y)*dt);
+                                                                            }
                                                                            }
                                                                            }
                                                                        }
         
         if (isCollision(playerCar, enemie -> pos, CAR_HAUTEUR)) {
-                                                           	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> speed, sf::Vector2f(playerCar.pos.x- enemie -> pos.x , playerCar.pos.y- enemie -> pos.y ));
-                                                            if (calculateNorme(tempSpeed.x,tempSpeed.y) <=20 && calculateNorme(tempSpeed.x,tempSpeed.y) != 0)
+                                                           	Speed tempSpeed = calculateProjectionOfSpeed(enemie -> speed, sf::Vector2f(playerCar.pos.x- enemie -> pos.x , playerCar.pos.y- enemie -> pos.y));
+                                                            if (calculateNorme(tempSpeed.x,tempSpeed.y) <=30 && calculateNorme(tempSpeed.x,tempSpeed.y) != 0)
                                                             {
-                                                                tempSpeed.x = 20;
-                                                                tempSpeed.y = 20; 
+                                                                tempSpeed.x = 30;
+                                                                tempSpeed.y = 30; 
                                                             }
+                                                            if (vectorDotProduct(enemie -> speed, sf::Vector2f(playerCar.pos.x- enemie -> pos.x , playerCar.pos.y- enemie -> pos.y)) >=0){
                                                            	playerCar.speedColision.x -= 1.00 * (tempSpeed.x*(playerCar.pos.x- enemie -> pos.x)*dt);
-                                                           	playerCar.speedColision.y -= 1.00 * (tempSpeed.x*(playerCar.pos.y- enemie -> pos.y)*dt);
+                                                           	playerCar.speedColision.y -= 1.00 * (tempSpeed.y*(playerCar.pos.y- enemie -> pos.y)*dt);
                                                            	enemie -> speedColision.x += 1.05 * (tempSpeed.x*(playerCar.pos.x- enemie -> pos.x)*dt);
-                                                           	enemie -> speedColision.y += 1.05 * (tempSpeed.x*(playerCar.pos.y- enemie -> pos.y)*dt);
+                                                           	enemie -> speedColision.y += 1.05 * (tempSpeed.y*(playerCar.pos.y- enemie -> pos.y)*dt);
+                                                            }
                                                            }
 
 
