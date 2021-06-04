@@ -1518,7 +1518,7 @@ int main() {
 
   assets.accelerationBuffer.loadFromFile("sound/acceleration.flac");
   assets.acceleration.setBuffer(assets.accelerationBuffer);
-  assets.acceleration.setLoop(true);
+  assets.acceleration.setLoop(false);
   
   //muteAllMusic(assets);
   
@@ -2912,12 +2912,9 @@ int main() {
                 } 
             }
 
-            if (!assets.acceleration.getStatus() && up)
+            if (!assets.acceleration.getStatus() && nitro && playerCar.nbNitro != 0)
             {
                 assets.acceleration.play();
-            }else if (!up)
-            {
-                assets.acceleration.stop();
             }
     
         }
