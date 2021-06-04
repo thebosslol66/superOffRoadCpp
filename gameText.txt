@@ -47,9 +47,9 @@ Tu vas les écraser\nIls ont beau être fort\nils ne font pas le poid face a toi
 Pos2
 Fais attention ne relache pas la pression\nIls sont juste derière toi\na tout moment tu peux être éliminé 
 Pos3
-Arriver en 3 ème position a ce stade\nest trés dangereux.\nIls risquent de te faire mordre la poussière\net de t'éliminer!!
+Arriver en 3 ème position a ce stade\nest trés dangereux.\nIls risquent de te faire\nmordre la poussière et de t'éliminer!!
 Level8
-C'est la dernière course!!\nTout ces éfforts ne doivent pas être vain!!\nDécroche enfin le trophée tant désiré\nLa puissance de la choucroute seras avec toi!!
+C'est la dernière course!!\nTout ces éfforts ne doivent pas être vain!!\nDécroche enfin le trophée tant désiré\nLa puissance de la choucroute\nseras avec toi!!
 Pos1
 Tu as le pouvoir de le faire\nJusqu'ici tu as triomphé\nTu es le meilleur et tu le sais\nNe les laisses pas te piquer ta Choucroute
 Pos2
