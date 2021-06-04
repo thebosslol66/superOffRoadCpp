@@ -1925,8 +1925,8 @@ int main() {
       countMoney++;
       if (countMoney == MONEY_SPAWN_TIME)
       {
-          	generateNitro(level.spawnPosMoney);
-          countMoney = 0;
+        generateNitro(level.spawnPosMoney);
+        countMoney = 0;
       }
 
       playerCar.malusBonusSpeed = 1;
