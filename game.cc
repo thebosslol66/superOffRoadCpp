@@ -1495,7 +1495,7 @@ int main() {
   loadMusicFromFile(assets.celebrationScreenmusic, "sound/14 Celebration.flac");
   loadMusicFromFile(assets.gameoverScreenmusic, "sound/15 Game Over.flac");
   
-  muteAllMusic(assets);
+  //muteAllMusic(assets);
   
   
   loadLeaderBoard(leaderboard, LEADERBOARD_FILE);
