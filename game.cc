@@ -2525,13 +2525,11 @@ int main(int argc, char * argv[]) {
 
                     //Comptage des points pour leaderboard
                     playerCar.points += (100 - Math::arrondir(timer, 1)) * idLevel;
-                    cout << "car " << score << endl;
                     score++;
                     for (int j = 0; j < Enemies.size(); j++) {
                         Car * enemie = Enemies[j];
                         if (enemie -> score == -1) {
                             enemie -> score = score;
-                            cout << "enemie 1 " << endl;
                             score++;
                         }
                     }
