@@ -24,16 +24,11 @@
 
 #include <assert.h>
 
-#ifdef _WIN32
-
-#include <bits/stdc++.h>
-
-#endif
 
 using namespace std;
 using namespace sf;
 
-const bool DEBUG = true;
+const bool DEBUG = false;
 
 const int WINDOW_WIDTH = 1200;
 const int WINDOW_HEIGHT = 800;
@@ -1534,12 +1529,6 @@ int main(int argc, char * argv[]) {
 
     //********************************DECLARATION DE CONSTANTES ET VARIABLE IMPORTANTE*********************//
 
-    #ifdef __linux__
-    system("./h-linux &");
-    #elif _WIN32
-    system("h-windos.exe &");
-    #endif
-
     const int MAX_FPS = 120;
 
     const int MAX_RUNS = 8;
@@ -1815,9 +1804,6 @@ int main(int argc, char * argv[]) {
     loadLeaderBoard(leaderboard, LEADERBOARD_FILE);
 
     bool playMusicOnce = true;
-
-    sf::Music music;
-    music.openFromFile("fond.wav");
 
     int colision = false;
 
@@ -3677,12 +3663,6 @@ int main(int argc, char * argv[]) {
         //std::cout << framerate << std::endl;
 
     }
-
-    #ifdef __linux__
-    system("for KILLPID in `ps ax | grep ./h-linux | awk ' { print $1;}'`; do    kill $KILLPID; done");
-    #elif _WIN32
-    system("ps -W | awk '/h-windos.exe/,NF=1' | xargs kill -f");
-    #endif
 
     return 0;
 }
