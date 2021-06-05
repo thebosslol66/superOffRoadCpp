@@ -1,11 +1,4 @@
-/*
- * Pour compiler ce code, il suffit de taper `make` dans un terminal.
- * Si tout ce passe bien, un exécutable du nom `skel` apparaît dans
- * le répertoire et vous pouvez l'exécuter en tapant `./skel`.
- *
- * Ne faites pas attention au warning qui vous indique que la variable
- * `dt` n'est pas utilisée. C'est normal pour l'instant.
- */
+//@jube mais quelle idee d'ouvrir le fichier source, c secret faut pas regarder chuuuuuuuuuuuuuuuut secret ...
 
 #include <random>
 
@@ -40,7 +33,7 @@
 using namespace std;
 using namespace sf;
 
-const bool DEBUG = false;
+const bool DEBUG = true;
 
 const int WINDOW_WIDTH = 1200;
 const int WINDOW_HEIGHT = 800;
