@@ -761,7 +761,7 @@ Speed calculateProjectionOfSpeed(Speed vectorToProject, sf::Vector2f vectorBase)
 
 void reset(Car & car, Ground & level) {
     car.state = 1;
-    car.pos = level.spawnPos[car.startPosition-1];
+    car.pos = level.spawnPos[car.startPosition];
     car.speed.x = 0;
     car.speed.y = 0;
     car.direction = 0;
@@ -776,7 +776,7 @@ void reset(Car & car, Ground & level) {
 }
 void reset(Car * car, Ground & level) {
     car -> state = 1;
-    car -> pos = level.spawnPos[car -> startPosition-1];
+    car -> pos = level.spawnPos[car -> startPosition];
     car -> speed.x = 0;
     car -> speed.y = 0;
     car -> direction = 0;
@@ -961,10 +961,11 @@ void makeLevel(Ground & level, std::string src) {
 int idPositionMinimum(Car * carList[], int maximum) {
     int idMinimumActuel = 0;
     for (int i = 0; i <= maximum; i++) {
-        if (carList[idMinimumActuel] -> score < carList[i] -> score) {
+        if (carList[idMinimumActuel] -> score > carList[i] -> score) {
             idMinimumActuel = i;
         }
     }
+    cout<<idMinimumActuel<<endl;
     return idMinimumActuel;
 
 }
@@ -975,7 +976,7 @@ void triSelectionCroissant(Car * carList[], int maximum) {
     for (int i = 0; i < maximum; i++) {
         idMinimumActuel = idPositionMinimum(carList, i);
         if (idMinimumActuel != i) {
-            aux = carList[i];
+            aux = carList[3-i];
             carList[i] = carList[idMinimumActuel];
             carList[idMinimumActuel] = aux;
         }
@@ -2542,10 +2543,8 @@ int main(int argc, char * argv[]) {
                     if (enemie -> laps >= NB_LAPS_FIN && enemie -> score == 0) {
                         enemie -> score = score;
                         score++;
-                        cout<<score<<endl;
                     }
                 }
-                cout << score << endl;
                 if (score == 4) {
                     playerCar.score = score;
                     playerCar.points += (100 - Math::arrondir(timer, 1)) * idLevel;
@@ -2566,6 +2565,7 @@ int main(int argc, char * argv[]) {
 
                     for (int i = 0; i < 4; i++) {
                         tri[i] -> startPosition = i;
+                        cout<< tri[i] -> score<<endl;
                         tri[i] -> monney += (3 - i) * 50;
                         //Le premier a 20 le 2 eme 10 et le troisème 5
                         if (i == 0) {
