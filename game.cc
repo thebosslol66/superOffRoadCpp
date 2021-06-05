@@ -1366,7 +1366,7 @@ int main(int argc,char* argv[]) {
   
   const int MAX_BOT_RANGE_TO_GET_POWERUP = 80;
 
-  const float TIME_BEFORE_REACTIVATE = 0.06;
+  const float TIME_BEFORE_REACTIVATE = 0.01;
   
   const int PRICE_MONNEY_BAG = 20;
 
@@ -1380,7 +1380,7 @@ int main(int argc,char* argv[]) {
   std::string LEADERBOARD_FILE = "leaderboard.txt";
 
   const int NITRO_SPAWN_TIME = 1000;
-    const int MONEY_SPAWN_TIME = 500;
+    const int MONEY_SPAWN_TIME = 6000;
 
   bool up, down, left, right, nitro, enter;
   up = down = left = right = nitro = enter = false;
@@ -1642,6 +1642,7 @@ int main(int argc,char* argv[]) {
   assets.runningBuffer.loadFromFile("sound/running in the 90s.flac");
   assets.acceleration.setBuffer(assets.accelerationBuffer);
   assets.acceleration.setLoop(false);
+  assets.acceleration.setVolume(20);
   
   //muteAllMusic(assets);
   
