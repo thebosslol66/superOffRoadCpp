@@ -56,7 +56,7 @@ const std::string WINDOW_TITLE = "Super off Road";
 struct Math {
     static float random() {
         static mt19937 engine(time(nullptr));
-        uniform_real_distribution < float > dist(0.0 f, 1.0 f);
+        uniform_real_distribution < float > dist(0.0f, 1.0f);
         return dist(engine);
     }
     static float arrondir(float val, float prec) {
@@ -1045,8 +1045,8 @@ void loadTextFromFile(std::map < int, std::map < int, std::vector < sf::String >
             } else if (std::regex_search(line, m, positionPattern)) {
                 actualPos = std::stoi(m[1]);
             } else {
-                while (line.find(R "(\n)") != std::string::npos) {
-                    line.replace(line.find(R "(\n)"), 2, "\n");
+                while (line.find(R"(\n)") != std::string::npos) {
+                    line.replace(line.find(R"(\n)"), 2, "\n");
                 }
                 std::basic_string < sf::Uint32 > utf32;
                 sf::Utf8::toUtf32(line.begin(), line.end(), std::back_inserter(utf32));
@@ -2542,13 +2542,13 @@ int main(int argc, char * argv[]) {
                         score++;
                     }
                 }
-                if (score == 4) {
+                if (score == 3) {
                     playerCar.score = score;
                     playerCar.points += (100 - Math::arrondir(timer, 1)) * idLevel;
 
                 }
 
-                if (score >= 4) {
+                if (score >= 3) {
 
                     idCurrentWindow = 5;
                     makeAnnimation = false;
@@ -2650,7 +2650,7 @@ int main(int argc, char * argv[]) {
                     nextScreen = 7;
                 }
                 timer = 0;
-                score = 1;
+                score = 0;
 
                 //Mise a jour des difficultées
                 if (idLevel <= MAX_RUNS) {
