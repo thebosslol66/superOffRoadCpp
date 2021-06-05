@@ -1832,9 +1832,9 @@ int main(int argc,char* argv[]) {
   assets.runningBuffer.loadFromFile("sound/running in the 90s.flac");
   assets.acceleration.setBuffer(assets.accelerationBuffer);
   assets.acceleration.setLoop(false);
-  assets.acceleration.setVolume(20);
+  assets.acceleration.setVolume(60);
   
-  muteAllMusic(assets);
+  //muteAllMusic(assets);
   
   
   loadLeaderBoard(leaderboard, LEADERBOARD_FILE);
@@ -2633,9 +2633,9 @@ int main(int argc,char* argv[]) {
     	if (choixMusiqueResultatCourse < 0){
     	    	  if (randomBetween(20)==0){
     	    		  //musique defaite
-    	    		      		  if (playerCar.startPosition >= 3 || (playerCar.startPosition != 1 && idLevel >= MAX_RUNS)){
-    	    		      		  choixMusiqueResultatCourse=randomBetween(20,20);
-    	    		      		  if (choixMusiqueResultatCourse == 20){
+    	    		    if (playerCar.startPosition >= 3 || (playerCar.startPosition != 0 && idLevel >= MAX_RUNS)){
+    	    		     	choixMusiqueResultatCourse=randomBetween(20,20);
+    	    		        if (choixMusiqueResultatCourse == 20){
     	    		      			assets.resultRunSound.setBuffer(assets.shameBuffer);
     	    		      		  }
     	    		      		
@@ -2684,138 +2684,127 @@ int main(int argc,char* argv[]) {
         }
 
       }
-
       if (enter1Pressure) {
-		//Pour eviter les bugs et sauter des niveaux
-    	  if (makeAnnimation){
+        //Pour eviter les bugs et sauter des niveaux
         idLevel++;
-        
+
         choixMusiqueResultatCourse = -1;
-        
+
         //ajout de l'argent de la course au portefeuille du joueur
         playerCar.monney += playerCar.monneyWinThisRun;
         playerCar.monneyWinThisRun = 0;
         for (int j = 0; j < Enemies.size(); j++) {
-                         Enemies[j] -> monney += Enemies[j] -> monneyWinThisRun;
-                         Enemies[j] -> monneyWinThisRun = 0;
-                          }
-    	  }
-
-        
-
-        //mise a jour des positions de départ
-    	
-        textAlphaValue = 0;
-        if (!defeat){
-        	nextScreen = 7;
-        }
-        timer = 0;
-        score = 1;
-        
-
-        //Mise a jour des difficultées
-        if (idLevel <= MAX_RUNS) {
-          for (int i = 0; i < Enemies.size(); i++) {
-            Enemies[i] -> botType = levelDifficult[idLevel - 1][i];
-          }
-        }
-        
-        if (idLevel > MAX_RUNS){
-        	//Premier et il a gagné
-        	if (playerCar.startPosition == 0){
-        		nextScreen = 8;
-        	}
-        	else {
-        		playerCar.points = 0;
-        		nextScreen = 9;
-        		idMenuScreen = 1;
-        	}
-        	
-        	            textAlphaValue = 0;
-        	            textScale = 0.0;
-        	            carScale = 0.5;
-        	            carMove.x = -200;
-        	            carMove.y = 700;
-        	            idLevel = 1;
-        	            cooldownToSwitchScreen = timeToSwitchScreen;
-        	            
-        	            
-        	            //Pour le troll des L2 Mais c'est impossible d'arriver ici
-        	            if (argc == 1){
-        	                        	playerCar.points = -playerCar.points;
-        	                        }
-        	                        
-        	                        
-        	            idPlayerScore = writeHightScore(playerName,playerCar.points, leaderboard, LEADERBOARD_FILE);
-        	            
-        	            playerName.clear();
-        	            playerCar.monney = 0;
-        	            
-        	            //reset des positions de départ
-        	            playerCar.startPosition = 0;
-        	            for (int j = 0; j < Enemies.size(); j++) {
-        	                 Enemies[j] -> startPosition = j+1;
-        	                 Enemies[j] -> monney = 0;
-        	                 Enemies[j] -> points = 0;
-        	                  }
+          Enemies[j] -> monney += Enemies[j] -> monneyWinThisRun;
+          Enemies[j] -> monneyWinThisRun = 0;
         }
 
-          if (defeat) {
-        	nextScreen = 9;
-            textAlphaValue = 0;
-            textScale = 0.0;
-            carScale = 0.5;
-            carMove.x = -200;
-            carMove.y = 700;
-            idLevel = 1;
-            cooldownToSwitchScreen = timeToSwitchScreen;
-            clignotementTexteMenu = false;
-            defeat = false;
-            
-            
-            //Pour le troll des L2
-            if (argc == 1){
-            	playerCar.points = -playerCar.points;
-            }
-            
-            
-            
-            idPlayerScore = writeHightScore(playerName,playerCar.points, leaderboard, LEADERBOARD_FILE);
-            
-            playerName.clear();
-            playerCar.monney = 0;
-            playerCar.points = 0;
-            
-            
-        }
-          if (makeAnnimation){
-        	  //Regeneration du terrain
-        	                  makeLevel(level, levelFile+ to_string((idLevel-1)%4+1) + ".txt");
-        	                  loadFromFile(assets.backgroundLevelScreenTexture, assets.backgroundLevelScreen, levelFile+to_string((idLevel-1)%4+1) + ".png"); 
-        	                  nbFlag = level.flags.size();
-        	                  printListWall(level.walls);
-          }
+      //mise a jour des positions de départ
 
-        reset(playerCar, level);
+      textAlphaValue = 0;
+      if (!defeat) {
+        nextScreen = 7;
+      }
+      timer = 0;
+      score = 1;
+
+      //Mise a jour des difficultées
+      if (idLevel <= MAX_RUNS) {
         for (int i = 0; i < Enemies.size(); i++) {
-          Car * enemie = Enemies[i];
-          reset(enemie, level);
+          Enemies[i] -> botType = levelDifficult[idLevel - 1][i];
         }
-        for (int i = 0; i < level.spawnPosNitro.size(); i++) {
-          level.spawnPosNitro[i].present = false;
+      }
+
+      if (idLevel > MAX_RUNS) {
+    	  for (int i = 0; i < Enemies.size(); i++) {
+    	            Enemies[i] -> botType = levelDifficult[0][i];
+    	          }
+    	  
+        //Premier et il a gagné
+        if (playerCar.startPosition == 0) {
+          nextScreen = 8;
+        } else {
+          playerCar.points = 0;
+          nextScreen = 9;
+          idMenuScreen = 1;
         }
+        //Mais c'est impossible d'arriver ici
+        if (argc == 1) {
+          playerCar.points = -playerCar.points;
+        }
+
+        idPlayerScore = writeHightScore(playerName, playerCar.points, leaderboard, LEADERBOARD_FILE);
+
+        playerName.clear();
+        playerCar.monney = 0;
+
+      }
+
+      if (defeat) {
+        nextScreen = 9;
         
-        if (defeat){
-        	//reset des positions de départ
-        	            playerCar.startPosition = 0;
-        	            for (int j = 0; j < Enemies.size(); j++) {
-        	                 Enemies[j] -> startPosition = j+1;
-        	                 Enemies[j] -> monney = 0;
-        	                 Enemies[j] -> points = 0;
-        	                 Enemies[j] -> nbNitro = 3;
-        	                  }
-        					  
+        
+        for (int i = 0; i < Enemies.size(); i++) {
+            	            Enemies[i] -> botType = levelDifficult[0][i];
+            	          }
+
+        //Pour le troll des L2
+        if (argc == 1) {
+          playerCar.points = -playerCar.points;
         }
+
+        idPlayerScore = writeHightScore(playerName, playerCar.points, leaderboard, LEADERBOARD_FILE);
+
+        playerName.clear();
+        playerCar.monney = 0;
+        playerCar.points = 0;
+
+      }
+      //Pour remettre les positions initales
+      if (defeat || (idLevel > MAX_RUNS && playerCar.startPosition == 0)) {
+    	  idLevel = 1;
+        //reset des positions de départ
+        playerCar.startPosition = 0;
+        for (int j = 0; j < Enemies.size(); j++) {
+          Enemies[j] -> startPosition = j + 1;
+          Enemies[j] -> monney = 0;
+          Enemies[j] -> points = 0;
+        }
+      }
+      //Regeneration du terrain
+      makeLevel(level, levelFile + to_string((idLevel - 1) % 4 + 1) + ".txt");
+      loadFromFile(assets.backgroundLevelScreenTexture, assets.backgroundLevelScreen, levelFile + to_string((idLevel - 1) % 4 + 1) + ".png");
+      nbFlag = level.flags.size();
+      printListWall(level.walls);
+
+      //mise a 0 de toute les voutures entre chaques courses
+      reset(playerCar, level);
+      for (int i = 0; i < Enemies.size(); i++) {
+        Car * enemie = Enemies[i];
+        reset(enemie, level);
+      }
+
+      //reset des nitro du niveau
+      for (int i = 0; i < level.spawnPosNitro.size(); i++) {
+        level.spawnPosNitro[i].present = false;
+      }
+
+      //Reset des nitros pour la partie suivante
+      if (defeat || idLevel == 1) {
+        playerCar.nbNitro = 3;
+        for (int j = 0; j < Enemies.size(); j++) {
+          Enemies[j] -> nbNitro = 3;
+        }
+        //on reset toutes les valeurs de l'ecran suivant
+        
+        	textAlphaValue = 0;
+              textScale = 0.0;
+              carScale = 0.5;
+              carMove.x = -200;
+              carMove.y = 700;
+              cooldownToSwitchScreen = timeToSwitchScreen;
+              clignotementTexteMenu = false;
+              defeat = false;
+      }
       }
     } else if (idCurrentWindow == 3) {
       timer += dt;
