@@ -2539,8 +2539,9 @@ int main(int argc, char * argv[]) {
                 for (int j = 0; j < Enemies.size(); j++) {
                     Car * enemie = Enemies[j];
                     if (enemie -> laps >= NB_LAPS_FIN && enemie -> score == 0) {
-                        enemie -> score = score;
                         score++;
+                        enemie -> score = score;
+                        cout<<score<<endl;
                     }
                 }
                 if (score == 3) {
@@ -2581,7 +2582,7 @@ int main(int argc, char * argv[]) {
             if (choixMusiqueResultatCourse < 0) {
                 if (randomBetween(20) == 0) {
                     //musique defaite
-                    if (playerCar.startPosition >= 3 || (playerCar.startPosition != 0 && idLevel >= MAX_RUNS)) {
+                    if (playerCar.startPosition >= 4 || (playerCar.startPosition != 1 && idLevel >= MAX_RUNS)) {
                         choixMusiqueResultatCourse = randomBetween(20, 20);
                         if (choixMusiqueResultatCourse == 20) {
                             assets.resultRunSound.setBuffer(assets.shameBuffer);
@@ -2604,7 +2605,7 @@ int main(int argc, char * argv[]) {
 
                 } else {
                     //musique defaite
-                    if (playerCar.startPosition >= 3) {
+                    if (playerCar.startPosition >= 4) {
                         choixMusiqueResultatCourse = 0;
                         assets.resultRunSound.setBuffer(assets.gameoverScreenBuffer);
                     }
@@ -2620,7 +2621,7 @@ int main(int argc, char * argv[]) {
                 textAlphaValue %= 510;
             }
 
-            if (playerCar.startPosition >= 3 && !defeat && nextScreen != 0) {
+            if (playerCar.startPosition >= 4 && !defeat && nextScreen != 0) {
                 defeat = true;
                 cooldownReset = cooldownMaxReset;
             }
@@ -2652,7 +2653,7 @@ int main(int argc, char * argv[]) {
                     nextScreen = 7;
                 }
                 timer = 0;
-                score = 0;
+                score = 1;
 
                 //Mise a jour des difficultées
                 if (idLevel <= MAX_RUNS) {
