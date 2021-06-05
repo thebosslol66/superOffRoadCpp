@@ -239,9 +239,6 @@ struct Assets {
   sf::Music nameScreenmusic;
   sf::Music setupScreenmusic;
   sf::Music startScreenmusic;
-  sf::Music goalScreenmusic;
-  sf::Music celebrationScreenmusic;
-  sf::Music gameoverScreenmusic;
   sf::Music fandango;
   sf::Music sidewinder;
   sf::Music blaster;
@@ -267,9 +264,11 @@ struct Assets {
   sf::Texture choucrouteTexture;
   sf::Sprite choucroute;
   
-  //defaite
-  sf::Music astronomiaMusic;
-  sf::Music windowsMusic;
+  //end Race sounds
+  sf::Sound endRaceSound;
+  sf::SoundBuffer goalScreenBuffer;
+  sf::SoundBuffer astronomiaBuffer;
+  sf::SoundBuffer windowsBuffer;
   
   //victoire
   sf::Music caramella;
@@ -278,9 +277,12 @@ struct Assets {
   sf::Music crabMusic;
   
   //ResultasCourse
-  sf::Music cenaMusic;
-  sf::Music shameMusic;
-  sf::Music denzelMusic;
+  sf::Sound resultRunSound;
+  sf::SoundBuffer cenaBuffer;
+  sf::SoundBuffer shameBuffer;
+  sf::SoundBuffer denzelBuffer;
+  sf::SoundBuffer celebrationScreenBuffer;
+  sf::SoundBuffer gameoverScreenBuffer;
   
   //Saisie du nom
   sf::Texture nameBackgroundTexture;
@@ -1172,9 +1174,6 @@ void stopAllMusic(Assets &assets){
 	assets.nameScreenmusic.stop();
 	assets.setupScreenmusic.stop();
 	assets.startScreenmusic.stop();
-	assets.goalScreenmusic.stop();
-	assets.celebrationScreenmusic.stop();
-	assets.gameoverScreenmusic.stop();
     assets.fandango.stop();
     assets.sidewinder.stop();
     assets.blaster.stop();
@@ -1182,14 +1181,12 @@ void stopAllMusic(Assets &assets){
     assets.caramella.stop();
     assets.huevosGrande.stop();
     assets.voix.stop();
-    assets.astronomiaMusic.stop();
-    assets.windowsMusic.stop();
     assets.pinapleMusic.stop();
     assets.crabMusic.stop();
     assets.ponponMusic.stop();
-    assets.cenaMusic.stop();
-    assets.shameMusic.stop();
-    assets.denzelMusic.stop();
+    assets.resultRunSound.stop();
+    assets.acceleration.stop();
+    assets.endRaceSound.stop();
     
     
 }
@@ -1199,9 +1196,6 @@ void setAllMusicVolume(Assets &assets, int volume){
 		assets.nameScreenmusic.setVolume(volume);
 		assets.setupScreenmusic.setVolume(volume);
 		assets.startScreenmusic.setVolume(volume);
-		assets.goalScreenmusic.setVolume(volume);
-		assets.celebrationScreenmusic.setVolume(volume);
-		assets.gameoverScreenmusic.setVolume(volume);
 	    assets.fandango.setVolume(volume);
 	    assets.sidewinder.setVolume(volume);
 	    assets.blaster.setVolume(volume);
@@ -1209,15 +1203,12 @@ void setAllMusicVolume(Assets &assets, int volume){
 	    assets.caramella.setVolume(volume);
 	    assets.huevosGrande.setVolume(volume);
 	    assets.voix.setVolume(volume);
-
-	    assets.astronomiaMusic.setVolume(volume);
-	    assets.windowsMusic.setVolume(volume);
 	    assets.pinapleMusic.setVolume(volume);
 	    assets.crabMusic.setVolume(volume);
 	    assets.ponponMusic.setVolume(volume);
-	    assets.cenaMusic.setVolume(volume);
-	    assets.shameMusic.setVolume(volume);
-	    assets.denzelMusic.setVolume(volume);
+	    assets.resultRunSound.setVolume(volume);
+	    assets.acceleration.setVolume(volume);
+	    assets.endRaceSound.setVolume(volume);
 }
 void muteAllMusic(Assets &assets){
 	setAllMusicVolume(assets, 0);
@@ -1619,25 +1610,31 @@ int main(int argc,char* argv[]) {
   loadMusicFromFile(assets.setupScreenmusic, "sound/03 Set Up.flac");
   assets.setupScreenmusic.setLoop(true);
   loadMusicFromFile(assets.startScreenmusic, "sound/04 Start.flac");
-  loadMusicFromFile(assets.goalScreenmusic, "sound/13 Goal.flac");
-  loadMusicFromFile(assets.celebrationScreenmusic, "sound/14 Celebration.flac");
-  loadMusicFromFile(assets.gameoverScreenmusic, "sound/15 Game Over.flac");
+  
   loadMusicFromFile(assets.caramella, "sound/caramella.flac");
   loadMusicFromFile(assets.huevosGrande, "sound/06 Huevos Grande.flac");
   loadMusicFromFile(assets.voix, "sound/voix.flac");
   assets.voix.setLoop(true);
   
-  loadMusicFromFile(assets.astronomiaMusic, "sound/astronomia.flac");
-  loadMusicFromFile(assets.windowsMusic, "sound/microsoft-windows-xp-shutdown-sound.flac");
+  
+  assets.astronomiaBuffer.loadFromFile("sound/astronomia.flac");
+  assets.windowsBuffer.loadFromFile("sound/microsoft-windows-xp-shutdown-sound.flac");
+  assets.goalScreenBuffer.loadFromFile("sound/13 Goal.flac");
   
 
   loadMusicFromFile(assets.pinapleMusic, "sound/pineapple.flac");
   loadMusicFromFile(assets.ponponMusic, "sound/ponponpon-kyary-pamyu-pamyu-hd-engjapan-cc-music-video.flac");
   loadMusicFromFile(assets.crabMusic, "sound/noiseStorm.flac");
   
-  loadMusicFromFile(assets.cenaMusic, "sound/his-name-is-john-cena.flac");
-  loadMusicFromFile(assets.shameMusic, "sound/curb-your-enthusiasm-theme.flac");
-  loadMusicFromFile(assets.denzelMusic, "sound/denzel-curry-ultimate-full-video.flac");
+  assets.cenaBuffer.loadFromFile("sound/his-name-is-john-cena.flac");
+  assets.shameBuffer.loadFromFile("sound/curb-your-enthusiasm-theme.flac");
+  assets.denzelBuffer.loadFromFile("sound/denzel-curry-ultimate-full-video.flac");
+  assets.celebrationScreenBuffer.loadFromFile("sound/14 Celebration.flac");
+  assets.gameoverScreenBuffer.loadFromFile("sound/15 Game Over.flac");
+  
+
+  
+  
   
   assets.accelerationBuffer.loadFromFile("sound/acceleration.flac");
   assets.dejaVuBuffer.loadFromFile("sound/initial-d-deja-vu.flac");
@@ -2442,35 +2439,47 @@ int main(int argc,char* argv[]) {
       }
 
     } else if (idCurrentWindow == 2) {
+    	if (choixMusiqueResultatCourse < 0){
+    	    	  if (randomBetween(20)==0){
+    	    		  //musique defaite
+    	    		      		  if (playerCar.startPosition >= 3 || (playerCar.startPosition != 1 && idLevel >= MAX_RUNS)){
+    	    		      		  choixMusiqueResultatCourse=randomBetween(20,20);
+    	    		      		  if (choixMusiqueResultatCourse == 20){
+    	    		      			assets.resultRunSound.setBuffer(assets.shameBuffer);
+    	    		      		  }
+    	    		      		
+    	    		      		  }
+    	    		      		  //musique victoire si il est a la dernière course
+    	    		      		  else if (idLevel >= MAX_RUNS){
+    	    		      		  	choixMusiqueResultatCourse = randomBetween(30,31);
+    	    		      		  if (choixMusiqueResultatCourse == 30){
+    	    		      		      		      			assets.resultRunSound.setBuffer(assets.cenaBuffer);
+    	    		      		      		      		  }
+    	    		      		if (choixMusiqueResultatCourse == 31){
+    	    		      		    		      			assets.resultRunSound.setBuffer(assets.denzelBuffer);
+    	    		      		    		      		  }
+    	    		      		  }
+    	    		      		  else{
+    	    		      			choixMusiqueResultatCourse = 1;
+    	    		      			assets.resultRunSound.setBuffer(assets.celebrationScreenBuffer);
+    	    		      		  }
+    	    		  
+    	    	  } else {
+    	    		  //musique defaite
+    	    		  if (playerCar.startPosition >= 3){
+    	    		  choixMusiqueResultatCourse=0;
+    	    		  assets.resultRunSound.setBuffer(assets.gameoverScreenBuffer);
+    	    		  }
+    	    		  //musique victoire
+    	    		  else{
+    	    		  	choixMusiqueResultatCourse = 1;
+    	    		  	assets.resultRunSound.setBuffer(assets.celebrationScreenBuffer);
+    	    		  }
+    	    	  }
+    	      }
     	if (makeAnnimation){
       textAlphaValue += 170 * dt;
       textAlphaValue %= 510;
-      
-      if (choixMusiqueResultatCourse < 0){
-    	  if (randomBetween(20)==0){
-    		  //musique defaite
-    		      		  if (playerCar.startPosition >= 3 || (playerCar.startPosition != 1 && idLevel >= MAX_RUNS)){
-    		      		  choixMusiqueResultatCourse=randomBetween(20,20);
-    		      		  }
-    		      		  //musique victoire si il est a la dernière course
-    		      		  else if (idLevel >= MAX_RUNS){
-    		      		  	choixMusiqueResultatCourse = randomBetween(30,31);
-    		      		  }
-    		      		  else{
-    		      			choixMusiqueResultatCourse = 1;
-    		      		  }
-    		  
-    	  } else {
-    		  //musique defaite
-    		  if (playerCar.startPosition >= 3){
-    		  choixMusiqueResultatCourse=0;
-    		  }
-    		  //musique victoire
-    		  else{
-    		  	choixMusiqueResultatCourse = 1;
-    		  }
-    	  }
-      }
     	}
 
       if (playerCar.startPosition >= 3 && !defeat && nextScreen != 0) {
@@ -2740,14 +2749,21 @@ int main(int argc,char* argv[]) {
     	if (choixMusiqueFinCourse < 0 && nextScreen!=2){
     		if (randomBetween(50)==0 && playerCar.score == 4){
     			choixMusiqueFinCourse = randomBetween(1,2);
+    			if (choixMusiqueFinCourse == 1){
+    				assets.endRaceSound.setBuffer(assets.astronomiaBuffer);
+    			}
+    			if (choixMusiqueFinCourse == 2){
+    				assets.endRaceSound.setBuffer(assets.windowsBuffer);
+    			}
     		}
     		else{
+    			assets.endRaceSound.setBuffer(assets.goalScreenBuffer);
     			choixMusiqueFinCourse = 0;
     		}
     	}
     	timeGoalScreen += dt;
     	//Lister les musiques
-    	if (timeGoalScreen > durationGoalScreen && !assets.astronomiaMusic.getStatus() && !assets.windowsMusic.getStatus()){
+    	if (timeGoalScreen > durationGoalScreen && timeGoalScreen > assets.endRaceSound.getBuffer()->getDuration().asSeconds()){
     		timeGoalScreen = 0;
     		nextScreen = 2;
     		choixMusiqueFinCourse = -1;
@@ -3138,7 +3154,7 @@ int main(int argc,char* argv[]) {
                 } 
             }
 
-            if (!assets.acceleration.getStatus() && nitro)
+            if (!assets.acceleration.getStatus() && playerCar.lastNitroUsedTime == TIME_NITRO_USED)
             {
                 assets.acceleration.play();
             }
@@ -3396,30 +3412,16 @@ int main(int argc,char* argv[]) {
 	  		  
 	  		  
       sf::Text enterText = sf::Text();
-      //overkill
+
+
+      if (!assets.resultRunSound.getStatus() && playMusicOnce){
+          		  playMusicOnce = false;
+          		assets.resultRunSound.play();
+          	      	}
+      
       if (defeat) {
-    	  if (!assets.gameoverScreenmusic.getStatus() && playMusicOnce && choixMusiqueResultatCourse ==0){
-    		  playMusicOnce = false;
-    	      		assets.gameoverScreenmusic.play();
-    	      	}
-    	  if (!assets.shameMusic.getStatus() && playMusicOnce && choixMusiqueResultatCourse ==20){
-    	      		  playMusicOnce = false;
-    	      	      		assets.shameMusic.play();
-    	      	      	}
         enterText.setString("You lose!! Press enter to return Lobby");
       } else {
-    	  if (!assets.celebrationScreenmusic.getStatus() && playMusicOnce && choixMusiqueResultatCourse ==1){
-    		  playMusicOnce = false;
-    	      		assets.celebrationScreenmusic.play();
-    	      	}
-    	  if (!assets.cenaMusic.getStatus() && playMusicOnce && choixMusiqueResultatCourse ==30){
-    	      		  playMusicOnce = false;
-    	      	      		assets.cenaMusic.play();
-    	      	      	}
-    	  if (!assets.denzelMusic.getStatus() && playMusicOnce && choixMusiqueResultatCourse ==31){
-    	      	      		  playMusicOnce = false;
-    	      	      	      		assets.denzelMusic.play();
-    	      	      	      	}
         enterText.setString("Press enter to continue");
       }
       enterText.setFont(font);
@@ -3523,15 +3525,10 @@ int main(int argc,char* argv[]) {
 
     }
     if (idCurrentWindow == 5) {
-    	if (!assets.goalScreenmusic.getStatus() && choixMusiqueFinCourse == 0){
-    	    assets.goalScreenmusic.play();
-    	}
-    	if (!assets.astronomiaMusic.getStatus() && choixMusiqueFinCourse == 1){
-    		assets.astronomiaMusic.play();
-    	   }
-    	if (!assets.windowsMusic.getStatus() && choixMusiqueFinCourse == 2){
-    		assets.windowsMusic.play();
-    	    	   }
+    	//Dexième condition pour éviter de recommencer au changement d'ecran
+    	if (!assets.endRaceSound.getStatus() && choixMusiqueFinCourse >=0){
+    	    		assets.endRaceSound.play();
+    	  }
     	
     }
     if (idCurrentWindow == 6) {
