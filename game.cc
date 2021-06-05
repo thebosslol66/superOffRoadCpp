@@ -40,7 +40,7 @@
 using namespace std;
 using namespace sf;
 
-const bool DEBUG = true;
+const bool DEBUG = false;
 
 const int WINDOW_WIDTH = 1200;
 const int WINDOW_HEIGHT = 800;
