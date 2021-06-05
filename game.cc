@@ -593,8 +593,14 @@ Speed calculateSpeed(const Car & car, int acceleration,
     }
 
     if (isNitro && acceleration != 0 && normeSpeed > 0) {
-        speed.x = cos(angleRad) * avgAcceleration * 7;
-        speed.y = sin(angleRad) * avgAcceleration * 7;
+    	if ((avgAcceleration * (acceleration / (float) avgAcceleration)) * 7 < maxSpeed * 10){
+        speed.x = cos(angleRad) * (avgAcceleration * (acceleration / (float) avgAcceleration)) * 7;
+        speed.y = sin(angleRad) * (avgAcceleration * (acceleration / (float) avgAcceleration)) * 7;
+    	}
+    	else {
+            speed.x = cos(angleRad) * maxSpeed * 10;
+            speed.y = sin(angleRad) * maxSpeed * 10;
+    	}
         return speed;
     }
 
@@ -795,6 +801,13 @@ void reset(Car * car, Ground & level) {
     car -> speedColision.y = 0;
     car -> timeLeftToReachPoint = 10;
 
+}
+
+void resetUpgrade(Car * car) {
+	car -> levelAcceleration = 0;
+	car -> levelMaxSpeed = 0;
+	car -> levelTires = 0;
+	car -> levelShocks = 0;
 }
 
 void setUpgradePlayer(Car & car) {
@@ -1118,18 +1131,18 @@ void setBotLevelFromType(Car * car) {
     } else if (car -> botType == "master") {
         car -> botChanceNitro = 0.0009;
         car -> chanceToGetPowerUp = 0.9;
-        car -> levelTires = 5;
-        car -> levelShocks = 4;
+        car -> levelTires = 6;
+        car -> levelShocks = 5;
         car -> levelAcceleration = 6;
-        car -> levelMaxSpeed = 7;
-        car -> randomDistForBot = 17;
+        car -> levelMaxSpeed = 6;
+        car -> randomDistForBot = 10;
         car -> maxTimeBlocked = 0.4;
     } else if (car -> botType == "hard") {
         car -> botChanceNitro = 0.005;
-        car -> chanceToGetPowerUp = 0.7;
+        car -> chanceToGetPowerUp = 0.8;
         car -> levelTires = 4;
-        car -> levelShocks = 2;
-        car -> levelAcceleration = 5;
+        car -> levelShocks = 3;
+        car -> levelAcceleration = 6;
         car -> levelMaxSpeed = 5;
         car -> randomDistForBot = 22;
         car -> maxTimeBlocked = 0.8;
@@ -1570,7 +1583,7 @@ int main(int argc, char * argv[]) {
 
     double TIME_NITRO_USED = 2.0;
 
-    const int MAX_NITRO = 18;
+    const int MAX_NITRO = 12;
 
     const int CAR_LONGUEUR = 40;
     const int CAR_HAUTEUR = 20;
@@ -2670,7 +2683,6 @@ int main(int argc, char * argv[]) {
                     if (playerCar.startPosition == 0) {
                         nextScreen = 8;
                     } else {
-                        playerCar.points = 0;
                         nextScreen = 9;
                         idMenuScreen = 1;
                     }
@@ -2681,6 +2693,10 @@ int main(int argc, char * argv[]) {
 
                     idPlayerScore = writeHightScore(playerName, playerCar.points, leaderboard, LEADERBOARD_FILE);
 
+                    if (playerCar.startPosition == 0) {
+                    	playerCar.points = 0;
+                    }
+                    
                     playerName.clear();
                     playerCar.monney = 0;
 
@@ -2710,10 +2726,12 @@ int main(int argc, char * argv[]) {
                     idLevel = 1;
                     //reset des positions de départ
                     playerCar.startPosition = 0;
+                    resetUpgrade(&playerCar);
                     for (int j = 0; j < Enemies.size(); j++) {
                         Enemies[j] -> startPosition = j + 1;
                         Enemies[j] -> monney = 0;
                         Enemies[j] -> points = 0;
+                        resetUpgrade(Enemies[j]);
                     }
                 }
                 //Regeneration du terrain
