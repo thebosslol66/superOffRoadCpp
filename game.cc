@@ -958,27 +958,27 @@ void makeLevel(Ground & level, std::string src) {
     }
 }
 
-int idPositionMinimum(Car * carList[], int maximum) {
-    int idMinimumActuel = 0;
+int idPositionMaximum(Car * carList[], int maximum) {
+    int idMaximumActuel = 0;
     for (int i = 0; i <= maximum; i++) {
-        if (carList[idMinimumActuel] -> score > carList[i] -> score) {
-            idMinimumActuel = i;
+        if (carList[idMaximumActuel] -> score < carList[i] -> score) {
+        	idMaximumActuel = i;
         }
     }
-    cout<<idMinimumActuel<<endl;
-    return idMinimumActuel;
+    return idMaximumActuel;
 
 }
 
 void triSelectionCroissant(Car * carList[], int maximum) {
-    int idMinimumActuel = 0;
+    int idMaximumActuel = 0;
     Car * aux;
-    for (int i = 0; i < maximum; i++) {
-        idMinimumActuel = idPositionMinimum(carList, i);
-        if (idMinimumActuel != i) {
-            aux = carList[3-i];
-            carList[i] = carList[idMinimumActuel];
-            carList[idMinimumActuel] = aux;
+
+    for (int i = 1; i < maximum; i++) {
+    	idMaximumActuel = idPositionMaximum(carList, maximum-i);
+        if (idMaximumActuel != i) {
+            aux = carList[idMaximumActuel];
+            carList[idMaximumActuel] = carList[maximum-i];
+            carList[maximum-i] = aux;
         }
     }
 }
@@ -1539,7 +1539,7 @@ int main(int argc, char * argv[]) {
 
     const int MAX_BOT_RANGE_TO_GET_POWERUP = 80;
 
-    const float TIME_BEFORE_REACTIVATE = 0.01;
+    const float TIME_BEFORE_REACTIVATE = 0.06;
 
     const int PRICE_MONNEY_BAG = 20;
 
@@ -1635,7 +1635,7 @@ int main(int argc, char * argv[]) {
     sf::String playerName = "";
     sf::String charWrite = "";
     float writingCooldown = 0.0;
-    float writingMaxCooldown = 0.2;
+    float writingMaxCooldown = 0.1;
 
     //Upgrade
     int idSelectionUpgradePlayer1 = 5;
@@ -2526,13 +2526,11 @@ int main(int argc, char * argv[]) {
 
                     //Comptage des points pour leaderboard
                     playerCar.points += (100 - Math::arrondir(timer, 1)) * idLevel;
-                    cout << "car " << score << endl;
                     score++;
                     for (int j = 0; j < Enemies.size(); j++) {
                         Car * enemie = Enemies[j];
                         if (enemie -> score == -1) {
                             enemie -> score = score;
-                            cout << "enemie 1 " << endl;
                             score++;
                         }
                     }
@@ -2565,7 +2563,6 @@ int main(int argc, char * argv[]) {
 
                     for (int i = 0; i < 4; i++) {
                         tri[i] -> startPosition = i;
-                        cout<< tri[i] -> score<<endl;
                         tri[i] -> monney += (3 - i) * 50;
                         //Le premier a 20 le 2 eme 10 et le troisème 5
                         if (i == 0) {
@@ -2584,7 +2581,7 @@ int main(int argc, char * argv[]) {
             if (choixMusiqueResultatCourse < 0) {
                 if (randomBetween(20) == 0) {
                     //musique defaite
-                    if (playerCar.startPosition >= 4 || (playerCar.startPosition != 1 && idLevel >= MAX_RUNS)) {
+                    if (playerCar.score >= 4 || (playerCar.score != 1 && idLevel >= MAX_RUNS)) {
                         choixMusiqueResultatCourse = randomBetween(20, 20);
                         if (choixMusiqueResultatCourse == 20) {
                             assets.resultRunSound.setBuffer(assets.shameBuffer);
@@ -2607,7 +2604,7 @@ int main(int argc, char * argv[]) {
 
                 } else {
                     //musique defaite
-                    if (playerCar.startPosition >= 4) {
+                    if (playerCar.score >= 4) {
                         choixMusiqueResultatCourse = 0;
                         assets.resultRunSound.setBuffer(assets.gameoverScreenBuffer);
                     }
@@ -2623,7 +2620,7 @@ int main(int argc, char * argv[]) {
                 textAlphaValue %= 510;
             }
 
-            if (playerCar.startPosition >= 4 && !defeat && nextScreen != 0) {
+            if (playerCar.score >= 4 && !defeat && nextScreen != 0) {
                 defeat = true;
                 cooldownReset = cooldownMaxReset;
             }
