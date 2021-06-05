@@ -130,10 +130,10 @@ struct Car {
     float timeLeftToReachPoint = 10;
 
     //Upgrades
-    int levelTires = 6;
-    int levelShocks = 6;
-    int levelAcceleration = 6;
-    int levelMaxSpeed = 6;
+    int levelTires = 0;
+    int levelShocks = 0;
+    int levelAcceleration = 0;
+    int levelMaxSpeed = 0;
 
     float avgSpeed = 40;
     float maxSpeed = 40;
