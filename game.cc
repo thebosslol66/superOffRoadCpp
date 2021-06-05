@@ -1125,9 +1125,9 @@ void setBotLevelFromType(Car * car) {
         car -> botChanceNitro = 0.0009;
         car -> chanceToGetPowerUp = 0.9;
         car -> levelTires = 6;
-        car -> levelShocks = 5;
-        car -> levelAcceleration = 6;
-        car -> levelMaxSpeed = 6;
+        car -> levelShocks = 6;
+        car -> levelAcceleration = 7;
+        car -> levelMaxSpeed = 7;
         car -> randomDistForBot = 10;
         car -> maxTimeBlocked = 0.4;
     } else if (car -> botType == "hard") {
@@ -1193,6 +1193,7 @@ void stopAllMusic(Assets & assets) {
 }
 
 void setAllMusicVolume(Assets & assets, int volume) {
+	
     assets.titleScreenmusic.setVolume(volume);
     assets.nameScreenmusic.setVolume(volume);
     assets.setupScreenmusic.setVolume(volume);
@@ -2995,7 +2996,10 @@ int main(int argc, char * argv[]) {
                 textAlphaValue %= 510;
 
                 if (choucrouteSize < 1) {
-                    choucrouteSize += 0.5 * dt;
+                    choucrouteSize += 0.1 * dt;
+                }
+                else{
+                	choucrouteSize = 1;
                 }
                 if (choixMusiqueVictoire < 0) {
                     if (randomBetween(50) == 0) {
@@ -3004,7 +3008,6 @@ int main(int argc, char * argv[]) {
                         choixMusiqueVictoire = 0;
                     }
                 } else {
-                    choucrouteSize = 1;
                     choixMusiqueVictoire = -1;
                 }
 
@@ -3617,7 +3620,7 @@ int main(int argc, char * argv[]) {
             assets.choucroute.setScale(choucrouteSize, choucrouteSize);
 
             sf::Text voictoireText = sf::Text();
-            voictoireText.setString("Vous avez gagnez!!!");
+            voictoireText.setString("Vous avez gagné!!!");
             voictoireText.setFont(font);
             voictoireText.setCharacterSize(120);
             voictoireText.setFillColor(sf::Color::Black);
