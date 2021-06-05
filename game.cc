@@ -126,10 +126,10 @@ struct Car {
   float timeLeftToReachPoint = 10;
   
   //Upgrades
-  int levelTires = 6;
-  int levelShocks = 6;
-  int levelAcceleration = 6;
-  int levelMaxSpeed = 6;
+  int levelTires = 0;
+  int levelShocks = 0;
+  int levelAcceleration = 0;
+  int levelMaxSpeed = 0;
   
   
   float avgSpeed = 40;
@@ -361,6 +361,7 @@ bool isCollisionDroite(Car car, Flag wall, int rayon) {
   }
   denominateur = hypot(axis.x, axis.y);
   ci = numerateur / denominateur;
+
   if (ci <= rayon) {
     return true;
   } else {
@@ -1366,7 +1367,7 @@ int main(int argc,char* argv[]) {
   
   const int MAX_BOT_RANGE_TO_GET_POWERUP = 80;
 
-  const float TIME_BEFORE_REACTIVATE = 0.01;
+  const float TIME_BEFORE_REACTIVATE = 0.06;
   
   const int PRICE_MONNEY_BAG = 20;
 
