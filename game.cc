@@ -1827,7 +1827,7 @@ int main(int argc, char * argv[]) {
     int countNitro = 0;
     int countMoney = 0;
 
-    int score = 1;
+    int score = 0;
 
     if (DEBUG) {
         printListWall(level.walls);
@@ -2531,6 +2531,7 @@ int main(int argc, char * argv[]) {
                         if (enemie -> score == 0) {
                             enemie -> score = score;
                             score++;
+                            cout << " enemie " << score << endl;
                         }
                     }
 
@@ -2545,6 +2546,7 @@ int main(int argc, char * argv[]) {
                 if (score == 3) {
                     playerCar.score = score;
                     playerCar.points += (100 - Math::arrondir(timer, 1)) * idLevel;
+                    score++;
 
                 }
 
