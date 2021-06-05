@@ -2529,7 +2529,7 @@ int main(int argc, char * argv[]) {
                     score++;
                     for (int j = 0; j < Enemies.size(); j++) {
                         Car * enemie = Enemies[j];
-                        if (enemie -> score == -1) {
+                        if (enemie -> score == 0) {
                             enemie -> score = score;
                             score++;
                         }
@@ -2563,6 +2563,7 @@ int main(int argc, char * argv[]) {
 
                     for (int i = 0; i < 4; i++) {
                         tri[i] -> startPosition = i;
+                        cout<< tri[i] -> score<<endl;
                         tri[i] -> monney += (3 - i) * 50;
                         //Le premier a 20 le 2 eme 10 et le troisème 5
                         if (i == 0) {
