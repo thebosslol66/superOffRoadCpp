@@ -761,7 +761,7 @@ Speed calculateProjectionOfSpeed(Speed vectorToProject, sf::Vector2f vectorBase)
 
 void reset(Car & car, Ground & level) {
     car.state = 1;
-    car.pos = level.spawnPos[car.startPosition-1];
+    car.pos = level.spawnPos[car.startPosition];
     car.speed.x = 0;
     car.speed.y = 0;
     car.direction = 0;
@@ -776,7 +776,7 @@ void reset(Car & car, Ground & level) {
 }
 void reset(Car * car, Ground & level) {
     car -> state = 1;
-    car -> pos = level.spawnPos[car -> startPosition-1];
+    car -> pos = level.spawnPos[car -> startPosition];
     car -> speed.x = 0;
     car -> speed.y = 0;
     car -> direction = 0;
@@ -958,26 +958,26 @@ void makeLevel(Ground & level, std::string src) {
     }
 }
 
-int idPositionMinimum(Car * carList[], int maximum) {
-    int idMinimumActuel = 0;
+int idPositionMaximum(Car * carList[], int maximum) {
+    int idMaximumActuel = 0;
     for (int i = 0; i <= maximum; i++) {
-        if (carList[idMinimumActuel] -> score < carList[i] -> score) {
-            idMinimumActuel = i;
+        if (carList[idMaximumActuel] -> score < carList[i] -> score) {
+        	idMaximumActuel = i;
         }
     }
-    return idMinimumActuel;
+    return idMaximumActuel;
 
 }
 
 void triSelectionCroissant(Car * carList[], int maximum) {
-    int idMinimumActuel = 0;
+    int idMaximumActuel = 0;
     Car * aux;
-    for (int i = 0; i < maximum; i++) {
-        idMinimumActuel = idPositionMinimum(carList, i);
-        if (idMinimumActuel != i) {
-            aux = carList[i];
-            carList[i] = carList[idMinimumActuel];
-            carList[idMinimumActuel] = aux;
+    for (int i = 1; i < maximum; i++) {
+    	idMaximumActuel = idPositionMaximum(carList, maximum-i);
+        if (idMaximumActuel != i) {
+            aux = carList[idMaximumActuel];
+            carList[idMaximumActuel] = carList[maximum-i];
+            carList[maximum-i] = aux;
         }
     }
 }
@@ -2540,10 +2540,8 @@ int main(int argc, char * argv[]) {
                     if (enemie -> laps >= NB_LAPS_FIN && enemie -> score == 0) {
                         enemie -> score = score;
                         score++;
-                        cout<<score<<endl;
                     }
                 }
-                cout << score << endl;
                 if (score == 4) {
                     playerCar.score = score;
                     playerCar.points += (100 - Math::arrondir(timer, 1)) * idLevel;
