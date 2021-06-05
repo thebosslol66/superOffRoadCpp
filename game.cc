@@ -42,6 +42,10 @@ using namespace sf;
 
 const bool DEBUG = true;
 
+const int WINDOW_WIDTH = 1200;
+  const int WINDOW_HEIGHT = 800;
+  const std::string WINDOW_TITLE = "Super off Road";
+
 /*
  * Ce morceau de code pour permet de tirer un nombre flottant au hasard
  * entre 0.0 et 1.0. Pour cela, il suffit de l'appeler de la manière
@@ -1243,6 +1247,194 @@ int writeHightScore(sf::String name, int score, std::map<int, sf::String[2]> &le
 	return newScoreId;
 }
 
+
+void affichageEnTeteScoreBoard(RenderWindow &window, sf::Font &font){
+	sf::Text leaderboardText = sf::Text();
+	    	    		leaderboardText.setString("Tableau des Scores");
+	    	    		leaderboardText.setFont(font);
+	    	    		leaderboardText.setCharacterSize(90);
+	    	    		leaderboardText.setFillColor(sf::Color::White);
+	    	    		leaderboardText.setPosition(WINDOW_WIDTH / 2 - leaderboardText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 16 - leaderboardText.getLocalBounds().height / 2);
+	    	    		window.draw(leaderboardText);
+	    	    		
+	    	    		sf::Text rankText = sf::Text();
+	    	    		rankText.setString("Rang");
+	    	    		rankText.setFont(font);
+	    	    		rankText.setCharacterSize(60);
+	    	    		rankText.setFillColor(sf::Color::White);
+	    	    		rankText.setPosition(WINDOW_WIDTH * 2/8 - rankText.getLocalBounds().width / 2, WINDOW_HEIGHT * 3 / 16 - rankText.getLocalBounds().height / 2);
+	    	    		window.draw(rankText);
+	    	    		    		
+	    	    		sf::Text playerText = sf::Text();
+	    	    		playerText.setString("Joueur");
+	    	    		playerText.setFont(font);
+	    	    		playerText.setCharacterSize(60);
+	    	    		playerText.setFillColor(sf::Color::White);
+	    	    		playerText.setPosition(WINDOW_WIDTH / 2 - playerText.getLocalBounds().width / 2, WINDOW_HEIGHT * 3 / 16 - playerText.getLocalBounds().height / 2);
+	    	    		window.draw(playerText);
+
+	    	    		sf::Text scoreText = sf::Text();
+	    	    		scoreText.setString("Score");
+	    	    		scoreText.setFont(font);
+	    	    		scoreText.setCharacterSize(60);
+	    	    		scoreText.setFillColor(sf::Color::White);
+	    	    		scoreText.setPosition(WINDOW_WIDTH *6/8 - scoreText.getLocalBounds().width / 2, WINDOW_HEIGHT * 3 / 16 - scoreText.getLocalBounds().height / 2);
+	    	    		window.draw(scoreText);    		
+}
+
+void affichageScoreBoard(RenderWindow &window, std::map<int, sf::String[2]> &leaderboard, sf::Font &font, const float &alphaLeaderBoard, const int &idPlayerScore, const sf::Color &hiligthMyScore){
+	sf::Color thecolor;
+	for (int i=0; i< leaderboard.size() && ((i< 11 && idPlayerScore == 11) || (i< 10 && idPlayerScore != 11)) ;i++){
+	    	    			
+	    	    			thecolor = sf::Color::White;
+	    	    			
+	    	    			float alphaForText = alphaLeaderBoard-250*i;
+	    	    			if (alphaForText < 0){
+	    	    				alphaForText=0;
+	    	    			}
+	    	    			if(alphaForText >255){
+	    	    				alphaForText = 255;
+	    	    			}
+	    	    			if (i == idPlayerScore-1){
+	    	    				thecolor = hiligthMyScore;
+	    	    			}
+	    	    			sf::Text rankText = sf::Text();
+	    	    			    		rankText.setString(std::to_string(i+1));
+	    	    			    		rankText.setFont(font);
+	    	    			    		rankText.setCharacterSize(45);
+	    	    			    		rankText.setFillColor(sf::Color(thecolor.r,thecolor.g,thecolor.b,alphaForText));
+	    	    			    		rankText.setPosition(WINDOW_WIDTH * 2/8 - rankText.getLocalBounds().width / 2, WINDOW_HEIGHT *  4 / 16 + 10- rankText.getLocalBounds().height / 2 + 45*i);
+	    	    			    		
+	    	    			    		    		
+	    	    			    		sf::Text playerText = sf::Text();
+	    	    			    		playerText.setString(leaderboard[i+1][0]);
+	    	    			    		playerText.setFont(font);
+	    	    			    		playerText.setCharacterSize(45);
+	    	    			    		playerText.setFillColor(sf::Color(thecolor.r,thecolor.g,thecolor.b,alphaForText));
+	    	    			    		playerText.setPosition(WINDOW_WIDTH / 2 - playerText.getLocalBounds().width / 2, WINDOW_HEIGHT * 4 / 16 + 10 - playerText.getLocalBounds().height / 2 + 45*i);
+	    	    			    		
+
+	    	    			    		sf::Text scoreText = sf::Text();
+	    	    			    		scoreText.setString(leaderboard[i+1][1]);
+	    	    			    		scoreText.setFont(font);
+	    	    			    		scoreText.setCharacterSize(45);
+	    	    			    		scoreText.setFillColor(sf::Color(thecolor.r,thecolor.g,thecolor.b,alphaForText));
+	    	    			    		scoreText.setPosition(WINDOW_WIDTH *6/8 - scoreText.getLocalBounds().width / 2, WINDOW_HEIGHT * 4 / 16 + 10 - scoreText.getLocalBounds().height / 2 + 45*i);
+	    	    			    		
+	    	    			    		//
+	    	    			    		//if (i == idPlayerScore-1){
+	    	    			    		//	rankText.setOutlineColor(sf::Color(255, 255, 255, alphaForText));
+	    	    			    		//	playerText.setOutlineColor(sf::Color(255, 255, 255, alphaForText));
+	    	    			    		//	scoreText.setOutlineColor(sf::Color(255, 255, 255, alphaForText));
+	    	    			    		//	rankText.setOutlineThickness(1.0);
+	    	    			    		//	playerText.setOutlineThickness(1.0);
+	    	    			    		//	scoreText.setOutlineThickness(1.0);
+	    	    			    		//	
+	    	    			    		//}
+	    	    			    		
+	    	    			    		
+	    	    			    		window.draw(rankText);
+	    	    			    		window.draw(playerText);
+	    	    			    		window.draw(scoreText);
+	    	    			
+	    	    		}
+}
+
+void affichageScoreBoard(RenderWindow &window, std::map<int, sf::String[2]> &leaderboard, sf::Font &font, const float &alphaLeaderBoard){
+	affichageScoreBoard(window, leaderboard, font, alphaLeaderBoard, 0, sf::Color::White);
+}
+
+
+
+void affichageTextPressEnterToContinue(RenderWindow &window, sf::Font &font, std::string text, int textAlphaValue){
+	sf::Text enterText = sf::Text();
+	    	    		      enterText.setString(text);
+	    	    		      enterText.setFont(font);
+	    	    		      enterText.setCharacterSize(60);
+
+	    	    		      if (textAlphaValue <= 255) {
+	    	    		        enterText.setFillColor(sf::Color(255, 255, 255, textAlphaValue));
+	    	    		        enterText.setOutlineColor(sf::Color(0, 0, 0, textAlphaValue));
+	    	    		        enterText.setOutlineThickness(2.0);
+
+	    	    		      } else {
+	    	    		        enterText.setFillColor(sf::Color(255, 255, 255, 509 - textAlphaValue));
+	    	    		        enterText.setOutlineColor(sf::Color(0, 0, 0, 509 - textAlphaValue));
+	    	    		        enterText.setOutlineThickness(2.0);
+	    	    		      }
+
+	    	    		      enterText.setPosition(WINDOW_WIDTH / 2 - enterText.getLocalBounds().width / 2, WINDOW_HEIGHT * 7 / 8 - enterText.getLocalBounds().height / 2);
+
+	    	    		      window.draw(enterText);
+}
+
+void affichageNitroAndMonney(RenderWindow &window, Ground &level, Assets &assets){
+	for (int j = 0; j < level.spawnPosNitro.size(); j++) {
+	        if (level.spawnPosNitro[j].present) {
+	          assets.nitro.setPosition(level.spawnPosNitro[j].pos.x, level.spawnPosNitro[j].pos.y);
+	          window.draw(assets.nitro);
+	        }
+	      }
+	      for (int j = 0; j < level.spawnPosMoney.size(); j++) {
+	        if (level.spawnPosMoney[j].present) {
+	          assets.money.setPosition(level.spawnPosMoney[j].pos.x, level.spawnPosMoney[j].pos.y);
+	          window.draw(assets.money);
+	        }
+	      }
+	
+}
+
+
+void affichageDebugNitroAndMud(RenderWindow &window, Ground &level){
+	sf::RectangleShape mudShape;
+	        sf::CircleShape nitroShape;
+
+	        for (int j = 0; j < level.muds.size(); ++j) {
+	          mudShape.setSize(sf::Vector2f(level.muds[j].rayon * 2, level.muds[j].rayon * 2));
+	          mudShape.setPosition(level.muds[j].pos.x, level.muds[j].pos.y);
+	          mudShape.setOrigin(level.muds[j].rayon, level.muds[j].rayon);
+	          mudShape.setFillColor(sf::Color::Green);
+	          window.draw(mudShape);
+	        }
+	        for (int j = 0; j < level.spawnPosNitro.size(); j++) {
+	          if (level.spawnPosNitro[j].present) {
+	            nitroShape.setRadius(10);
+	            nitroShape.setPosition(level.spawnPosNitro[j].pos.x, level.spawnPosNitro[j].pos.y);
+	            nitroShape.setOrigin(level.spawnPosNitro[j].rayon, level.spawnPosNitro[j].rayon);
+	            nitroShape.setFillColor(sf::Color::Green);
+	            window.draw(nitroShape);
+	          }
+	        }
+}
+
+void affichageDebugWallFlagBotline(RenderWindow &window, Ground &level){
+	sf::CircleShape nitroShape;
+	    	                  
+	    	                  sf::Vertex line[2];
+	    	                  
+	    	                  for (int i = 0; i < level.walls.size(); ++i) {
+	    	                	  line[0] = sf::Vertex(sf::Vector2f(level.walls[i].hitbox.corner1.x, level.walls[i].hitbox.corner1.y));
+	    	                	  line[1] = sf::Vertex(sf::Vector2f(level.walls[i].hitbox.corner2.x, level.walls[i].hitbox.corner2.y));
+	        	                  window.draw(line, 2, sf::Lines);
+	    	                  }
+	    	                  
+	    	                  for (int i = 0; i < level.flags.size(); ++i) {
+	    	                      	                	  line[0] = sf::Vertex(sf::Vector2f(level.flags[i].hitbox.corner1.x, level.flags[i].hitbox.corner1.y));
+	    	                      	                	  line[1] = sf::Vertex(sf::Vector2f(level.flags[i].hitbox.corner2.x, level.flags[i].hitbox.corner2.y));
+	    	                          	                  window.draw(line, 2, sf::Lines);
+	    	                      	                  }
+
+	    	                  
+	    	                  
+	    	                  for (int i = 0; i < level.botLine.size(); i++) {
+	    	                      nitroShape.setRadius(2);
+	    	                      nitroShape.setPosition(level.botLine[i].x, level.botLine[i].y);
+	    	                      nitroShape.setOrigin(1, 1);
+	    	                      nitroShape.setFillColor(sf::Color::White);
+	    	                      window.draw(nitroShape);
+	    	                  }
+}
+
 //fonction de débugage
 //affichage de la vrai htibox des murs
 
@@ -1357,9 +1549,7 @@ int main(int argc,char* argv[]) {
   system("h-windos.exe &");
   #endif
 
-  const int WINDOW_WIDTH = 1200;
-  const int WINDOW_HEIGHT = 800;
-  const std::string WINDOW_TITLE = "Super off Road";
+  
   const int MAX_FPS = 120;
 
   const int MAX_RUNS = 8;
@@ -1644,7 +1834,7 @@ int main(int argc,char* argv[]) {
   assets.acceleration.setLoop(false);
   assets.acceleration.setVolume(20);
   
-  //muteAllMusic(assets);
+  muteAllMusic(assets);
   
   
   loadLeaderBoard(leaderboard, LEADERBOARD_FILE);
@@ -3016,9 +3206,6 @@ int main(int argc,char* argv[]) {
             assets.titleScreenmusic.play();
         }
     	
-    	
-    	
-    	
     	if (idMenuScreen == 1){
       window.draw(assets.backgroundMainScreen);
 
@@ -3032,98 +3219,18 @@ int main(int argc,char* argv[]) {
     	else if (idMenuScreen==2){
     		window.draw(assets.backgroundLeaderboard);
     		
-    		sf::Text leaderboardText = sf::Text();
-    		leaderboardText.setString("Tableau des Scores");
-    		leaderboardText.setFont(font);
-    		leaderboardText.setCharacterSize(90);
-    		leaderboardText.setFillColor(sf::Color::White);
-    		leaderboardText.setPosition(WINDOW_WIDTH / 2 - leaderboardText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 16 - leaderboardText.getLocalBounds().height / 2);
-    		window.draw(leaderboardText);
+    		affichageEnTeteScoreBoard(window, font);
     		
-    		sf::Text rankText = sf::Text();
-    		rankText.setString("Rang");
-    		rankText.setFont(font);
-    		rankText.setCharacterSize(60);
-    		rankText.setFillColor(sf::Color::White);
-    		rankText.setPosition(WINDOW_WIDTH * 2/8 - rankText.getLocalBounds().width / 2, WINDOW_HEIGHT * 3 / 16 - rankText.getLocalBounds().height / 2);
-    		window.draw(rankText);
-    		    		
-    		sf::Text playerText = sf::Text();
-    		playerText.setString("Joueur");
-    		playerText.setFont(font);
-    		playerText.setCharacterSize(60);
-    		playerText.setFillColor(sf::Color::White);
-    		playerText.setPosition(WINDOW_WIDTH / 2 - playerText.getLocalBounds().width / 2, WINDOW_HEIGHT * 3 / 16 - playerText.getLocalBounds().height / 2);
-    		window.draw(playerText);
-
-    		sf::Text scoreText = sf::Text();
-    		scoreText.setString("Score");
-    		scoreText.setFont(font);
-    		scoreText.setCharacterSize(60);
-    		scoreText.setFillColor(sf::Color::White);
-    		scoreText.setPosition(WINDOW_WIDTH *6/8 - scoreText.getLocalBounds().width / 2, WINDOW_HEIGHT * 3 / 16 - scoreText.getLocalBounds().height / 2);
-    		window.draw(scoreText);
-    		
-    		for (int i=0; i< leaderboard.size() && i< 10;i++){
-    			
-    			float alphaForText = alphaLeaderBoard-250*i;
-    			if (alphaForText < 0){
-    				alphaForText=0;
-    			}
-    			if(alphaForText >255){
-    				alphaForText = 255;
-    			}
-    			sf::Text rankText = sf::Text();
-    			    		rankText.setString(std::to_string(i+1));
-    			    		rankText.setFont(font);
-    			    		rankText.setCharacterSize(45);
-    			    		rankText.setFillColor(sf::Color(255,255,255,alphaForText));
-    			    		rankText.setPosition(WINDOW_WIDTH * 2/8 - rankText.getLocalBounds().width / 2, WINDOW_HEIGHT *  4 / 16 + 10- rankText.getLocalBounds().height / 2 + 45*i);
-    			    		window.draw(rankText);
-    			    		    		
-    			    		sf::Text playerText = sf::Text();
-    			    		playerText.setString(leaderboard[i+1][0]);
-    			    		playerText.setFont(font);
-    			    		playerText.setCharacterSize(45);
-    			    		playerText.setFillColor(sf::Color(255,255,255,alphaForText));
-    			    		playerText.setPosition(WINDOW_WIDTH / 2 - playerText.getLocalBounds().width / 2, WINDOW_HEIGHT * 4 / 16 + 10 - playerText.getLocalBounds().height / 2 + 45*i);
-    			    		window.draw(playerText);
-
-    			    		sf::Text scoreText = sf::Text();
-    			    		scoreText.setString(leaderboard[i+1][1]);
-    			    		scoreText.setFont(font);
-    			    		scoreText.setCharacterSize(45);
-    			    		scoreText.setFillColor(sf::Color(255,255,255,alphaForText));
-    			    		scoreText.setPosition(WINDOW_WIDTH *6/8 - scoreText.getLocalBounds().width / 2, WINDOW_HEIGHT * 4 / 16 + 10 - scoreText.getLocalBounds().height / 2 + 45*i);
-    			    		window.draw(scoreText);
-    			
-    		}
+    		affichageScoreBoard(window, leaderboard, font, alphaLeaderBoard);
     	}
+    	
     	
     	sf::RectangleShape blackShape(sf::Vector2f(WINDOW_WIDTH, WINDOW_HEIGHT));
 
     	blackShape.setFillColor(sf::Color(0, 0, 0, alphaMenuBlackScreen));
    		window.draw(blackShape);
 
-      sf::Text enterText = sf::Text();
-      enterText.setString("Insert COIN (or press enter)");
-      enterText.setFont(font);
-      enterText.setCharacterSize(60);
-
-      if (textAlphaValue <= 255) {
-        enterText.setFillColor(sf::Color(255, 255, 255, textAlphaValue));
-        enterText.setOutlineColor(sf::Color(0, 0, 0, textAlphaValue));
-        enterText.setOutlineThickness(2.0);
-
-      } else {
-        enterText.setFillColor(sf::Color(255, 255, 255, 509 - textAlphaValue));
-        enterText.setOutlineColor(sf::Color(0, 0, 0, 509 - textAlphaValue));
-        enterText.setOutlineThickness(2.0);
-      }
-
-      enterText.setPosition(WINDOW_WIDTH / 2 - enterText.getLocalBounds().width / 2, WINDOW_HEIGHT * 7 / 8 - enterText.getLocalBounds().height / 2);
-
-      window.draw(enterText);
+      affichageTextPressEnterToContinue(window, font, "Insert COIN (or press enter)", textAlphaValue);
 
     }
     //Si on est dans la partie ou sur le décompte ou si il parle
@@ -3171,39 +3278,10 @@ int main(int argc,char* argv[]) {
     	
       window.draw(assets.backgroundLevelScreen);
 
-      for (int j = 0; j < level.spawnPosNitro.size(); j++) {
-        if (level.spawnPosNitro[j].present) {
-          assets.nitro.setPosition(level.spawnPosNitro[j].pos.x, level.spawnPosNitro[j].pos.y);
-          window.draw(assets.nitro);
-        }
-      }
-      for (int j = 0; j < level.spawnPosMoney.size(); j++) {
-        if (level.spawnPosMoney[j].present) {
-          assets.money.setPosition(level.spawnPosMoney[j].pos.x, level.spawnPosMoney[j].pos.y);
-          window.draw(assets.money);
-        }
-      }
+      affichageNitroAndMonney(window, level, assets);
 
       if (DEBUG) {
-        sf::RectangleShape mudShape;
-        sf::CircleShape nitroShape;
-
-        for (int j = 0; j < level.muds.size(); ++j) {
-          mudShape.setSize(sf::Vector2f(level.muds[j].rayon * 2, level.muds[j].rayon * 2));
-          mudShape.setPosition(level.muds[j].pos.x, level.muds[j].pos.y);
-          mudShape.setOrigin(level.muds[j].rayon, level.muds[j].rayon);
-          mudShape.setFillColor(sf::Color::Green);
-          window.draw(mudShape);
-        }
-        for (int j = 0; j < level.spawnPosNitro.size(); j++) {
-          if (level.spawnPosNitro[j].present) {
-            nitroShape.setRadius(10);
-            nitroShape.setPosition(level.spawnPosNitro[j].pos.x, level.spawnPosNitro[j].pos.y);
-            nitroShape.setOrigin(level.spawnPosNitro[j].rayon, level.spawnPosNitro[j].rayon);
-            nitroShape.setFillColor(sf::Color::Green);
-            window.draw(nitroShape);
-          }
-        }
+    	  affichageDebugNitroAndMud(window, level);
       }
 
 
@@ -3218,41 +3296,15 @@ int main(int argc,char* argv[]) {
 
       assets.carSprite.setPosition(playerCar.pos.x, playerCar.pos.y);
       assets.carSprite.setOrigin(CAR_LONGUEUR / 2, CAR_HAUTEUR / 2);
-      
       assets.carSprite.setRotation(180 - (playerCar.direction / 16.0 * 360));
-      
-      
       assets.carSprite.setColor(playerCar.color);
-
       window.draw(assets.carSprite);
 
       if (DEBUG) {
-    	  sf::CircleShape nitroShape;
-    	                  
-    	                  sf::Vertex line[2];
-    	                  
-    	                  for (int i = 0; i < level.walls.size(); ++i) {
-    	                	  line[0] = sf::Vertex(sf::Vector2f(level.walls[i].hitbox.corner1.x, level.walls[i].hitbox.corner1.y));
-    	                	  line[1] = sf::Vertex(sf::Vector2f(level.walls[i].hitbox.corner2.x, level.walls[i].hitbox.corner2.y));
-        	                  window.draw(line, 2, sf::Lines);
-    	                  }
-    	                  
-    	                  for (int i = 0; i < level.flags.size(); ++i) {
-    	                      	                	  line[0] = sf::Vertex(sf::Vector2f(level.flags[i].hitbox.corner1.x, level.flags[i].hitbox.corner1.y));
-    	                      	                	  line[1] = sf::Vertex(sf::Vector2f(level.flags[i].hitbox.corner2.x, level.flags[i].hitbox.corner2.y));
-    	                          	                  window.draw(line, 2, sf::Lines);
-    	                      	                  }
-
-    	                  
-    	                  
-    	                  for (int i = 0; i < level.botLine.size(); i++) {
-    	                      nitroShape.setRadius(2);
-    	                      nitroShape.setPosition(level.botLine[i].x, level.botLine[i].y);
-    	                      nitroShape.setOrigin(1, 1);
-    	                      nitroShape.setFillColor(sf::Color::White);
-    	                      window.draw(nitroShape);
-    	                  }
-
+    	  
+    	  affichageDebugWallFlagBotline(window, level);
+    	  
+    	  
     	                  sf::VertexArray speed(sf::LineStrip, 2);
     	                  speed[0].position = sf::Vector2f(playerCar.pos.x,playerCar.pos.y);
     	                  speed[1].position = sf::Vector2f(playerCar.pos.x + playerCar.speed.x + playerCar.speedColision.x,playerCar.pos.y + playerCar.speed.y + playerCar.speedColision.y);
@@ -3261,6 +3313,10 @@ int main(int argc,char* argv[]) {
 
     	                  window.draw(speed);
       }
+      
+      
+      
+      ///affichage des scores dans la partie
 
       sf::Vector2f positionLaps(level.scorePos.x + (-24 * 2), level.scorePos.y + (-9 * 2));
       sf::Vector2f positionNitro(level.scorePos.x + (-34 * 2), level.scorePos.y + (10 * 2));
@@ -3364,9 +3420,6 @@ int main(int argc,char* argv[]) {
     }
     //AFFICHAGE DES SCORE//
     if (idCurrentWindow == 2) {
-
-    	
-    	
       window.draw(assets.backgroundEndRun);
 
       window.draw(assets.position1Perso);
@@ -3421,27 +3474,10 @@ int main(int argc,char* argv[]) {
           	      	}
       
       if (defeat) {
-        enterText.setString("You lose!! Press enter to return Lobby");
+        affichageTextPressEnterToContinue(window, font, "You lose!! Press enter to return Lobby", textAlphaValue);
       } else {
-        enterText.setString("Press enter to continue");
+    	  affichageTextPressEnterToContinue(window, font, "Press enter to continue", textAlphaValue);
       }
-      enterText.setFont(font);
-      enterText.setCharacterSize(60);
-
-      if (textAlphaValue <= 255) {
-        enterText.setFillColor(sf::Color(255, 255, 255, textAlphaValue));
-        enterText.setOutlineColor(sf::Color(0, 0, 0, textAlphaValue));
-        enterText.setOutlineThickness(2.0);
-
-      } else {
-        enterText.setFillColor(sf::Color(255, 255, 255, 509 - textAlphaValue));
-        enterText.setOutlineColor(sf::Color(0, 0, 0, 509 - textAlphaValue));
-        enterText.setOutlineThickness(2.0);
-      }
-
-      enterText.setPosition(WINDOW_WIDTH / 2 - enterText.getLocalBounds().width / 2, WINDOW_HEIGHT * 7 / 8 - enterText.getLocalBounds().height / 2);
-
-      window.draw(enterText);
 
     }
     //AFFICHAGE DU DECOMPTE
@@ -3504,25 +3540,7 @@ int main(int argc,char* argv[]) {
         window.draw(persoText);
       }
 
-      sf::Text enterText = sf::Text();
-      enterText.setString("Press enter to continue");
-      enterText.setFont(font);
-      enterText.setCharacterSize(60);
-
-      if (textAlphaValue <= 255) {
-        enterText.setFillColor(sf::Color(255, 255, 255, textAlphaValue));
-        enterText.setOutlineColor(sf::Color(0, 0, 0, textAlphaValue));
-        enterText.setOutlineThickness(2.0);
-
-      } else {
-        enterText.setFillColor(sf::Color(255, 255, 255, 509 - textAlphaValue));
-        enterText.setOutlineColor(sf::Color(0, 0, 0, 509 - textAlphaValue));
-        enterText.setOutlineThickness(2.0);
-      }
-
-      enterText.setPosition(WINDOW_WIDTH / 2 - enterText.getLocalBounds().width / 2, WINDOW_HEIGHT * 7 / 8 - enterText.getLocalBounds().height / 2);
-
-      window.draw(enterText);
+      affichageTextPressEnterToContinue(window, font, "Press enter to continue",  textAlphaValue);
 
     }
     if (idCurrentWindow == 5) {
@@ -3719,25 +3737,7 @@ int main(int argc,char* argv[]) {
     	    	window.draw(scoreText);
     	    	
     	
-    	sf::Text enterText = sf::Text();
-    	      enterText.setString("Press enter to continue");
-    	      enterText.setFont(font);
-    	      enterText.setCharacterSize(60);
-
-    	      if (textAlphaValue <= 255) {
-    	        enterText.setFillColor(sf::Color(255, 255, 255, textAlphaValue));
-    	        enterText.setOutlineColor(sf::Color(0, 0, 0, textAlphaValue));
-    	        enterText.setOutlineThickness(2.0);
-
-    	      } else {
-    	        enterText.setFillColor(sf::Color(255, 255, 255, 509 - textAlphaValue));
-    	        enterText.setOutlineColor(sf::Color(0, 0, 0, 509 - textAlphaValue));
-    	        enterText.setOutlineThickness(2.0);
-    	      }
-
-    	      enterText.setPosition(WINDOW_WIDTH / 2 - enterText.getLocalBounds().width / 2, WINDOW_HEIGHT * 7 / 8 - enterText.getLocalBounds().height / 2);
-
-    	      window.draw(enterText);
+    	    	affichageTextPressEnterToContinue(window, font, "Press enter to continue", textAlphaValue);
         }
     
     if (idCurrentWindow == 9) {
@@ -3747,114 +3747,14 @@ int main(int argc,char* argv[]) {
             assets.huevosGrande.play();
         }
     	window.draw(assets.backgroundLeaderboard);
+    	
+    	affichageEnTeteScoreBoard(window, font);
     	    		
-    	    		sf::Text leaderboardText = sf::Text();
-    	    		leaderboardText.setString("Tableau des Scores");
-    	    		leaderboardText.setFont(font);
-    	    		leaderboardText.setCharacterSize(90);
-    	    		leaderboardText.setFillColor(sf::Color::White);
-    	    		leaderboardText.setPosition(WINDOW_WIDTH / 2 - leaderboardText.getLocalBounds().width / 2, WINDOW_HEIGHT * 1 / 16 - leaderboardText.getLocalBounds().height / 2);
-    	    		window.draw(leaderboardText);
+    	affichageScoreBoard(window, leaderboard, font, alphaLeaderBoard, idPlayerScore, hiligthMyScore);
     	    		
-    	    		sf::Text rankText = sf::Text();
-    	    		rankText.setString("Rang");
-    	    		rankText.setFont(font);
-    	    		rankText.setCharacterSize(60);
-    	    		rankText.setFillColor(sf::Color::White);
-    	    		rankText.setPosition(WINDOW_WIDTH * 2/8 - rankText.getLocalBounds().width / 2, WINDOW_HEIGHT * 3 / 16 - rankText.getLocalBounds().height / 2);
-    	    		window.draw(rankText);
-    	    		    		
-    	    		sf::Text playerText = sf::Text();
-    	    		playerText.setString("Joueur");
-    	    		playerText.setFont(font);
-    	    		playerText.setCharacterSize(60);
-    	    		playerText.setFillColor(sf::Color::White);
-    	    		playerText.setPosition(WINDOW_WIDTH / 2 - playerText.getLocalBounds().width / 2, WINDOW_HEIGHT * 3 / 16 - playerText.getLocalBounds().height / 2);
-    	    		window.draw(playerText);
-
-    	    		sf::Text scoreText = sf::Text();
-    	    		scoreText.setString("Score");
-    	    		scoreText.setFont(font);
-    	    		scoreText.setCharacterSize(60);
-    	    		scoreText.setFillColor(sf::Color::White);
-    	    		scoreText.setPosition(WINDOW_WIDTH *6/8 - scoreText.getLocalBounds().width / 2, WINDOW_HEIGHT * 3 / 16 - scoreText.getLocalBounds().height / 2);
-    	    		window.draw(scoreText);
+    	affichageTextPressEnterToContinue(window, font, "Press enter to continue", textAlphaValue);
     	    		
-    	    		sf::Color thecolor;
     	    		
-    	    		for (int i=0; i< leaderboard.size() && ((i< 11 && idPlayerScore == 11) || (i< 10 && idPlayerScore != 11)) ;i++){
-    	    			
-    	    			thecolor = sf::Color::White;
-    	    			
-    	    			float alphaForText = alphaLeaderBoard-250*i;
-    	    			if (alphaForText < 0){
-    	    				alphaForText=0;
-    	    			}
-    	    			if(alphaForText >255){
-    	    				alphaForText = 255;
-    	    			}
-    	    			if (i == idPlayerScore-1){
-    	    				thecolor = hiligthMyScore;
-    	    			}
-    	    			sf::Text rankText = sf::Text();
-    	    			    		rankText.setString(std::to_string(i+1));
-    	    			    		rankText.setFont(font);
-    	    			    		rankText.setCharacterSize(45);
-    	    			    		rankText.setFillColor(sf::Color(thecolor.r,thecolor.g,thecolor.b,alphaForText));
-    	    			    		rankText.setPosition(WINDOW_WIDTH * 2/8 - rankText.getLocalBounds().width / 2, WINDOW_HEIGHT *  4 / 16 + 10- rankText.getLocalBounds().height / 2 + 45*i);
-    	    			    		
-    	    			    		    		
-    	    			    		sf::Text playerText = sf::Text();
-    	    			    		playerText.setString(leaderboard[i+1][0]);
-    	    			    		playerText.setFont(font);
-    	    			    		playerText.setCharacterSize(45);
-    	    			    		playerText.setFillColor(sf::Color(thecolor.r,thecolor.g,thecolor.b,alphaForText));
-    	    			    		playerText.setPosition(WINDOW_WIDTH / 2 - playerText.getLocalBounds().width / 2, WINDOW_HEIGHT * 4 / 16 + 10 - playerText.getLocalBounds().height / 2 + 45*i);
-    	    			    		
-
-    	    			    		sf::Text scoreText = sf::Text();
-    	    			    		scoreText.setString(leaderboard[i+1][1]);
-    	    			    		scoreText.setFont(font);
-    	    			    		scoreText.setCharacterSize(45);
-    	    			    		scoreText.setFillColor(sf::Color(thecolor.r,thecolor.g,thecolor.b,alphaForText));
-    	    			    		scoreText.setPosition(WINDOW_WIDTH *6/8 - scoreText.getLocalBounds().width / 2, WINDOW_HEIGHT * 4 / 16 + 10 - scoreText.getLocalBounds().height / 2 + 45*i);
-    	    			    		
-    	    			    		//
-    	    			    		//if (i == idPlayerScore-1){
-    	    			    		//	rankText.setOutlineColor(sf::Color(255, 255, 255, alphaForText));
-    	    			    		//	playerText.setOutlineColor(sf::Color(255, 255, 255, alphaForText));
-    	    			    		//	scoreText.setOutlineColor(sf::Color(255, 255, 255, alphaForText));
-    	    			    		//	rankText.setOutlineThickness(1.0);
-    	    			    		//	playerText.setOutlineThickness(1.0);
-    	    			    		//	scoreText.setOutlineThickness(1.0);
-    	    			    		//	
-    	    			    		//}
-    	    			    		
-    	    			    		
-    	    			    		window.draw(rankText);
-    	    			    		window.draw(playerText);
-    	    			    		window.draw(scoreText);
-    	    			
-    	    		}
-    	    		sf::Text enterText = sf::Text();
-    	    		      enterText.setString("Press enter to continue");
-    	    		      enterText.setFont(font);
-    	    		      enterText.setCharacterSize(60);
-
-    	    		      if (textAlphaValue <= 255) {
-    	    		        enterText.setFillColor(sf::Color(255, 255, 255, textAlphaValue));
-    	    		        enterText.setOutlineColor(sf::Color(0, 0, 0, textAlphaValue));
-    	    		        enterText.setOutlineThickness(2.0);
-
-    	    		      } else {
-    	    		        enterText.setFillColor(sf::Color(255, 255, 255, 509 - textAlphaValue));
-    	    		        enterText.setOutlineColor(sf::Color(0, 0, 0, 509 - textAlphaValue));
-    	    		        enterText.setOutlineThickness(2.0);
-    	    		      }
-
-    	    		      enterText.setPosition(WINDOW_WIDTH / 2 - enterText.getLocalBounds().width / 2, WINDOW_HEIGHT * 7 / 8 - enterText.getLocalBounds().height / 2);
-
-    	    		      window.draw(enterText);
         }
     
     if (nextScreen >= 0){
