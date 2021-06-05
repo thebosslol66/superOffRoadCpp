@@ -122,6 +122,8 @@ struct Car {
   float botChanceNitro = 0;
   float chanceToGetPowerUp = 0;
   int randomDistForBot = 0;
+  float maxTimeBlocked = 2.0;
+  float timeLeftToReachPoint = 10;
   
   //Upgrades
   int levelTires = 6;
@@ -133,6 +135,7 @@ struct Car {
   float avgSpeed = 40;
   float maxSpeed = 40;
   float tires = 0.12;
+  float shocks = 1;
   
   //Points
   int points = 0;
@@ -243,12 +246,14 @@ struct Assets {
   sf::Music sidewinder;
   sf::Music blaster;
   sf::Music bigDuke;
-  sf::Music caramella;
   sf::Music huevosGrande;
   sf::Music voix;
 
   //Bruitage
   sf::SoundBuffer accelerationBuffer;
+  sf::SoundBuffer dejaVuBuffer;
+  sf::SoundBuffer fireBuffer;
+  sf::SoundBuffer runningBuffer;
   sf::Sound acceleration;
 
   //Voiture
@@ -262,12 +267,33 @@ struct Assets {
   sf::Texture choucrouteTexture;
   sf::Sprite choucroute;
   
+  //defaite
+  sf::Music astronomiaMusic;
+  sf::Music windowsMusic;
+  
+  //victoire
+  sf::Music caramella;
+  sf::Music pinapleMusic;
+  sf::Music ponponMusic;
+  sf::Music crabMusic;
+  
+  //ResultasCourse
+  sf::Music cenaMusic;
+  sf::Music shameMusic;
+  sf::Music denzelMusic;
   
   //Saisie du nom
   sf::Texture nameBackgroundTexture;
     sf::Sprite nameBackground;
 
 };
+
+int randomBetween(int min, int max){
+	return min + static_cast < int > (Math::random() * (max-min +1));
+}
+int randomBetween(int max){
+	return randomBetween(0, max-1);
+}
 
 //algo de silvio
 //algo de collision
@@ -564,7 +590,7 @@ Speed calculateSpeed(const Car & car, int acceleration,
     return speed;
   }
 
-  if (isNitro && acceleration != 0) {
+  if (isNitro && acceleration != 0 && normeSpeed > 0) {
     speed.x = cos(angleRad) * avgAcceleration * 7;
     speed.y = sin(angleRad) * avgAcceleration * 7;
     return speed;
@@ -767,30 +793,34 @@ void reset(Car * car, Ground & level) {
   car -> botPositionToTarget = 0;
   car -> speedColision.x = 0;
   car -> speedColision.y = 0;
+  car -> timeLeftToReachPoint = 10;
 
 }
 
 void setUpgradePlayer(Car & car) {
 	float baseTires = 0.12;
-	int baseAvgSpeed = 40;
-	int baseMaxSpeed = 40;
-	
-	car.avgSpeed = baseAvgSpeed + 2.5 * car.levelAcceleration;
-	car.maxSpeed = baseMaxSpeed + 2.5 * car.levelMaxSpeed;
-	car.tires = baseTires - 0.01 * car.levelTires;
-	
-	//Set for shock
-}
-void setUpgradeBot(Car * car) {
-	float baseTires = 0.12;
 		int baseAvgSpeed = 40;
 		int baseMaxSpeed = 40;
-		
-		car-> avgSpeed = baseAvgSpeed + 2.5 * car -> levelAcceleration;
-		car-> maxSpeed = baseMaxSpeed + 2.5 * car -> levelMaxSpeed;
-		car-> tires = baseTires - 0.01 * car -> levelTires;
-}
+		float baseShocks = 1.0;
 
+		car.avgSpeed = baseAvgSpeed + 2.5 * car.levelAcceleration;
+		car.maxSpeed = baseMaxSpeed + 2.5 * car.levelMaxSpeed;
+		car.tires = baseTires - 0.01 * car.levelTires;
+		car.shocks = baseShocks - 0.08 * car.levelShocks;
+
+
+	}
+	void setUpgradeBot(Car * car) {
+		float baseTires = 0.10;
+			int baseAvgSpeed = 40;
+			int baseMaxSpeed = 40;
+			float baseShocks = 1.0;
+
+			car-> avgSpeed = baseAvgSpeed + 2.5 * car -> levelAcceleration;
+			car-> maxSpeed = baseMaxSpeed + 2.5 * car -> levelMaxSpeed;
+			car-> tires = baseTires - 0.01 * car -> levelTires;
+			car->shocks = baseShocks - 0.08 * car->levelShocks;
+	}
 void makeLevel(Ground & level, std::string src) {
   ifstream levelData(src);
   level.walls.clear();
@@ -1095,6 +1125,7 @@ void setBotLevelFromType(Car * car){
 		          car -> levelAcceleration = 6;
 		          car -> levelMaxSpeed = 7;
 		          car -> randomDistForBot = 17;
+		          car -> maxTimeBlocked = 0.4;
 	        } else if (car -> botType == "hard") {
 	          car -> botChanceNitro = 0.005;
 	          car -> chanceToGetPowerUp = 0.7;
@@ -1103,6 +1134,7 @@ void setBotLevelFromType(Car * car){
 	          car -> levelAcceleration = 5;
 	          car -> levelMaxSpeed = 5;
 	          car -> randomDistForBot = 22;
+	          car -> maxTimeBlocked = 0.8;
 	        } else if (car -> botType == "medium") {
 	        	car -> botChanceNitro = 0.003;
 	        	car -> chanceToGetPowerUp = 0.4;
@@ -1113,6 +1145,7 @@ void setBotLevelFromType(Car * car){
 		          car -> levelMaxSpeed = 2;
 
 		          car -> randomDistForBot = 25;
+		          car -> maxTimeBlocked = 1.3;
 	        } else if (car -> botType == "dumy") {
 	          car -> botChanceNitro = 0.001;
 	          car -> chanceToGetPowerUp = 0.2;
@@ -1121,6 +1154,7 @@ void setBotLevelFromType(Car * car){
 	          car -> levelAcceleration = 0;
 	          car -> levelMaxSpeed = 0;
 	          car -> randomDistForBot = 35;
+	          car -> maxTimeBlocked = 2.0;
 	        } else {
 	        	car -> botChanceNitro = 0.001;
 	        	car -> chanceToGetPowerUp = 0.5;
@@ -1129,6 +1163,7 @@ void setBotLevelFromType(Car * car){
 	        			          car -> levelAcceleration = 2;
 	        			          car -> levelMaxSpeed = 2;
 	        			          car -> randomDistForBot = 50;
+	        			          car -> maxTimeBlocked = 2.0;
 	        }
 }
 
@@ -1147,24 +1182,45 @@ void stopAllMusic(Assets &assets){
     assets.caramella.stop();
     assets.huevosGrande.stop();
     assets.voix.stop();
+    assets.astronomiaMusic.stop();
+    assets.windowsMusic.stop();
+    assets.pinapleMusic.stop();
+    assets.crabMusic.stop();
+    assets.ponponMusic.stop();
+    assets.cenaMusic.stop();
+    assets.shameMusic.stop();
+    assets.denzelMusic.stop();
+    
     
 }
 
+void setAllMusicVolume(Assets &assets, int volume){
+	assets.titleScreenmusic.setVolume(volume);
+		assets.nameScreenmusic.setVolume(volume);
+		assets.setupScreenmusic.setVolume(volume);
+		assets.startScreenmusic.setVolume(volume);
+		assets.goalScreenmusic.setVolume(volume);
+		assets.celebrationScreenmusic.setVolume(volume);
+		assets.gameoverScreenmusic.setVolume(volume);
+	    assets.fandango.setVolume(volume);
+	    assets.sidewinder.setVolume(volume);
+	    assets.blaster.setVolume(volume);
+	    assets.bigDuke.setVolume(volume);
+	    assets.caramella.setVolume(volume);
+	    assets.huevosGrande.setVolume(volume);
+	    assets.voix.setVolume(volume);
+
+	    assets.astronomiaMusic.setVolume(volume);
+	    assets.windowsMusic.setVolume(volume);
+	    assets.pinapleMusic.setVolume(volume);
+	    assets.crabMusic.setVolume(volume);
+	    assets.ponponMusic.setVolume(volume);
+	    assets.cenaMusic.setVolume(volume);
+	    assets.shameMusic.setVolume(volume);
+	    assets.denzelMusic.setVolume(volume);
+}
 void muteAllMusic(Assets &assets){
-	assets.titleScreenmusic.setVolume(0);
-	assets.nameScreenmusic.setVolume(0);
-	assets.setupScreenmusic.setVolume(0);
-	assets.startScreenmusic.setVolume(0);
-	assets.goalScreenmusic.setVolume(0);
-	assets.celebrationScreenmusic.setVolume(0);
-	assets.gameoverScreenmusic.setVolume(0);
-    assets.fandango.setVolume(0);
-    assets.sidewinder.setVolume(0);
-    assets.blaster.setVolume(0);
-    assets.bigDuke.setVolume(0);
-    assets.caramella.setVolume(0);
-    assets.huevosGrande.setVolume(0);
-    assets.voix.setVolume(0);
+	setAllMusicVolume(assets, 0);
 }
 
 int writeHightScore(sf::String name, int score, std::map<int, sf::String[2]> &leaderboard, std::string src){
@@ -1384,6 +1440,8 @@ int main(int argc,char* argv[]) {
 
   //Pour affichage resultats
   Car * tri[4];
+  
+  int choixMusiqueResultatCourse = -1;
 
   //Pour le personnage
   sf::Vector2f faceMove(1446, 577);
@@ -1408,6 +1466,7 @@ int main(int argc,char* argv[]) {
   //goalScreen
   float timeGoalScreen = 0;
   const float durationGoalScreen = 5.0;
+  int choixMusiqueFinCourse = -1;
   
   //Name enter
   sf::String playerName = "";
@@ -1423,6 +1482,7 @@ int main(int argc,char* argv[]) {
   //Win
   float choucrouteSize = 0;
   float cooldownMaxResetWinScreen = 257.0;
+  int choixMusiqueVictoire = -1;
   
   //ecran montrer son score
   int idPlayerScore = 0;
@@ -1542,17 +1602,6 @@ int main(int argc,char* argv[]) {
   loadFromFile(assets.carTexture, assets.carSprite, "assets/voiture.png");
   
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-
   loadTextFromFile(allText, "gameText.txt");
 
   loadMusicFromFile(assets.titleScreenmusic, "sound/01 Title Demo.flac");
@@ -1577,11 +1626,25 @@ int main(int argc,char* argv[]) {
   loadMusicFromFile(assets.huevosGrande, "sound/06 Huevos Grande.flac");
   loadMusicFromFile(assets.voix, "sound/voix.flac");
   assets.voix.setLoop(true);
+  
+  loadMusicFromFile(assets.astronomiaMusic, "sound/astronomia.flac");
+  loadMusicFromFile(assets.windowsMusic, "sound/microsoft-windows-xp-shutdown-sound.flac");
+  
 
-
+  loadMusicFromFile(assets.pinapleMusic, "sound/pineapple.flac");
+  loadMusicFromFile(assets.ponponMusic, "sound/ponponpon-kyary-pamyu-pamyu-hd-engjapan-cc-music-video.flac");
+  loadMusicFromFile(assets.crabMusic, "sound/noiseStorm.flac");
+  
+  loadMusicFromFile(assets.cenaMusic, "sound/his-name-is-john-cena.flac");
+  loadMusicFromFile(assets.shameMusic, "sound/curb-your-enthusiasm-theme.flac");
+  loadMusicFromFile(assets.denzelMusic, "sound/denzel-curry-ultimate-full-video.flac");
+  
   assets.accelerationBuffer.loadFromFile("sound/acceleration.flac");
+  assets.dejaVuBuffer.loadFromFile("sound/initial-d-deja-vu.flac");
+  assets.fireBuffer.loadFromFile("sound/ragonforce-through-the-fire-and-flames-official-video-1.flac");
+  assets.runningBuffer.loadFromFile("sound/running in the 90s.flac");
   assets.acceleration.setBuffer(assets.accelerationBuffer);
-  assets.acceleration.setLoop(true);
+  assets.acceleration.setLoop(false);
   
   //muteAllMusic(assets);
   
@@ -1950,9 +2013,9 @@ int main(int argc,char* argv[]) {
       }
 
       if (playerCar.state == 2) {
-        playerCar.malusBonusSpeed *= 0.60;
+        playerCar.malusBonusSpeed *= 0.50;
       } else if (playerCar.state == 3) {
-        playerCar.malusBonusSpeed *= 0.70;
+        playerCar.malusBonusSpeed *= 0.60;
       } else if (playerCar.state == 4) {
         playerCar.malusBonusSpeed *= 0.40;
       }
@@ -2002,31 +2065,40 @@ int main(int argc,char* argv[]) {
             }
           }
       }
-
-      //CALCUL DE LA VITESSE DE LA VOITURE
-      playerCar.speed = calculateSpeed(playerCar, playerCar.avgSpeed * playerCar.malusBonusSpeed, playerCar.avgSpeed, playerCar.maxSpeed*5, up, down, playerCar.lastNitroUsedTime >= 0, dt);
-
-      //GENERATION DE LA NITRO
-      countNitro++;
-      if (countNitro == NITRO_SPAWN_TIME) {
-        	generateNitro(level.spawnPosNitro);
-        countNitro = 0;
+      
+      int chanceToDropSound = 0;
+      for (int j = 0; j < Enemies.size() && (playerCar.lastNitroUsedTime == TIME_NITRO_USED) ; j++) {
+                Car * enemie2 = Enemies[j];
+                if (calculateNorme(enemie2->pos.x-playerCar.pos.x, enemie2->pos.y-playerCar.pos.y) < 200){
+                	chanceToDropSound++;
+                }
+            }
+      if(playerCar.lastNitroUsedTime == TIME_NITRO_USED){
+      if (chanceToDropSound>=2 && Math::random() <0.10){
+    	  switch(randomBetween(3)){
+    	  case 1:{
+    	  assets.acceleration.setBuffer(assets.dejaVuBuffer);
+    	  }break;
+    	  case 2:{
+    	  	assets.acceleration.setBuffer(assets.fireBuffer);
+    	  }
+    	  case 3:{
+    	  assets.acceleration.setBuffer(assets.runningBuffer);
+    	  }break;
+    	  }
+      }else{
+    		  assets.acceleration.setBuffer(assets.accelerationBuffer);
       }
-      //GENERATION DE LA MONEY
-      countMoney++;
-      if (countMoney == MONEY_SPAWN_TIME)
-      {
-        generateNitro(level.spawnPosMoney);
-        countMoney = 0;
       }
 
-      playerCar.malusBonusSpeed = 1;
       
       //*************************ENEMIES STUFF************************//
       for (int j = 0; j < Enemies.size(); j++) {
         Car * enemie = Enemies[j];
 
-        if (enemie -> timeBlocked > 2) {
+        enemie -> timeLeftToReachPoint -= dt;
+        
+        if (enemie -> timeBlocked >= enemie -> maxTimeBlocked || enemie -> timeLeftToReachPoint < 0) {
           float lowerDistance = 100000;
           int idCheckpoint = 0;
           float dist;
@@ -2038,7 +2110,9 @@ int main(int argc,char* argv[]) {
               enemie -> posInterBot.x = -1;
             }
           }
+          enemie -> posInterBot.x = -1;
           enemie -> botPositionToTarget = idCheckpoint;
+          enemie -> timeLeftToReachPoint = 10;
 
         }
 
@@ -2096,7 +2170,8 @@ int main(int argc,char* argv[]) {
         }
 
         if (isCollision( * enemie, level.botLine[enemie -> botPositionToTarget], CAR_LONGUEUR)) {
-
+		
+        	enemie -> timeLeftToReachPoint = 10;
 
           sf::Vector2f vectorBetweenPosAndNewTarget = Vector2f(level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())].x - enemie -> pos.x, level.botLine[fmod(enemie -> botPositionToTarget + 1, level.botLine.size())].y - enemie -> pos.y);
 
@@ -2277,13 +2352,32 @@ int main(int argc,char* argv[]) {
                                                            	enemie -> speedColision.y += 1.05 * (tempSpeed.y*(playerCar.pos.y- enemie -> pos.y)*dt);
                                                             }
                                                            }
-        //
-        //On calcule ensuite la nouvelle vitesse de la voiture
-        enemie -> speed = calculateSpeed( * enemie, (enemie -> avgSpeed  * enemie -> malusBonusSpeed), enemie -> avgSpeed, enemie -> maxSpeed * 5, true, false, enemie -> lastNitroUsedTime >= 0, dt);
 
-        enemie -> malusBonusSpeed = 1;
 
       }
+      
+      //CALCUL DE LA VITESSE DE LA VOITURE
+            playerCar.speed = calculateSpeed(playerCar, playerCar.avgSpeed * (1-((1-playerCar.malusBonusSpeed)*playerCar.shocks)), playerCar.avgSpeed, playerCar.maxSpeed*5, up, down, playerCar.lastNitroUsedTime >= 0, dt);
+            playerCar.malusBonusSpeed = 1;
+
+            for (int j = 0; j < Enemies.size(); j++) {
+            		//On calcule ensuite la nouvelle vitesse de la voiture
+          	  Enemies[j] -> speed = calculateSpeed( * Enemies[j], (Enemies[j] -> avgSpeed  * (1-((1-Enemies[j] -> malusBonusSpeed)*playerCar.shocks))), Enemies[j] -> avgSpeed, Enemies[j] -> maxSpeed * 5, true, false, Enemies[j] -> lastNitroUsedTime >= 0, dt);
+          	  Enemies[j] -> malusBonusSpeed = 1;
+            }
+                  //GENERATION DE LA NITRO
+                  countNitro++;
+                  if (countNitro == NITRO_SPAWN_TIME) {
+                    	generateNitro(level.spawnPosNitro);
+                    countNitro = 0;
+                  }
+                  //GENERATION DE LA MONEY
+                  countMoney++;
+                  if (countMoney == MONEY_SPAWN_TIME)
+                  {
+                    generateNitro(level.spawnPosMoney);
+                    countMoney = 0;
+                  }
 
       moveCar(playerCar, dt);
       for (int j = 0; j < Enemies.size(); j++) {
@@ -2351,6 +2445,32 @@ int main(int argc,char* argv[]) {
     	if (makeAnnimation){
       textAlphaValue += 170 * dt;
       textAlphaValue %= 510;
+      
+      if (choixMusiqueResultatCourse < 0){
+    	  if (randomBetween(20)==0){
+    		  //musique defaite
+    		      		  if (playerCar.startPosition >= 3 || (playerCar.startPosition != 1 && idLevel >= MAX_RUNS)){
+    		      		  choixMusiqueResultatCourse=randomBetween(20,20);
+    		      		  }
+    		      		  //musique victoire si il est a la dernière course
+    		      		  else if (idLevel >= MAX_RUNS){
+    		      		  	choixMusiqueResultatCourse = randomBetween(30,31);
+    		      		  }
+    		      		  else{
+    		      			choixMusiqueResultatCourse = 1;
+    		      		  }
+    		  
+    	  } else {
+    		  //musique defaite
+    		  if (playerCar.startPosition >= 3){
+    		  choixMusiqueResultatCourse=0;
+    		  }
+    		  //musique victoire
+    		  else{
+    		  	choixMusiqueResultatCourse = 1;
+    		  }
+    	  }
+      }
     	}
 
       if (playerCar.startPosition >= 3 && !defeat && nextScreen != 0) {
@@ -2369,6 +2489,8 @@ int main(int argc,char* argv[]) {
 		//Pour eviter les bugs et sauter des niveaux
     	  if (makeAnnimation){
         idLevel++;
+        
+        choixMusiqueResultatCourse = -1;
         
         //ajout de l'argent de la course au portefeuille du joueur
         playerCar.monney += playerCar.monneyWinThisRun;
@@ -2464,14 +2586,7 @@ int main(int argc,char* argv[]) {
             playerCar.monney = 0;
             playerCar.points = 0;
             
-            //reset des positions de départ
-            playerCar.startPosition = 0;
-            for (int j = 0; j < Enemies.size(); j++) {
-                 Enemies[j] -> startPosition = j+1;
-                 Enemies[j] -> monney = 0;
-                 Enemies[j] -> points = 0;
-                  }
-				  
+            
         }
           if (makeAnnimation){
         	  //Regeneration du terrain
@@ -2488,6 +2603,18 @@ int main(int argc,char* argv[]) {
         }
         for (int i = 0; i < level.spawnPosNitro.size(); i++) {
           level.spawnPosNitro[i].present = false;
+        }
+        
+        if (defeat){
+        	//reset des positions de départ
+        	            playerCar.startPosition = 0;
+        	            for (int j = 0; j < Enemies.size(); j++) {
+        	                 Enemies[j] -> startPosition = j+1;
+        	                 Enemies[j] -> monney = 0;
+        	                 Enemies[j] -> points = 0;
+        	                 Enemies[j] -> nbNitro = 3;
+        	                  }
+        					  
         }
       }
     } else if (idCurrentWindow == 3) {
@@ -2610,10 +2737,20 @@ int main(int argc,char* argv[]) {
       }
 
     } else if (idCurrentWindow == 5){
+    	if (choixMusiqueFinCourse < 0 && nextScreen!=2){
+    		if (randomBetween(50)==0 && playerCar.score == 4){
+    			choixMusiqueFinCourse = randomBetween(1,2);
+    		}
+    		else{
+    			choixMusiqueFinCourse = 0;
+    		}
+    	}
     	timeGoalScreen += dt;
-    	if (timeGoalScreen > durationGoalScreen){
+    	//Lister les musiques
+    	if (timeGoalScreen > durationGoalScreen && !assets.astronomiaMusic.getStatus() && !assets.windowsMusic.getStatus()){
     		timeGoalScreen = 0;
     		nextScreen = 2;
+    		choixMusiqueFinCourse = -1;
     	}
     }
     
@@ -2717,8 +2854,17 @@ int main(int argc,char* argv[]) {
     	  if (choucrouteSize < 1){
     		  choucrouteSize += 0.5*dt;
     	  }
+    	  if (choixMusiqueVictoire < 0){
+    		  if (randomBetween(50)==0){
+    			  choixMusiqueVictoire = randomBetween(1,3);
+    		  }
+    		  else {
+    		  	choixMusiqueVictoire = 0;
+    		  }
+    	  }
     	  else{
     		  choucrouteSize = 1;
+    		  choixMusiqueVictoire = -1;
     	  }
     	  
     	  
@@ -2735,6 +2881,8 @@ int main(int argc,char* argv[]) {
   	        	      }
     }
     	  if (enter1Pressure) {
+    		  choixMusiqueVictoire = -1;
+			  
     	    nextScreen = 9;
     	    textAlphaValue = 0;
     	    textScale = 0.0;
@@ -2990,12 +3138,9 @@ int main(int argc,char* argv[]) {
                 } 
             }
 
-            if (!assets.acceleration.getStatus() && up)
+            if (!assets.acceleration.getStatus() && nitro)
             {
                 assets.acceleration.play();
-            }else if (!up)
-            {
-                assets.acceleration.stop();
             }
     
         }
@@ -3251,17 +3396,30 @@ int main(int argc,char* argv[]) {
 	  		  
 	  		  
       sf::Text enterText = sf::Text();
+      //overkill
       if (defeat) {
-    	  if (!assets.gameoverScreenmusic.getStatus() && playMusicOnce){
+    	  if (!assets.gameoverScreenmusic.getStatus() && playMusicOnce && choixMusiqueResultatCourse ==0){
     		  playMusicOnce = false;
     	      		assets.gameoverScreenmusic.play();
     	      	}
+    	  if (!assets.shameMusic.getStatus() && playMusicOnce && choixMusiqueResultatCourse ==20){
+    	      		  playMusicOnce = false;
+    	      	      		assets.shameMusic.play();
+    	      	      	}
         enterText.setString("You lose!! Press enter to return Lobby");
       } else {
-    	  if (!assets.celebrationScreenmusic.getStatus() && playMusicOnce){
+    	  if (!assets.celebrationScreenmusic.getStatus() && playMusicOnce && choixMusiqueResultatCourse ==1){
     		  playMusicOnce = false;
     	      		assets.celebrationScreenmusic.play();
     	      	}
+    	  if (!assets.cenaMusic.getStatus() && playMusicOnce && choixMusiqueResultatCourse ==30){
+    	      		  playMusicOnce = false;
+    	      	      		assets.cenaMusic.play();
+    	      	      	}
+    	  if (!assets.denzelMusic.getStatus() && playMusicOnce && choixMusiqueResultatCourse ==31){
+    	      	      		  playMusicOnce = false;
+    	      	      	      		assets.denzelMusic.play();
+    	      	      	      	}
         enterText.setString("Press enter to continue");
       }
       enterText.setFont(font);
@@ -3318,12 +3476,12 @@ int main(int argc,char* argv[]) {
     if (idCurrentWindow == 4) {
 
 
-        if (idText< allTextForFrame.size() && !assets.voix.getStatus())
+        if (idCharToShow < allTextForFrame[idText].getSize() && assets.voix.getStatus() != sf::SoundSource::Status::Playing && idCharToShow > 0)
         {
             assets.voix.play();
-        }else if (idText == allTextForFrame.size())
+        }else if (idCharToShow >= allTextForFrame[idText].getSize())
         {
-            assets.voix.stop();
+            assets.voix.pause();
         }
       sf::RectangleShape greyShape(sf::Vector2f(WINDOW_WIDTH, WINDOW_HEIGHT));
       greyShape.setFillColor(sf::Color(0, 0, 0, 100));
@@ -3365,9 +3523,16 @@ int main(int argc,char* argv[]) {
 
     }
     if (idCurrentWindow == 5) {
-    	if (!assets.goalScreenmusic.getStatus()){
+    	if (!assets.goalScreenmusic.getStatus() && choixMusiqueFinCourse == 0){
     	    assets.goalScreenmusic.play();
     	}
+    	if (!assets.astronomiaMusic.getStatus() && choixMusiqueFinCourse == 1){
+    		assets.astronomiaMusic.play();
+    	   }
+    	if (!assets.windowsMusic.getStatus() && choixMusiqueFinCourse == 2){
+    		assets.windowsMusic.play();
+    	    	   }
+    	
     }
     if (idCurrentWindow == 6) {
         	if (!assets.nameScreenmusic.getStatus()){
@@ -3505,10 +3670,23 @@ int main(int argc,char* argv[]) {
     
     if(idCurrentWindow == 8){
 
-        if (!assets.caramella.getStatus())
+        if (!assets.caramella.getStatus() && choixMusiqueVictoire == 0)
         {
             assets.caramella.play();
         }
+        if (!assets.pinapleMusic.getStatus() && choixMusiqueVictoire == 1)
+                {
+        	assets.pinapleMusic.play();
+                }
+        if (!assets.ponponMusic.getStatus() && choixMusiqueVictoire == 2)
+                        {
+                	assets.ponponMusic.play();
+                        }
+        if (!assets.crabMusic.getStatus() && choixMusiqueVictoire == 3)
+                                {
+                        	assets.crabMusic.play();
+                                }
+        
     	
     	window.clear(sf::Color::Black);
     	
