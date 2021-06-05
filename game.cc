@@ -40,7 +40,7 @@
 using namespace std;
 using namespace sf;
 
-const bool DEBUG = true;
+const bool DEBUG = false;
 
 const int WINDOW_WIDTH = 1200;
 const int WINDOW_HEIGHT = 800;
@@ -761,7 +761,7 @@ Speed calculateProjectionOfSpeed(Speed vectorToProject, sf::Vector2f vectorBase)
 
 void reset(Car & car, Ground & level) {
     car.state = 1;
-    car.pos = level.spawnPos[car.startPosition];
+    car.pos = level.spawnPos[car.startPosition-1];
     car.speed.x = 0;
     car.speed.y = 0;
     car.direction = 0;
@@ -776,7 +776,7 @@ void reset(Car & car, Ground & level) {
 }
 void reset(Car * car, Ground & level) {
     car -> state = 1;
-    car -> pos = level.spawnPos[car -> startPosition];
+    car -> pos = level.spawnPos[car -> startPosition-1];
     car -> speed.x = 0;
     car -> speed.y = 0;
     car -> direction = 0;
@@ -2525,24 +2525,27 @@ int main(int argc, char * argv[]) {
 
                     //Comptage des points pour leaderboard
                     playerCar.points += (100 - Math::arrondir(timer, 1)) * idLevel;
+                    cout << "car " << score << endl;
                     score++;
                     for (int j = 0; j < Enemies.size(); j++) {
                         Car * enemie = Enemies[j];
-                        if (enemie -> score == 0) {
+                        if (enemie -> score == -1) {
                             enemie -> score = score;
+                            cout << "enemie 1 " << endl;
                             score++;
-                            cout << " enemie " << score << endl;
                         }
                     }
 
                 }
                 for (int j = 0; j < Enemies.size(); j++) {
                     Car * enemie = Enemies[j];
-                    if (enemie -> laps >= NB_LAPS_FIN && enemie -> score == 0) {
+                    if (enemie -> laps >= NB_LAPS_FIN && enemie -> score == -1) {
                         enemie -> score = score;
+                        cout << "enemie 2 " << endl;
                         score++;
                     }
                 }
+                cout << score << endl;
                 if (score == 3) {
                     playerCar.score = score;
                     playerCar.points += (100 - Math::arrondir(timer, 1)) * idLevel;
@@ -2720,7 +2723,6 @@ int main(int argc, char * argv[]) {
                 makeLevel(level, levelFile + to_string((idLevel - 1) % 4 + 1) + ".txt");
                 loadFromFile(assets.backgroundLevelScreenTexture, assets.backgroundLevelScreen, levelFile + to_string((idLevel - 1) % 4 + 1) + ".png");
                 nbFlag = level.flags.size();
-                printListWall(level.walls);
 
                 //mise a 0 de toute les voutures entre chaques courses
                 reset(playerCar, level);
@@ -3044,7 +3046,6 @@ int main(int argc, char * argv[]) {
                     makeLevel(level, levelFile + to_string((idLevel - 1) % 4 + 1) + ".txt");
                     loadFromFile(assets.backgroundLevelScreenTexture, assets.backgroundLevelScreen, levelFile + to_string((idLevel - 1) % 4 + 1) + ".png");
                     nbFlag = level.flags.size();
-                    printListWall(level.walls);
                 }
 
                 reset(playerCar, level);
