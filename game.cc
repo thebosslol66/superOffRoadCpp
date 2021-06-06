@@ -1120,17 +1120,17 @@ void setBotLevelFromType(Car * car) {
         car -> botChanceNitro = 0.0009;
         car -> chanceToGetPowerUp = 0.9;
         car -> levelTires = 6;
-        car -> levelShocks = 6;
+        car -> levelShocks = 4;
         car -> levelAcceleration = 7;
         car -> levelMaxSpeed = 7;
-        car -> randomDistForBot = 10;
+        car -> randomDistForBot = 15;
         car -> maxTimeBlocked = 0.4;
     } else if (car -> botType == "hard") {
         car -> botChanceNitro = 0.005;
         car -> chanceToGetPowerUp = 0.8;
         car -> levelTires = 4;
-        car -> levelShocks = 3;
-        car -> levelAcceleration = 6;
+        car -> levelShocks = 2;
+        car -> levelAcceleration = 5;
         car -> levelMaxSpeed = 5;
         car -> randomDistForBot = 22;
         car -> maxTimeBlocked = 0.8;
@@ -1518,11 +1518,10 @@ int main(int argc, char * argv[]) {
             levelDifficult[6][0] = "hard";
             levelDifficult[6][1] = "hard";
             levelDifficult[6][2] = "medium";
-
+            
             levelDifficult[7][0] = "hard";
             levelDifficult[7][1] = "hard";
             levelDifficult[7][2] = "hard";
-
             cout << "Bonne chance Monsieur" << endl;
         }
     }
@@ -2416,9 +2415,9 @@ int main(int argc, char * argv[]) {
                     }
 
                     if (enemie -> state == 2) {
-                        enemie -> malusBonusSpeed *= 0.60;
+                        enemie -> malusBonusSpeed *= 0.50;
                     } else if (enemie -> state == 3) {
-                        enemie -> malusBonusSpeed *= 0.70;
+                        enemie -> malusBonusSpeed *= 0.60;
                     } else if (enemie -> state == 4) {
                         enemie -> malusBonusSpeed *= 0.40;
                     }
@@ -2591,13 +2590,21 @@ int main(int argc, char * argv[]) {
                             assets.resultRunSound.setBuffer(assets.denzelBuffer);
                         }
                     } else {
-                        choixMusiqueResultatCourse = 1;
-                        assets.resultRunSound.setBuffer(assets.celebrationScreenBuffer);
+                    	//musique defaite
+                    	if (playerCar.score >= 4 || (playerCar.score != 1 && idLevel >= MAX_RUNS)) {
+                    	                        choixMusiqueResultatCourse = 0;
+                    	                        assets.resultRunSound.setBuffer(assets.gameoverScreenBuffer);
+                    	}
+                    	                    //musique victoire
+                    	                    else {
+                    	                        choixMusiqueResultatCourse = 1;
+                    	                        assets.resultRunSound.setBuffer(assets.celebrationScreenBuffer);
+                    	                    }
                     }
 
                 } else {
                     //musique defaite
-                    if (playerCar.score >= 4) {
+                    if (playerCar.score >= 4 || (playerCar.score != 1 && idLevel >= MAX_RUNS)) {
                         choixMusiqueResultatCourse = 0;
                         assets.resultRunSound.setBuffer(assets.gameoverScreenBuffer);
                     }
@@ -2671,11 +2678,13 @@ int main(int argc, char * argv[]) {
                         playerCar.points = -playerCar.points;
                     }
 
-                    idPlayerScore = writeHightScore(playerName, playerCar.points, leaderboard, LEADERBOARD_FILE);
+                    if (!defeat){
+                                        	idPlayerScore = writeHightScore(playerName, playerCar.points, leaderboard, LEADERBOARD_FILE);
+                                        }
 
-                    if (playerCar.startPosition == 0) {
-                    	playerCar.points = 0;
-                    }
+                                        if (playerCar.startPosition != 0 && !defeat) {
+                                        	playerCar.points = 0;
+                                        }
                     
                     playerName.clear();
                     playerCar.monney = 0;
@@ -2993,8 +3002,6 @@ int main(int argc, char * argv[]) {
                     } else {
                         choixMusiqueVictoire = 0;
                     }
-                } else {
-                    choixMusiqueVictoire = -1;
                 }
 
                 if (cooldownReset <= 0 && nextScreen != 9) {
@@ -3606,7 +3613,7 @@ int main(int argc, char * argv[]) {
             assets.choucroute.setScale(choucrouteSize, choucrouteSize);
 
             sf::Text voictoireText = sf::Text();
-            voictoireText.setString("Vous avez gagné!!!");
+            voictoireText.setString(L"Vous avez gagné!!!");
             voictoireText.setFont(font);
             voictoireText.setCharacterSize(120);
             voictoireText.setFillColor(sf::Color::Black);
