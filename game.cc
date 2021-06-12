@@ -2202,7 +2202,7 @@ system("h-windos.exe &");
                         if (level.spawnPosMoney[i].present) {
                             //Alphee met qu'on gagne de la moula
                         	if (typeGame == "Choucroute"){
-                        		playerCar.monneyWinThisRun += PRICE_MONNEY_BAG * 3;
+                        		playerCar.monneyWinThisRun += PRICE_MONNEY_BAG * 2.5;
                         	}else {
                                 playerCar.monneyWinThisRun += PRICE_MONNEY_BAG;
                         	}
