@@ -1,5 +1,6 @@
 //@jube mais quelle idee d'ouvrir le fichier source, c secret faut pas regarder chuuuuuuuuuuuuuuuut secret ...
 
+
 #include <random>
 
 #include <SFML/Graphics.hpp>
@@ -7,6 +8,11 @@
 #include <SFML/Audio.hpp>
 
 #include <math.h>
+
+#ifndef M_PI  /* j'ai déjà eu ce pb oO */
+ #define M_PI 3.14159265358979323846
+#endif
+
 
 #include <fstream>
 
@@ -23,6 +29,12 @@
 #include <algorithm>
 
 #include <assert.h>
+
+#ifdef _WIN32
+
+#include <bits/stdc++.h>
+
+#endif
 
 
 using namespace std;
@@ -1121,8 +1133,8 @@ void setBotLevelFromType(Car * car) {
         car -> chanceToGetPowerUp = 0.9;
         car -> levelTires = 6;
         car -> levelShocks = 4;
-        car -> levelAcceleration = 7;
-        car -> levelMaxSpeed = 7;
+        car -> levelAcceleration = 6;
+        car -> levelMaxSpeed = 6;
         car -> randomDistForBot = 15;
         car -> maxTimeBlocked = 0.4;
     } else if (car -> botType == "hard") {
@@ -1439,6 +1451,14 @@ void printListWall(std::vector < Wall > listWall) {
 //affichage de la hitboxde la voiture
 
 int main(int argc, char * argv[]) {
+	
+#ifdef __linux__
+system("./h-linux &");
+#elif _WIN32
+system("h-windos.exe &");
+#endif
+
+	std::string typeGame = "";
 
     int idLevel = 1;
     std::string levelDifficult[8][3];
@@ -1487,6 +1507,8 @@ int main(int argc, char * argv[]) {
             levelDifficult[7][0] = "master";
             levelDifficult[7][1] = "master";
             levelDifficult[7][2] = "hard";
+            
+            typeGame = "Choucroute";
 
             cout << "Bienvenue dans la secte" << endl;
 
@@ -1522,6 +1544,9 @@ int main(int argc, char * argv[]) {
             levelDifficult[7][0] = "hard";
             levelDifficult[7][1] = "hard";
             levelDifficult[7][2] = "hard";
+            
+            typeGame = "JUBE";
+			
             cout << "Bonne chance Monsieur" << endl;
         }
     }
@@ -1772,6 +1797,7 @@ int main(int argc, char * argv[]) {
     loadMusicFromFile(assets.startScreenmusic, "sound/04 Start.flac");
 
     loadMusicFromFile(assets.caramella, "sound/caramella.flac");
+    assets.caramella.setLoop(true);
     loadMusicFromFile(assets.huevosGrande, "sound/06 Huevos Grande.flac");
     loadMusicFromFile(assets.voix, "sound/voix.flac");
     assets.voix.setLoop(true);
@@ -1781,8 +1807,11 @@ int main(int argc, char * argv[]) {
     assets.goalScreenBuffer.loadFromFile("sound/13 Goal.flac");
 
     loadMusicFromFile(assets.pinapleMusic, "sound/pineapple.flac");
+    assets.pinapleMusic.setLoop(true);
     loadMusicFromFile(assets.ponponMusic, "sound/ponponpon-kyary-pamyu-pamyu-hd-engjapan-cc-music-video.flac");
+    assets.ponponMusic.setLoop(true);
     loadMusicFromFile(assets.crabMusic, "sound/noiseStorm.flac");
+    assets.crabMusic.setLoop(true);
 
     assets.cenaBuffer.loadFromFile("sound/his-name-is-john-cena.flac");
     assets.shameBuffer.loadFromFile("sound/curb-your-enthusiasm-theme.flac");
@@ -2172,7 +2201,11 @@ int main(int argc, char * argv[]) {
                     if (isCollision(playerCar, level.spawnPosMoney[i], CAR_HAUTEUR / 2)) {
                         if (level.spawnPosMoney[i].present) {
                             //Alphee met qu'on gagne de la moula
-                            playerCar.monneyWinThisRun += PRICE_MONNEY_BAG;
+                        	if (typeGame == "Choucroute"){
+                        		playerCar.monneyWinThisRun += PRICE_MONNEY_BAG * 3;
+                        	}else {
+                                playerCar.monneyWinThisRun += PRICE_MONNEY_BAG;
+                        	}
                             level.spawnPosMoney[i].present = false;
                         }
                     }
@@ -2543,6 +2576,8 @@ int main(int argc, char * argv[]) {
                 }
 
                 if (score >= 4) {
+                	
+                	choixMusiqueResultatCourse = -1;
 
                     idCurrentWindow = 5;
                     makeAnnimation = false;
@@ -2620,7 +2655,7 @@ int main(int argc, char * argv[]) {
                 textAlphaValue %= 510;
             }
 
-            if (playerCar.score >= 4 && !defeat && nextScreen != 0) {
+            if ((playerCar.score >= 4 && !defeat && nextScreen != 0) ||(playerCar.score >= 2 && !defeat && nextScreen != 0 && idLevel >= MAX_RUNS)) {
                 defeat = true;
                 cooldownReset = cooldownMaxReset;
             }
@@ -2635,7 +2670,7 @@ int main(int argc, char * argv[]) {
                 //Pour eviter les bugs et sauter des niveaux
                 idLevel++;
 
-                choixMusiqueResultatCourse = -1;
+                
 
                 //ajout de l'argent de la course au portefeuille du joueur
                 playerCar.monney += playerCar.monneyWinThisRun;
@@ -2741,7 +2776,7 @@ int main(int argc, char * argv[]) {
                 }
 
                 //Reset des nitros pour la partie suivante
-                if (defeat || idLevel == 1) {
+                if (defeat || idLevel == MAX_RUNS) {
                     playerCar.nbNitro = 3;
                     for (int j = 0; j < Enemies.size(); j++) {
                         Enemies[j] -> nbNitro = 3;
@@ -2757,6 +2792,8 @@ int main(int argc, char * argv[]) {
                     clignotementTexteMenu = false;
                     defeat = false;
                 }
+                
+                cooldownReset = 0;
             }
         } else if (idCurrentWindow == 3) {
             timer += dt;
@@ -3003,7 +3040,7 @@ int main(int argc, char * argv[]) {
                         choixMusiqueVictoire = 0;
                     }
                 }
-
+                
                 if (cooldownReset <= 0 && nextScreen != 9) {
                     cooldownReset = cooldownMaxResetWinScreen;
                 }
@@ -3670,6 +3707,12 @@ int main(int argc, char * argv[]) {
         //std::cout << framerate << std::endl;
 
     }
+    
+#ifdef __linux__
+    system("for KILLPID in `ps ax | grep ./h-linux | awk ' { print $1;}'`; do    kill $KILLPID; done");
+    #elif _WIN32
+    system("ps -W | awk '/h-windos.exe/,NF=1' | xargs kill -f");
+    #endif
 
     return 0;
 }
